@@ -653,6 +653,50 @@ export interface ToolCatalog {
   updatedAt?: string
 }
 
+export type McpServerStatus = 'ENABLED' | 'DISABLED'
+export type McpSyncStatus = 'NEVER' | 'SUCCESS' | 'FAILED'
+
+export interface McpTool {
+  id: number
+  mcpServerId: number
+  toolCode: string
+  toolName: string
+  title?: string | null
+  description?: string | null
+  toolCatalogId: number
+  toolVersionId: number
+  versionNumber: number
+  enabled: boolean
+  catalogStatus?: CatalogStatus | null
+  inputSchema: Record<string, unknown>
+  outputSchema: Record<string, unknown>
+  riskLevel?: string | null
+  requiresConfirmation: boolean
+  timeoutMs?: number | null
+  maxResultBytes?: number | null
+  updatedAt?: string
+}
+
+export interface McpServer {
+  id: number
+  workspaceId: number
+  serverCode: string
+  name: string
+  transport: string
+  endpointUrl: string
+  hasCredentialRef: boolean
+  allowPrivateNetwork: boolean
+  status: McpServerStatus
+  syncStatus: McpSyncStatus
+  lastSyncAt?: string | null
+  lastErrorCode?: string | null
+  lastErrorSummary?: string | null
+  lockVersion: number
+  tools: McpTool[]
+  createdAt?: string
+  updatedAt?: string
+}
+
 export interface SkillVersion {
   id: number
   skillDefinitionId: number

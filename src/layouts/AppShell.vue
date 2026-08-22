@@ -119,6 +119,7 @@ import {
   ListChecks,
   LogOut,
   Menu,
+  PlugZap,
   Search,
   Sparkles,
   Wrench,
@@ -151,6 +152,7 @@ const navItems = [
   { label: 'Workflow', to: '/workflows', icon: GitBranch },
   { label: 'Tools', to: '/tools', icon: Wrench },
   { label: 'Skills', to: '/skills', icon: Sparkles },
+  { label: 'MCP Servers', to: '/mcp/servers', icon: PlugZap },
   { label: '模型统计', to: '/statistics/model-usage', icon: BarChart3 },
   { label: 'AI 连接', to: '/settings/ai-connections', icon: Bot },
 ]

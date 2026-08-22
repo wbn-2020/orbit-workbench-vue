@@ -163,6 +163,18 @@ const router = createRouter({
           meta: { title: 'Skill 详情' },
         },
         {
+          path: 'mcp/servers',
+          name: 'mcp-servers',
+          component: () => import('@/views/mcp/McpServerCatalogView.vue'),
+          meta: { title: 'MCP Servers' },
+        },
+        {
+          path: 'mcp/servers/:id',
+          name: 'mcp-server-detail',
+          component: () => import('@/views/mcp/McpServerCatalogView.vue'),
+          meta: { title: 'MCP Server 详情' },
+        },
+        {
           path: 'workflows/new',
           name: 'workflow-new',
           component: () => import('@/views/workflows/WorkflowEditorView.vue'),
