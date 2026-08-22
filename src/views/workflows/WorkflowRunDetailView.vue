@@ -51,6 +51,47 @@
 
         <aside class="side-stack">
           <section class="surface">
+            <div class="surface-header">
+              <div>
+                <h2 class="surface-title">工具调用</h2>
+                <span class="surface-subtitle">{{ toolCallTotal }} 次调用</span>
+              </div>
+              <el-button text :icon="RefreshCw" :loading="toolCallsLoading" @click="loadToolCalls">
+                刷新调用
+              </el-button>
+            </div>
+            <div v-if="toolCallsLoading && toolCalls.length === 0" class="section-feedback">
+              <el-skeleton :rows="4" animated />
+            </div>
+            <el-alert
+              v-else-if="toolCallsError"
+              class="section-alert"
+              :title="toolCallsError"
+              type="error"
+              show-icon
+              :closable="false"
+            />
+            <EmptyState
+              v-else-if="toolCalls.length === 0"
+              title="暂无工具调用"
+              description="受限的 MCP Tool 节点执行后会在这里留下审计记录。"
+              :icon="Wrench"
+            />
+            <div v-else class="tool-call-list">
+              <div v-for="call in toolCalls" :key="call.id" class="tool-call-row">
+                <Wrench class="tool-call-icon" aria-hidden="true" />
+                <div class="tool-call-main">
+                  <strong>{{ call.toolName || call.toolCode }}</strong>
+                  <small>{{ call.resultSummary || call.argumentsSummary || '无摘要' }}</small>
+                  <p v-if="call.errorSummary" class="error-text">{{ call.errorSummary }}</p>
+                </div>
+                <span class="tool-call-duration">{{ durationLabel(call.durationMs) }}</span>
+                <StatusTag :value="call.status" />
+              </div>
+            </div>
+          </section>
+
+          <section class="surface">
             <div class="surface-header"><h2 class="surface-title">运行摘要</h2></div>
             <div class="surface-body">
               <dl class="detail-grid">
@@ -114,6 +155,7 @@ import {
   GitBranch,
   RefreshCw,
   Square,
+  Wrench,
 } from 'lucide-vue-next'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, ref } from 'vue'
@@ -123,13 +165,14 @@ import {
   cancelWorkflowRun,
   getWorkflowRun,
   listWorkflowRunEvents,
+  listWorkflowRunToolCalls,
 } from '@/api/workflows'
 import { getProblem, problemMessage } from '@/api/http'
 import EmptyState from '@/components/EmptyState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
-import type { RunEvent, WorkflowRunDetail } from '@/types/api'
+import type { RunEvent, ToolCallSummary, WorkflowRunDetail } from '@/types/api'
 import { formatDateTime } from '@/utils/format'
 import { canCancelRun } from '@/utils/runState'
 
@@ -142,12 +185,24 @@ const run = ref<WorkflowRunDetail>()
 const events = ref<RunEvent[]>([])
 const eventsLoading = ref(false)
 const eventsError = ref('')
+const toolCalls = ref<ToolCallSummary[]>([])
+const toolCallTotal = ref(0)
+const toolCallsLoading = ref(false)
+const toolCallsError = ref('')
 
 const canCancel = computed(() => canCancelRun(run.value?.status))
 
 function eventLabel(type: string): string {
   const labels: Record<string, string> = {
     'run.started': '运行开始',
+    'workflow.run.queued': '运行已排队',
+    'workflow.run.started': '运行开始',
+    'workflow.run.completed': '运行完成',
+    'workflow.run.failed': '运行失败',
+    'workflow.run.cancelled': '运行取消',
+    'workflow.node.started': '节点开始',
+    'workflow.node.completed': '节点完成',
+    'workflow.node.failed': '节点失败',
     'run.step.started': '节点开始',
     'run.step.completed': '节点完成',
     'run.step.failed': '节点失败',
@@ -163,6 +218,12 @@ function eventLabel(type: string): string {
   return labels[type] || type
 }
 
+function durationLabel(value?: number | null): string {
+  if (value === undefined || value === null) return '—'
+  if (value < 1_000) return `${value} ms`
+  return `${(value / 1_000).toFixed(1)} s`
+}
+
 async function load(): Promise<void> {
   if (!Number.isFinite(id) || id <= 0) {
     error.value = 'Workflow Run ID 无效'
@@ -174,12 +235,26 @@ async function load(): Promise<void> {
   error.value = ''
   try {
     run.value = await getWorkflowRun(id)
-    await loadEvents()
+    await Promise.all([loadEvents(), loadToolCalls()])
   } catch (loadError) {
     error.value = problemMessage(loadError)
   } finally {
     loading.value = false
     refreshing.value = false
+  }
+}
+
+async function loadToolCalls(): Promise<void> {
+  toolCallsLoading.value = true
+  toolCallsError.value = ''
+  try {
+    const result = await listWorkflowRunToolCalls(id)
+    toolCalls.value = result.items
+    toolCallTotal.value = result.total
+  } catch (loadError) {
+    toolCallsError.value = problemMessage(loadError)
+  } finally {
+    toolCallsLoading.value = false
   }
 }
 
@@ -277,6 +352,8 @@ onMounted(() => load())
 
 .node-main small,
 .node-main p,
+.tool-call-main small,
+.tool-call-main p,
 .timeline-item p,
 .timeline-item time {
   color: var(--ow-muted);
@@ -284,10 +361,45 @@ onMounted(() => load())
 }
 
 .node-main p,
+.tool-call-main p,
 .timeline-item p {
   margin: 3px 0 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.tool-call-list {
+  padding: 6px 8px 8px;
+}
+
+.tool-call-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto auto;
+  align-items: start;
+  gap: 10px;
+  min-height: 68px;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--ow-line-soft);
+}
+
+.tool-call-icon {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  color: var(--ow-primary-strong);
+}
+
+.tool-call-main {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.tool-call-duration {
+  padding-top: 2px;
+  color: var(--ow-muted);
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .waiting-text {

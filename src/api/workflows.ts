@@ -4,6 +4,7 @@ import type {
   PageResult,
   RunEvent,
   RunEventType,
+  ToolCallSummary,
   Workflow,
   WorkflowEdge,
   WorkflowNode,
@@ -238,6 +239,32 @@ function normalizeNodeRun(value: unknown): WorkflowRunDetail['nodeRuns'][number]
   }
 }
 
+function normalizeToolCall(value: unknown): ToolCallSummary {
+  const raw = asRecord(value)
+  return {
+    id: asNumber(read<unknown>(raw, 'id', 'toolCallId')) || 0,
+    runId: asNumber(read<unknown>(raw, 'runId', 'agentRunId')) ?? undefined,
+    workflowRunId: asNumber(read<unknown>(raw, 'workflowRunId')),
+    workflowNodeRunId: asNumber(read<unknown>(raw, 'workflowNodeRunId')),
+    stepId: asNumber(read<unknown>(raw, 'stepId')),
+    modelCallId: asNumber(read<unknown>(raw, 'modelCallId')),
+    toolCode: read<string>(raw, 'toolCode') || '',
+    toolName: read<string>(raw, 'toolName', 'name'),
+    toolVersion: read<string | number>(raw, 'toolVersion', 'version'),
+    toolVersionId: asNumber(read<unknown>(raw, 'toolVersionId')),
+    status: (read<string>(raw, 'status') || 'PENDING') as ToolCallSummary['status'],
+    argumentsSummary: read<string | null>(raw, 'argumentsSummary', 'argumentSummary') ?? null,
+    resultSummary: read<string | null>(raw, 'resultSummary') ?? null,
+    resultSizeBytes: asNumber(read<unknown>(raw, 'resultSizeBytes')),
+    durationMs: asNumber(read<unknown>(raw, 'durationMs')),
+    errorCode: read<string | null>(raw, 'errorCode') ?? null,
+    errorSummary: read<string | null>(raw, 'errorSummary') ?? null,
+    startedAt: read<string | null>(raw, 'startedAt') ?? null,
+    finishedAt: read<string | null>(raw, 'finishedAt') ?? null,
+    createdAt: read<string | undefined>(raw, 'createdAt'),
+  }
+}
+
 function normalizeRunDetail(value: unknown): WorkflowRunDetail {
   const raw = asRecord(value)
   const summary = normalizeRun(value)
@@ -454,6 +481,17 @@ async function workflowRunCommand(id: number): Promise<WorkflowRunCommandRespons
 
 export function cancelWorkflowRun(id: number): Promise<WorkflowRunCommandResponse> {
   return workflowRunCommand(id)
+}
+
+export async function listWorkflowRunToolCalls(
+  id: number,
+  page = 1,
+  size = 100,
+): Promise<PageResult<ToolCallSummary>> {
+  const { data } = await http.get<unknown>(`/workflow-runs/${id}/tool-calls`, {
+    params: { page, size },
+  })
+  return pageResult(data, readItems<unknown>(data).map(normalizeToolCall))
 }
 
 export async function listWorkflowRunEvents(id: number, afterSequence?: number): Promise<RunEvent[]> {

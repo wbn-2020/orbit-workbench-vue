@@ -581,6 +581,8 @@ export type ToolCallStatus =
 export interface ToolCallSummary {
   id: number
   runId?: number
+  workflowRunId?: number | null
+  workflowNodeRunId?: number | null
   stepId?: number | null
   modelCallId?: number | null
   toolCode: string
