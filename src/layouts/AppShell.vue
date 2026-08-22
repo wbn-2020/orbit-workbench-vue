@@ -108,6 +108,7 @@ import {
   Activity,
   Archive,
   BarChart3,
+  Brain,
   Bot,
   ChevronDown,
   Database,
@@ -153,6 +154,7 @@ const navItems = [
   { label: 'Tools', to: '/tools', icon: Wrench },
   { label: 'Skills', to: '/skills', icon: Sparkles },
   { label: 'MCP Servers', to: '/mcp/servers', icon: PlugZap },
+  { label: '长期记忆', to: '/memories', icon: Brain },
   { label: '模型统计', to: '/statistics/model-usage', icon: BarChart3 },
   { label: 'AI 连接', to: '/settings/ai-connections', icon: Bot },
 ]

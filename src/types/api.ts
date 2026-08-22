@@ -699,6 +699,33 @@ export interface McpServer {
   updatedAt?: string
 }
 
+export type MemoryStatus = 'CONFIRMED' | 'ARCHIVED' | 'DELETED'
+export type MemoryCandidateStatus =
+  | 'PROPOSED'
+  | 'CONFIRMED'
+  | 'REJECTED'
+  | 'ARCHIVED'
+  | 'DELETED'
+
+export interface Memory {
+  id: number
+  workspaceId: number
+  memoryType: 'PREFERENCE' | 'FACT' | 'CONSTRAINT' | 'EXPERIENCE' | string
+  content: Record<string, unknown>
+  sourceType: 'USER' | 'TASK' | 'ARTIFACT' | 'AGENT_RUN' | 'WORKFLOW_RUN' | string
+  sourceId?: number | null
+  confidence: number
+  expiresAt?: string | null
+  status: MemoryStatus
+  version: number
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface MemoryCandidate extends Omit<Memory, 'status'> {
+  status: MemoryCandidateStatus
+}
+
 export interface SkillVersion {
   id: number
   skillDefinitionId: number

@@ -175,6 +175,12 @@ const router = createRouter({
           meta: { title: 'MCP Server 详情' },
         },
         {
+          path: 'memories',
+          name: 'memories',
+          component: () => import('@/views/memory/MemoryCatalogView.vue'),
+          meta: { title: '长期记忆' },
+        },
+        {
           path: 'workflows/new',
           name: 'workflow-new',
           component: () => import('@/views/workflows/WorkflowEditorView.vue'),
