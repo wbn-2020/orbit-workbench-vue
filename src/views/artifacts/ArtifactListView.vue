@@ -180,7 +180,6 @@ async function loadTaskOptions(): Promise<void> {
   try {
     const result = await listTasks({
       workspaceId: filters.workspaceId,
-      moduleType: 'TECH_LEARNING',
       page: 1,
       size: 100,
     })

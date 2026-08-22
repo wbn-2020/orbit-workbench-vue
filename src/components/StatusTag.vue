@@ -17,7 +17,20 @@ const tagType = computed(() => {
   if (['SUCCESS', 'SUCCEEDED', 'READY'].includes(props.value)) return 'success'
   if (['FAILED', 'CANCELLED'].includes(props.value)) return 'danger'
   if (['RUNNING', 'QUEUED', 'PARSING', 'CANCELLING'].includes(props.value)) return 'primary'
-  if (['PAUSED', 'PAUSING', 'STALE', 'PENDING', 'RECOVERY_REQUIRED'].includes(props.value)) return 'warning'
+  if (
+    [
+      'PAUSED',
+      'PAUSING',
+      'STALE',
+      'PENDING',
+      'UPLOADED',
+      'WAITING_CONFIRMATION',
+      'RECOVERY_REQUIRED',
+    ]
+      .includes(props.value)
+  ) {
+    return 'warning'
+  }
   return 'info'
 })
 

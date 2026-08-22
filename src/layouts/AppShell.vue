@@ -56,6 +56,19 @@
           <span>{{ route.meta.title }}</span>
         </div>
         <div class="topbar-actions">
+          <form class="global-search" role="search" @submit.prevent="openSearch">
+            <button class="global-search-submit" type="submit" aria-label="打开统一搜索">
+              <Search aria-hidden="true" />
+            </button>
+            <input
+              v-model="searchQuery"
+              type="search"
+              minlength="2"
+              maxlength="100"
+              placeholder="搜索任务、数据集、资料或成果"
+              aria-label="全局搜索"
+            />
+          </form>
           <RouterLink to="/tasks" class="run-indicator">
             <Activity aria-hidden="true" />
             <span v-if="runtime.runningCount">{{ runtime.runningCount }} 个任务运行中</span>
@@ -94,15 +107,21 @@
 import {
   Activity,
   Archive,
+  BarChart3,
   Bot,
   ChevronDown,
+  Database,
   FileText,
+  GitBranch,
   HardDrive,
   KeyRound,
   LayoutDashboard,
   ListChecks,
   LogOut,
   Menu,
+  Search,
+  Sparkles,
+  Wrench,
 } from 'lucide-vue-next'
 import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
@@ -110,21 +129,29 @@ import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRuntimeStore } from '@/stores/runtime'
+import { useSearchStore } from '@/stores/search'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const runtime = useRuntimeStore()
+const search = useSearchStore()
 
 const mobileNavOpen = ref(false)
 const passwordDialogOpen = ref(false)
+const searchQuery = ref('')
 let runtimeTimer: number | undefined
 
 const navItems = [
   { label: '工作台', to: '/workbench', icon: LayoutDashboard },
   { label: '任务', to: '/tasks', icon: ListChecks },
+  { label: '数据集', to: '/datasets', icon: Database },
   { label: '资料', to: '/documents', icon: FileText },
   { label: '成果', to: '/artifacts', icon: Archive },
+  { label: 'Workflow', to: '/workflows', icon: GitBranch },
+  { label: 'Tools', to: '/tools', icon: Wrench },
+  { label: 'Skills', to: '/skills', icon: Sparkles },
+  { label: '模型统计', to: '/statistics/model-usage', icon: BarChart3 },
   { label: 'AI 连接', to: '/settings/ai-connections', icon: Bot },
 ]
 
@@ -146,6 +173,15 @@ const BrandBlock = defineComponent({
 async function handleLogout(): Promise<void> {
   await auth.logout().catch(() => undefined)
   await router.replace('/login')
+}
+
+function openSearch(): void {
+  const normalized = searchQuery.value.trim()
+  search.query = normalized
+  void router.push({
+    path: '/search',
+    query: normalized.length >= 2 ? { q: normalized } : undefined,
+  })
 }
 
 onMounted(() => {
@@ -312,6 +348,53 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
+.global-search {
+  display: flex;
+  width: min(340px, 34vw);
+  height: 36px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: var(--ow-surface);
+  border: 1px solid var(--ow-line-soft);
+  border-radius: var(--ow-radius-sm);
+}
+
+.global-search:focus-within {
+  border-color: var(--ow-primary);
+}
+
+.global-search-submit {
+  display: grid;
+  width: 18px;
+  height: 28px;
+  flex: none;
+  padding: 0;
+  place-items: center;
+  color: var(--ow-muted);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.global-search-submit svg {
+  width: 15px;
+  height: 15px;
+}
+
+.global-search input {
+  width: 100%;
+  min-width: 0;
+  color: var(--ow-ink-secondary);
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.global-search input::placeholder {
+  color: var(--ow-muted);
+}
+
 .run-indicator {
   gap: 7px;
   color: var(--ow-muted);
@@ -391,12 +474,29 @@ onBeforeUnmount(() => {
     padding: 22px 18px;
   }
 
+  .global-search {
+    width: min(300px, 42vw);
+  }
+
   :deep(.mobile-drawer .el-drawer__body) {
     padding: 18px 12px;
   }
 }
 
 @media (max-width: 560px) {
+  .global-search {
+    width: 38px;
+    padding: 0 11px;
+  }
+
+  .global-search input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
   .run-indicator span,
   .user-name {
     display: none;

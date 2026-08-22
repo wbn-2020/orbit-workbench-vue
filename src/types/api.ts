@@ -56,6 +56,7 @@ export type RunStatus =
   | 'RUNNING'
   | 'PAUSED'
   | 'WAITING_USER'
+  | 'WAITING_APPROVAL'
   | 'PAUSING'
   | 'CANCELLING'
   | 'RECOVERY_REQUIRED'
@@ -64,8 +65,15 @@ export type RunStatus =
   | 'CANCELLED'
 
 export type Priority = 'LOW' | 'NORMAL' | 'HIGH'
-export type ModuleType = 'TECH_LEARNING'
-export type ArtifactType = 'LEARNING_NOTE' | 'QUIZ' | 'SUMMARY' | string
+export type ModuleType = 'TECH_LEARNING' | 'DATA_ANALYSIS'
+export type ArtifactType =
+  | 'LEARNING_NOTE'
+  | 'QUIZ'
+  | 'SUMMARY'
+  | 'ANALYSIS_REPORT'
+  | 'CHART_SPEC'
+  | 'DATA_EXPORT'
+  | string
 
 export interface TaskSummary {
   id: number
@@ -104,6 +112,7 @@ export interface AgentRunSummary {
   taskId: number
   status: RunStatus
   agentDefinitionId?: number | null
+  agentVersionId?: number | null
   connectionId?: number | null
   retryOfRunId?: number | null
   successorRunId?: number | null
@@ -118,6 +127,11 @@ export interface AgentRunSummary {
   errorSummary?: string | null
   traceId?: string | null
   modelCalls?: ModelCallSummary[]
+  agentDefinitionName?: string | null
+  agentDefinitionVersion?: number | null
+  promptTemplateId?: number | null
+  promptVersionId?: number | null
+  promptVersionNumber?: number | null
 }
 
 export interface ModelCallSummary {
@@ -152,6 +166,7 @@ export interface RunEvent {
 
 export interface AgentRunDetail extends AgentRunSummary {
   agentDefinitionId: number | null
+  agentVersionId?: number | null
   connectionId: number | null
   successorRunId: number | null
   lastHeartbeatAt: string | null
@@ -166,7 +181,18 @@ export type RunEventType =
   | 'output.text.completed'
   | 'tool.call.started'
   | 'tool.call.arguments.delta'
+  | 'tool.call.requested'
   | 'tool.call.completed'
+  | 'tool.call.failed'
+  | 'tool.call.cancelled'
+  | 'run.step.started'
+  | 'run.step.completed'
+  | 'run.step.failed'
+  | 'agent.step.planned'
+  | 'agent.step.started'
+  | 'agent.step.completed'
+  | 'agent.step.failed'
+  | 'artifact.created'
   | 'usage.updated'
   | 'run.completed'
   | 'run.failed'
@@ -312,11 +338,19 @@ export interface DocumentDetail extends DocumentSummary {
 
 export interface ArtifactSummary {
   id: number
+  workspaceId?: number
   taskId: number
   taskTitle?: string
+  sourceRunId?: number
+  datasetId?: number | null
+  datasetName?: string | null
+  sheetId?: number | null
+  sheetName?: string | null
   title: string
   artifactType: ArtifactType
+  status?: string
   currentVersion: number
+  currentVersionId?: number | null
   updatedAt?: string
   createdAt?: string
 }
@@ -337,10 +371,670 @@ export interface ArtifactVersion extends ArtifactVersionSummary {
 
 export interface ArtifactDetail extends ArtifactSummary {
   content: string
+  contentFormat?: string
 }
 
 export interface ArtifactUpdatePayload {
   title: string
   content: string
   expectedVersion: number
+}
+
+export type DatasetFormat = 'CSV' | 'XLSX'
+export type DatasetStatus =
+  | 'UPLOADED'
+  | 'QUEUED'
+  | 'PARSING'
+  | 'READY'
+  | 'FAILED'
+  | 'DELETED'
+
+export type DatasetColumnType =
+  | 'EMPTY'
+  | 'STRING'
+  | 'INTEGER'
+  | 'DECIMAL'
+  | 'BOOLEAN'
+  | 'DATE'
+  | 'DATETIME'
+
+export interface DatasetSummary {
+  id: number
+  workspaceId: number
+  documentId: number
+  name: string
+  format: DatasetFormat
+  status: DatasetStatus
+  activeSheetId: number | null
+  activeSheetName?: string | null
+  rowCount: number | null
+  columnCount: number | null
+  sizeBytes?: number | null
+  errorCode: string | null
+  errorSummary: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DatasetSheetSummary {
+  id: number
+  datasetId: number
+  name: string
+  sheetIndex?: number
+  rowCount: number | null
+  columnCount: number | null
+  status?: DatasetStatus
+  version?: number
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface DatasetDetail extends DatasetSummary {
+  sheets: DatasetSheetSummary[]
+}
+
+export interface DatasetColumn {
+  id: number
+  datasetId?: number
+  sheetId: number
+  name: string
+  ordinal?: number
+  normalizedName?: string | null
+  sourceName?: string | null
+  inferredType: DatasetColumnType
+  effectiveType: DatasetColumnType
+  nullable?: boolean
+  missingCount?: number | null
+  distinctCount?: number | null
+  minimum?: string | number | null
+  maximum?: string | number | null
+  sampleValues?: Array<string | number | boolean | null>
+  version: number
+  createdAt?: string
+  updatedAt?: string
+}
+
+export type DatasetCellValue = string | number | boolean | null
+
+export interface DatasetPreviewColumn {
+  id?: number
+  key: string
+  name: string
+  effectiveType?: DatasetColumnType
+}
+
+export interface DatasetPreview {
+  columns: Array<DatasetPreviewColumn | string>
+  rows: Array<Record<string, DatasetCellValue> | DatasetCellValue[]>
+  offset: number
+  limit: number
+  hasMore: boolean
+  totalRows?: number
+}
+
+export interface DatasetColumnProfile {
+  columnId?: number
+  name: string
+  effectiveType?: DatasetColumnType
+  missingCount?: number
+  missingRate?: number
+  distinctCount?: number
+  minimum?: string | number | null
+  maximum?: string | number | null
+  average?: number | null
+  topValues?: Array<{ value: DatasetCellValue; count: number }>
+}
+
+export interface DatasetProfile {
+  datasetId?: number
+  sheetId: number
+  profileVersion?: number
+  rowCount: number
+  columnCount: number
+  missingCellCount?: number
+  duplicateRowCount?: number
+  columns?: DatasetColumnProfile[]
+  summary?: Record<string, unknown>
+  quality?: Record<string, unknown>
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface DatasetUploadPayload {
+  workspaceId: number
+  name?: string
+  file: File
+}
+
+export interface DatasetTypeOverridePayload {
+  expectedVersion: number
+  effectiveType: DatasetColumnType
+}
+
+export type AnalysisOutputType = 'ANALYSIS_REPORT' | 'CHART_SPEC'
+export type DataAnalysisOutputType = AnalysisOutputType
+
+export interface DataAnalysisSummary {
+  datasetId: number
+  datasetName?: string | null
+  datasetStatus?: DatasetStatus | null
+  sheetId: number
+  sheetName?: string | null
+  analysisGoal: string
+  expectedOutputs: DataAnalysisOutputType[]
+  columnOverrides?: Record<string, DatasetColumnType>
+}
+
+export interface DataAnalysisTaskPayload {
+  workspaceId: number
+  connectionId: number
+  datasetId: number
+  sheetId: number
+  title: string
+  analysisGoal: string
+  expectedOutputs: DataAnalysisOutputType[]
+  priority: Priority
+  columnOverrides?: Record<string, DatasetColumnType>
+}
+
+export type DataAnalysisTaskUpdatePayload = Omit<DataAnalysisTaskPayload, 'workspaceId'>
+
+export interface DataAnalysisTaskDetail extends TaskSummary {
+  dataAnalysis: DataAnalysisSummary
+}
+
+export type AgentRunStepStatus =
+  | 'PENDING'
+  | 'RUNNING'
+  | 'WAITING_CONFIRMATION'
+  | 'WAITING_APPROVAL'
+  | 'SUCCEEDED'
+  | 'FAILED'
+  | 'CANCELLED'
+  | 'SKIPPED'
+
+export interface AgentRunStep {
+  id: number
+  runId: number
+  stepNumber: number
+  stepType: string
+  title: string
+  status: AgentRunStepStatus
+  inputSummary?: string | null
+  outputSummary?: string | null
+  modelCallId?: number | null
+  toolCallId?: number | null
+  startedAt?: string | null
+  finishedAt?: string | null
+  durationMs?: number | null
+  errorCode?: string | null
+  errorSummary?: string | null
+}
+
+export type ToolCallStatus =
+  | 'PENDING'
+  | 'RUNNING'
+  | 'SUCCEEDED'
+  | 'FAILED'
+  | 'CANCELLED'
+
+export interface ToolCallSummary {
+  id: number
+  runId?: number
+  stepId?: number | null
+  modelCallId?: number | null
+  toolCode: string
+  toolName?: string
+  toolVersion?: string | number
+  toolVersionId?: number | null
+  status: ToolCallStatus
+  argumentsSummary?: string | null
+  argumentSummary?: string | null
+  resultSummary?: string | null
+  resultSizeBytes?: number | null
+  durationMs?: number | null
+  errorCode?: string | null
+  errorSummary?: string | null
+  startedAt?: string | null
+  finishedAt?: string | null
+  createdAt?: string
+}
+
+export interface ToolCallDetail extends ToolCallSummary {
+  riskLevel?: string
+}
+
+export interface ToolDefinition {
+  id: number
+  toolCode: string
+  name: string
+  description?: string | null
+  toolVersion?: number
+  inputSchema?: Record<string, unknown>
+  outputSchema?: Record<string, unknown>
+  riskLevel: string
+  requiresConfirmation: boolean
+  timeoutMs?: number
+  maxResultBytes?: number
+  enabled: boolean
+  updatedAt?: string
+}
+
+export type CatalogStatus = 'DRAFT' | 'PUBLISHED' | 'DISABLED'
+
+export interface ToolVersion {
+  id: number
+  toolCatalogId: number
+  versionNumber: number
+  status: CatalogStatus
+  inputSchema: Record<string, unknown>
+  outputSchema: Record<string, unknown>
+  riskLevel: string
+  requiresConfirmation: boolean
+  timeoutMs: number
+  maxResultBytes: number
+  capabilities: Record<string, unknown>
+  publishedAt?: string | null
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface ToolCatalog {
+  id: number
+  toolCode: string
+  name: string
+  description?: string | null
+  handlerType: string
+  publishedVersionId?: number | null
+  status: CatalogStatus
+  lockVersion: number
+  versions: ToolVersion[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface SkillVersion {
+  id: number
+  skillDefinitionId: number
+  versionNumber: number
+  status: CatalogStatus
+  promptVersionId: number
+  promptVersionNumber?: number | null
+  inputSchema: Record<string, unknown>
+  outputType: string
+  runtimeLimits: Record<string, unknown>
+  toolVersionIds: number[]
+  publishedAt?: string | null
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface Skill {
+  id: number
+  workspaceId: number
+  skillCode: string
+  name: string
+  description?: string | null
+  publishedVersionId?: number | null
+  status: CatalogStatus
+  lockVersion: number
+  versions: SkillVersion[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+export type ArtifactExportStatus = 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED'
+export type ArtifactExportFormat = 'MARKDOWN' | 'JSON' | 'CSV'
+
+export interface ArtifactExport {
+  id: number
+  artifactId: number
+  artifactVersionId: number
+  artifactVersion?: number
+  artifactTitle?: string | null
+  artifactType?: ArtifactType
+  format: ArtifactExportFormat
+  status: ArtifactExportStatus
+  fileName?: string | null
+  sizeBytes?: number | null
+  contentHash?: string | null
+  workspaceId?: number
+  taskId?: number
+  sourceRunId?: number | null
+  datasetId?: number | null
+  sheetId?: number | null
+  errorCode?: string | null
+  errorSummary?: string | null
+  createdAt: string
+  finishedAt?: string | null
+  updatedAt?: string
+}
+
+export interface ArtifactExportPayload {
+  artifactVersionId: number
+  format: ArtifactExportFormat
+}
+
+export interface UsageSummary {
+  callCount: number
+  successCount: number
+  failureCount: number
+  inputTokens: number
+  outputTokens: number
+  averageLatencyMs: number
+}
+
+export interface UsageBreakdown {
+  key?: string
+  name?: string
+  connectionId?: number
+  connectionName?: string
+  modelName?: string
+  date?: string
+  callCount: number
+  successCount: number
+  failureCount: number
+  inputTokens: number
+  outputTokens: number
+  averageLatencyMs: number
+}
+
+export interface ModelUsageStatistics {
+  summary: UsageSummary
+  byConnection: UsageBreakdown[]
+  byModel: UsageBreakdown[]
+  byDay: UsageBreakdown[]
+}
+
+export type SearchResourceType = 'TASK' | 'DATASET' | 'DOCUMENT' | 'ARTIFACT' | 'RUN'
+
+export interface SearchResultItem {
+  resourceType: SearchResourceType
+  resourceId: number
+  title: string
+  summary?: string | null
+  updatedAt?: string | null
+  route?: string | null
+}
+
+export interface SearchResponse {
+  query?: string
+  groups?: Partial<Record<SearchResourceType, SearchResultItem[]>>
+  results?: SearchResultItem[]
+}
+
+export interface PromptVersionSummary {
+  id: number
+  templateId: number
+  versionNumber: number
+  purpose?: string | null
+  contentSummary?: string | null
+  variables?: string[]
+  createdAt?: string
+}
+
+export interface AgentDefinitionSummary {
+  id: number
+  name: string
+  description?: string | null
+  status: string
+  moduleType?: ModuleType
+  version?: number
+  promptTemplateId?: number | null
+  promptVersionId?: number | null
+  promptVersionNumber?: number | null
+  defaultConnectionId?: number | null
+  defaultModelProfileId?: number | null
+  updatedAt?: string
+}
+
+export interface AgentDefinitionDetail extends AgentDefinitionSummary {
+  configuration?: Record<string, unknown>
+  prompt?: PromptVersionSummary | null
+}
+
+export type AgentVersionStatus = 'DRAFT' | 'PUBLISHED' | 'DISABLED' | string
+
+export interface AgentVersion {
+  id: number
+  agentId: number
+  versionNumber: number
+  status: AgentVersionStatus
+  connectionId: number | null
+  modelProfileId: number | null
+  connectionName?: string | null
+  modelName?: string | null
+  promptVersionId?: number | null
+  promptVersionNumber?: number | null
+  promptContent?: string | null
+  promptVariables?: string[] | Record<string, unknown> | null
+  configuration: Record<string, unknown>
+  publishedAt?: string | null
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface Agent {
+  id: number
+  workspaceId?: number | null
+  code?: string | null
+  name: string
+  description?: string | null
+  moduleType?: string | null
+  status: string
+  version?: number | null
+  publishedVersionId?: number | null
+  draftVersionId?: number | null
+  connectionId?: number | null
+  modelProfileId?: number | null
+  promptVersionId?: number | null
+  promptVersionNumber?: number | null
+  promptContent?: string | null
+  promptVariables?: string[] | Record<string, unknown> | null
+  configuration: Record<string, unknown>
+  draftVersion?: AgentVersion
+  publishedVersion?: AgentVersion
+  versions?: AgentVersion[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface AgentUpsertPayload {
+  workspaceId: number
+  code: string
+  name: string
+  description: string
+  moduleType: string
+  connectionId: number | null
+  modelProfileId?: number | null
+  promptContent: string
+  promptVariables?: string[] | Record<string, unknown> | null
+  configuration: Record<string, unknown>
+  expectedVersion?: number
+}
+
+export interface AgentPublishResult {
+  valid: boolean
+  validationErrors: string[]
+  validationWarnings: string[]
+  agent?: Agent
+}
+
+export type WorkflowStatus = 'DRAFT' | 'PUBLISHED' | 'DISABLED' | 'ARCHIVED' | string
+export type WorkflowVersionStatus = 'DRAFT' | 'PUBLISHED' | 'DISABLED' | string
+export type WorkflowNodeType =
+  | 'START'
+  | 'AGENT'
+  | 'TOOL'
+  | 'APPROVAL'
+  | 'CONDITION'
+  | 'END'
+  | string
+export type WorkflowRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | string
+export type WorkflowConditionOperator =
+  | 'ALWAYS'
+  | 'EQUALS'
+  | 'NOT_EQUALS'
+  | 'EXISTS'
+  | 'NOT_EXISTS'
+  | 'GREATER_THAN'
+  | 'LESS_THAN'
+  | string
+
+export interface WorkflowCondition {
+  operator: WorkflowConditionOperator
+  path?: string | null
+  value?: string | number | boolean | null
+}
+
+export interface WorkflowNode {
+  id?: number | null
+  nodeKey: string
+  nodeType: WorkflowNodeType
+  name: string
+  description?: string | null
+  agentVersionId?: number | null
+  configuration: Record<string, unknown>
+  position?: Record<string, unknown> | null
+  timeoutMs?: number | null
+  maxRetries?: number | null
+  riskLevel?: WorkflowRiskLevel | null
+  requiresApproval?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface WorkflowEdge {
+  id?: number | null
+  sourceNodeKey: string
+  targetNodeKey: string
+  branch: 'DEFAULT' | 'TRUE' | 'FALSE' | string
+  priority?: number | null
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface WorkflowVersion {
+  id: number
+  workflowId: number
+  versionNumber: number
+  status: WorkflowVersionStatus
+  configuration: Record<string, unknown>
+  nodes: WorkflowNode[]
+  edges: WorkflowEdge[]
+  publishedAt?: string | null
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface Workflow {
+  id: number
+  workspaceId?: number | null
+  code?: string | null
+  name: string
+  description?: string | null
+  status: WorkflowStatus
+  version?: number | null
+  publishedVersionId?: number | null
+  draftVersionId?: number | null
+  configuration: Record<string, unknown>
+  nodes: WorkflowNode[]
+  edges: WorkflowEdge[]
+  draftVersion?: WorkflowVersion
+  publishedVersion?: WorkflowVersion
+  versions?: WorkflowVersion[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface WorkflowUpsertPayload {
+  workspaceId: number
+  code: string
+  name: string
+  description: string
+  configuration: Record<string, unknown>
+  nodes: WorkflowNode[]
+  edges: WorkflowEdge[]
+  expectedVersion?: number
+}
+
+export type WorkflowValidationSeverity = 'ERROR' | 'WARNING' | string
+
+export interface WorkflowValidationIssue {
+  code?: string
+  severity: WorkflowValidationSeverity
+  message: string
+  nodeKey?: string | null
+  edgeId?: number | null
+  path?: string | null
+}
+
+export interface WorkflowValidationResult {
+  valid: boolean
+  errors: WorkflowValidationIssue[]
+  warnings: WorkflowValidationIssue[]
+  nodeCount?: number | null
+  edgeCount?: number | null
+}
+
+export interface WorkflowPublishResult extends WorkflowValidationResult {
+  workflow?: Workflow
+}
+
+export interface WorkflowRunSummary {
+  id: number
+  workflowId?: number | null
+  workflowVersionId?: number | null
+  workflowName?: string | null
+  status: RunStatus
+  currentNodeKey?: string | null
+  currentNodeName?: string | null
+  waitingReason?: string | null
+  retryCount?: number | null
+  traceId?: string | null
+  inputSummary?: string | null
+  outputSummary?: string | null
+  startedAt?: string | null
+  finishedAt?: string | null
+  createdAt?: string
+  updatedAt?: string
+  errorCode?: string | null
+  errorSummary?: string | null
+}
+
+export interface WorkflowNodeRun {
+  id: number
+  runId: number
+  nodeKey: string
+  nodeName?: string | null
+  nodeType?: WorkflowNodeType | null
+  status: AgentRunStepStatus
+  retryCount?: number | null
+  inputSummary?: string | null
+  outputSummary?: string | null
+  waitingReason?: string | null
+  startedAt?: string | null
+  finishedAt?: string | null
+  durationMs?: number | null
+  errorCode?: string | null
+  errorSummary?: string | null
+}
+
+export interface WorkflowRunDetail extends WorkflowRunSummary {
+  workflowId: number | null
+  workflowVersionId: number | null
+  nodeRuns: WorkflowNodeRun[]
+  lastSequence?: number | null
+}
+
+export interface WorkflowRunCreatePayload {
+  versionId?: number | null
+  input?: Record<string, unknown>
+}
+
+export interface WorkflowRunCommandResponse {
+  runId: number
+  status: RunStatus
+  command: 'CANCEL'
+  successorRunId?: number | null
 }

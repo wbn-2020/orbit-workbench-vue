@@ -1,10 +1,16 @@
 <template>
   <div class="page">
-    <PageHeader title="任务" description="技术学习任务及其运行状态。">
+    <PageHeader title="任务" description="技术学习与数据分析任务及其运行状态。">
       <template #actions>
-        <el-button type="primary" :icon="Plus" @click="router.push('/tasks/new')">
-          新建任务
-        </el-button>
+        <el-dropdown trigger="click" @command="createTask">
+          <el-button type="primary" :icon="Plus">新建任务</el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="TECH_LEARNING">技术学习</el-dropdown-item>
+              <el-dropdown-item command="DATA_ANALYSIS">数据分析</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </template>
     </PageHeader>
 
@@ -32,10 +38,10 @@
       <EmptyState
         v-else-if="tasks.length === 0"
         title="没有匹配的任务"
-        description="调整筛选条件，或创建一个新的技术学习任务。"
+        description="调整筛选条件，或创建一个新的任务。"
         :icon="ListChecks"
       >
-        <el-button type="primary" @click="router.push('/tasks/new')">新建任务</el-button>
+        <el-button type="primary" @click="router.push('/tasks/new')">新建技术学习任务</el-button>
       </EmptyState>
       <div v-else class="table-wrap">
         <el-table :data="tasks" row-key="id" @row-click="openTask">
@@ -200,7 +206,6 @@ async function load(): Promise<void> {
       ...filters,
       page: page.value,
       size: size.value,
-      moduleType: 'TECH_LEARNING',
     })
     tasks.value = result.items
     total.value = result.total
@@ -212,7 +217,15 @@ async function load(): Promise<void> {
 }
 
 function openTask(task: TaskSummary): void {
-  void router.push(`/tasks/${task.id}`)
+  void router.push(
+    task.moduleType === 'DATA_ANALYSIS'
+      ? `/analysis/tasks/${task.id}`
+      : `/tasks/${task.id}`,
+  )
+}
+
+function createTask(moduleType: string): void {
+  void router.push(moduleType === 'DATA_ANALYSIS' ? '/analysis/new' : '/tasks/new')
 }
 
 async function start(task: TaskSummary): Promise<void> {

@@ -2,12 +2,15 @@ import { http } from './http'
 
 import type {
   ArtifactDetail,
+  ArtifactExport,
+  ArtifactExportPayload,
   ArtifactSummary,
   ArtifactUpdatePayload,
   ArtifactVersion,
   ArtifactVersionSummary,
   PageResult,
 } from '@/types/api'
+import { createIdempotencyKey } from '@/utils/idempotency'
 
 export async function listArtifacts(
   page = 1,
@@ -47,4 +50,37 @@ export async function updateArtifact(
 ): Promise<ArtifactDetail> {
   const { data } = await http.put<ArtifactDetail>(`/artifacts/${id}`, payload)
   return data
+}
+
+export async function listArtifactExports(id: number): Promise<ArtifactExport[]> {
+  const { data } = await http.get<ArtifactExport[]>(`/artifacts/${id}/exports`)
+  return data
+}
+
+export async function createArtifactExport(
+  id: number,
+  payload: ArtifactExportPayload,
+  idempotencyKey = createIdempotencyKey('artifact-export'),
+): Promise<ArtifactExport> {
+  const { data } = await http.post<ArtifactExport>(
+    `/artifacts/${id}/exports`,
+    payload,
+    { headers: { 'Idempotency-Key': idempotencyKey } },
+  )
+  return data
+}
+
+export async function downloadArtifactExport(
+  exportId: number,
+): Promise<{ blob: Blob; fileName?: string }> {
+  const response = await http.get<Blob>(`/artifact-exports/${exportId}/content`, {
+    responseType: 'blob',
+  })
+  const disposition = String(response.headers['content-disposition'] || '')
+  const encoded = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1]
+  const plain = disposition.match(/filename="?([^";]+)"?/i)?.[1]
+  return {
+    blob: response.data,
+    fileName: encoded ? decodeURIComponent(encoded) : plain,
+  }
 }

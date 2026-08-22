@@ -2,9 +2,13 @@ import { http } from './http'
 
 import type {
   AgentRunDetail,
+  AgentRunStep,
+  PageResult,
   RunEvent,
   RunEventType,
   RunStatus,
+  ToolCallDetail,
+  ToolCallSummary,
 } from '@/types/api'
 import { parseRunEventPayload } from '@/utils/runEvents'
 
@@ -14,7 +18,18 @@ const RUN_EVENT_TYPES: RunEventType[] = [
   'output.text.completed',
   'tool.call.started',
   'tool.call.arguments.delta',
+  'tool.call.requested',
   'tool.call.completed',
+  'tool.call.failed',
+  'tool.call.cancelled',
+  'run.step.started',
+  'run.step.completed',
+  'run.step.failed',
+  'agent.step.planned',
+  'agent.step.started',
+  'agent.step.completed',
+  'agent.step.failed',
+  'artifact.created',
   'usage.updated',
   'run.completed',
   'run.failed',
@@ -56,6 +71,28 @@ export async function cancelAgentRun(id: number): Promise<RunCommandResponse> {
 
 export async function retryAgentRun(id: number): Promise<RunCommandResponse> {
   const { data } = await http.post<RunCommandResponse>(`/agent-runs/${id}/retry`)
+  return data
+}
+
+export async function listAgentRunSteps(id: number): Promise<AgentRunStep[]> {
+  const { data } = await http.get<AgentRunStep[]>(`/agent-runs/${id}/steps`)
+  return data
+}
+
+export async function listAgentRunToolCalls(
+  id: number,
+  page = 1,
+  size = 20,
+): Promise<PageResult<ToolCallSummary>> {
+  const { data } = await http.get<PageResult<ToolCallSummary>>(
+    `/agent-runs/${id}/tool-calls`,
+    { params: { page, size } },
+  )
+  return data
+}
+
+export async function getToolCall(id: number): Promise<ToolCallDetail> {
+  const { data } = await http.get<ToolCallDetail>(`/tool-calls/${id}`)
   return data
 }
 

@@ -14,7 +14,7 @@ import type {
 export interface TaskListQuery {
   workspaceId?: number
   status?: TaskStatus
-  moduleType?: 'TECH_LEARNING'
+  moduleType?: 'TECH_LEARNING' | 'DATA_ANALYSIS'
   page?: number
   size?: number
 }

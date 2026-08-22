@@ -2,6 +2,13 @@
   <div class="page">
     <PageHeader :title="artifact?.title || '成果详情'" :description="artifact?.taskTitle || ''" back>
       <template #actions>
+        <el-button
+          v-if="selectedVersionId"
+          :icon="FileDown"
+          @click="exportDialogOpen = true"
+        >
+          导出
+        </el-button>
         <el-button :icon="Edit3" :disabled="versionLoading" @click="toggleEditing">
           {{ editing ? '取消编辑' : '编辑成果' }}
         </el-button>
@@ -53,63 +60,205 @@
             <el-alert :title="versionError" type="error" show-icon :closable="false" />
           </div>
           <div v-else class="surface-body">
-            <MarkdownViewer :content="displayedContent" />
+            <ChartSpecViewer
+              v-if="isChartArtifact"
+              :spec="displayedContent"
+              :aria-label="artifact.title"
+            />
+            <MarkdownViewer v-else :content="displayedContent" />
           </div>
         </section>
 
-        <aside class="surface versions-panel">
-          <div class="surface-header">
-            <div>
-              <h2 class="surface-title">版本历史</h2>
-              <span class="surface-subtitle">{{ versions.length }} 个版本</span>
+        <aside class="stack">
+          <section
+            v-if="artifact.datasetId || artifact.sheetId || artifact.sourceRunId"
+            class="surface"
+          >
+            <div class="surface-header"><h2 class="surface-title">来源追踪</h2></div>
+            <div class="surface-body">
+              <dl class="detail-grid source-grid">
+                <div>
+                  <dt>数据集</dt>
+                  <dd>
+                    <button
+                      v-if="artifact.datasetId"
+                      type="button"
+                      class="source-link"
+                      @click="router.push(`/datasets/${artifact.datasetId}`)"
+                    >
+                      {{ artifact.datasetName || `Dataset #${artifact.datasetId}` }}
+                      <ExternalLink aria-hidden="true" />
+                    </button>
+                    <span v-else>—</span>
+                  </dd>
+                </div>
+                <div><dt>工作表</dt><dd>{{ artifact.sheetName || artifact.sheetId || '—' }}</dd></div>
+                <div>
+                  <dt>来源运行</dt>
+                  <dd>
+                    <button
+                      v-if="artifact.sourceRunId"
+                      type="button"
+                      class="source-link"
+                      @click="router.push(`/runs/${artifact.sourceRunId}`)"
+                    >
+                      Run #{{ artifact.sourceRunId }}
+                      <ExternalLink aria-hidden="true" />
+                    </button>
+                    <span v-else>—</span>
+                  </dd>
+                </div>
+                <div><dt>任务</dt><dd>{{ artifact.taskTitle || `Task #${artifact.taskId}` }}</dd></div>
+              </dl>
             </div>
-          </div>
-          <EmptyState v-if="versions.length === 0" title="暂无版本记录" :icon="History" />
-          <div v-else class="version-list">
-            <button
-              v-for="version in versions"
-              :key="version.id"
-              type="button"
-              class="version-row"
-              :class="{ active: version.id === selectedVersionId }"
-              :disabled="editing"
-              @click="selectVersion(version)"
-            >
-              <span>
-                <strong>v{{ version.version }}</strong>
-                <small>{{ formatDateTime(version.createdAt) }}</small>
-              </span>
-              <ChevronRight aria-hidden="true" />
-            </button>
-          </div>
+          </section>
+
+          <section class="surface versions-panel">
+            <div class="surface-header">
+              <div>
+                <h2 class="surface-title">版本历史</h2>
+                <span class="surface-subtitle">{{ versions.length }} 个版本</span>
+              </div>
+            </div>
+            <EmptyState v-if="versions.length === 0" title="暂无版本记录" :icon="History" />
+            <div v-else class="version-list">
+              <button
+                v-for="version in versions"
+                :key="version.id"
+                type="button"
+                class="version-row"
+                :class="{ active: version.id === selectedVersionId }"
+                :disabled="editing"
+                @click="selectVersion(version)"
+              >
+                <span>
+                  <strong>v{{ version.version }}</strong>
+                  <small>{{ formatDateTime(version.createdAt) }}</small>
+                </span>
+                <ChevronRight aria-hidden="true" />
+              </button>
+            </div>
+          </section>
+
+          <section class="surface">
+            <div class="surface-header">
+              <div>
+                <h2 class="surface-title">导出记录</h2>
+                <span class="surface-subtitle">{{ exports.length }} 项</span>
+              </div>
+              <el-button text :icon="Plus" @click="exportDialogOpen = true">新建</el-button>
+            </div>
+            <div v-if="exportsLoading" class="exports-feedback">
+              <el-skeleton :rows="4" animated />
+            </div>
+            <el-alert
+              v-else-if="exportsError"
+              class="exports-alert"
+              :title="exportsError"
+              type="error"
+              show-icon
+              :closable="false"
+            />
+            <EmptyState
+              v-else-if="exports.length === 0"
+              title="暂无导出"
+              description="导出会保留对应的成果版本。"
+              :icon="FileDown"
+            />
+            <div v-else class="export-list">
+              <div v-for="item in exports" :key="item.id" class="export-row">
+                <FileDown aria-hidden="true" />
+                <span>
+                  <strong>{{ item.format }}</strong>
+                  <small>{{ formatFileSize(item.sizeBytes) }} · {{ formatDateTime(item.createdAt) }}</small>
+                  <small v-if="item.errorSummary" class="error-text">{{ item.errorSummary }}</small>
+                </span>
+                <StatusTag :value="item.status" />
+                <el-button
+                  v-if="item.status === 'SUCCEEDED'"
+                  text
+                  :icon="Download"
+                  aria-label="下载导出"
+                  @click="download(item)"
+                />
+              </div>
+            </div>
+          </section>
         </aside>
       </div>
     </template>
+
+    <el-dialog v-model="exportDialogOpen" title="创建导出" width="min(440px, 92vw)">
+      <el-form label-position="top">
+        <el-form-item label="成果版本">
+          <el-select v-model="exportVersionId">
+            <el-option
+              v-for="version in versions"
+              :key="version.id"
+              :label="`v${version.version} · ${formatDateTime(version.createdAt)}`"
+              :value="version.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="导出格式">
+          <el-segmented v-model="exportFormat" :options="availableExportFormats" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button :disabled="creatingExport" @click="exportDialogOpen = false">取消</el-button>
+        <el-button
+          type="primary"
+          :loading="creatingExport"
+          :disabled="!exportVersionId"
+          @click="createExport"
+        >
+          创建导出
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ChevronRight, Edit3, History } from 'lucide-vue-next'
+import {
+  ChevronRight,
+  Download,
+  Edit3,
+  ExternalLink,
+  FileDown,
+  History,
+  Plus,
+} from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
-import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import {
+  createArtifactExport,
+  downloadArtifactExport,
   getArtifact,
   getArtifactVersion,
+  listArtifactExports,
   listArtifactVersions,
   updateArtifact,
 } from '@/api/artifacts'
 import { getProblem, problemMessage } from '@/api/http'
+import ChartSpecViewer from '@/components/ChartSpecViewer.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import MarkdownViewer from '@/components/MarkdownViewer.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTag from '@/components/StatusTag.vue'
-import type { ArtifactDetail, ArtifactVersionSummary } from '@/types/api'
-import { formatDateTime } from '@/utils/format'
+import type {
+  ArtifactDetail,
+  ArtifactExport,
+  ArtifactExportFormat,
+  ArtifactVersionSummary,
+} from '@/types/api'
+import { formatDateTime, formatFileSize } from '@/utils/format'
 
 const route = useRoute()
+const router = useRouter()
 const id = Number(route.params.id)
 const loading = ref(true)
 const saving = ref(false)
@@ -125,8 +274,30 @@ const versionLoading = ref(false)
 const versionError = ref('')
 const saveConflict = ref('')
 const editBaseVersion = ref<number>()
+const exports = ref<ArtifactExport[]>([])
+const exportsLoading = ref(false)
+const exportsError = ref('')
+const exportDialogOpen = ref(false)
+const exportVersionId = ref<number>()
+const exportFormat = ref<ArtifactExportFormat>('MARKDOWN')
+const creatingExport = ref(false)
 const versionContentCache = new Map<number, string>()
 let versionRequestSequence = 0
+let exportPollTimer: number | undefined
+let destroyed = false
+
+const isChartArtifact = computed(() => artifact.value?.artifactType === 'CHART_SPEC')
+const availableExportFormats = computed<
+  Array<{ label: string; value: ArtifactExportFormat }>
+>(() => {
+  if (artifact.value?.artifactType === 'CHART_SPEC') {
+    return [{ label: 'JSON', value: 'JSON' }]
+  }
+  if (artifact.value?.artifactType === 'DATA_EXPORT') {
+    return [{ label: 'CSV', value: 'CSV' }]
+  }
+  return [{ label: 'Markdown', value: 'MARKDOWN' }]
+})
 
 async function load(): Promise<void> {
   loading.value = true
@@ -145,12 +316,15 @@ async function load(): Promise<void> {
       (version) => version.version === artifactResult.currentVersion,
     )
     selectedVersionId.value = currentVersion?.id
+    exportVersionId.value = currentVersion?.id
     selectedVersionNumber.value = artifactResult.currentVersion
     editBaseVersion.value = artifactResult.currentVersion
     saveConflict.value = ''
     if (currentVersion) {
       versionContentCache.set(currentVersion.id, artifactResult.content)
     }
+    exportFormat.value = availableExportFormats.value[0]?.value || 'MARKDOWN'
+    void loadExports()
   } catch (loadError) {
     error.value = problemMessage(loadError)
   } finally {
@@ -173,6 +347,7 @@ async function selectVersion(version: ArtifactVersionSummary): Promise<void> {
     if (requestSequence === versionRequestSequence) {
       displayedContent.value = content
       selectedVersionId.value = version.id
+      exportVersionId.value = version.id
       selectedVersionNumber.value = version.version
     }
   } catch (loadError) {
@@ -183,6 +358,68 @@ async function selectVersion(version: ArtifactVersionSummary): Promise<void> {
     if (requestSequence === versionRequestSequence) {
       versionLoading.value = false
     }
+  }
+}
+
+async function loadExports(): Promise<void> {
+  exportsLoading.value = true
+  exportsError.value = ''
+  try {
+    exports.value = await listArtifactExports(id)
+    scheduleExportPoll()
+  } catch (loadError) {
+    exportsError.value = problemMessage(loadError)
+  } finally {
+    exportsLoading.value = false
+  }
+}
+
+function scheduleExportPoll(): void {
+  if (exportPollTimer) {
+    window.clearTimeout(exportPollTimer)
+    exportPollTimer = undefined
+  }
+  if (
+    destroyed ||
+    !exports.value.some((item) => ['PENDING', 'RUNNING'].includes(item.status))
+  ) {
+    return
+  }
+  exportPollTimer = window.setTimeout(() => {
+    exportPollTimer = undefined
+    void loadExports()
+  }, 3_000)
+}
+
+async function createExport(): Promise<void> {
+  if (!exportVersionId.value || creatingExport.value) return
+  creatingExport.value = true
+  try {
+    await createArtifactExport(id, {
+      artifactVersionId: exportVersionId.value,
+      format: exportFormat.value,
+    })
+    exportDialogOpen.value = false
+    ElMessage.success('导出任务已创建')
+    await loadExports()
+  } catch (exportError) {
+    ElMessage.error(problemMessage(exportError))
+  } finally {
+    creatingExport.value = false
+  }
+}
+
+async function download(item: ArtifactExport): Promise<void> {
+  try {
+    const result = await downloadArtifactExport(item.id)
+    const url = URL.createObjectURL(result.blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = result.fileName || item.fileName || `artifact-${id}-${item.id}.${item.format.toLowerCase()}`
+    anchor.click()
+    URL.revokeObjectURL(url)
+  } catch (downloadError) {
+    ElMessage.error(problemMessage(downloadError))
   }
 }
 
@@ -197,6 +434,7 @@ function toggleEditing(): void {
       (version) => version.version === artifact.value?.currentVersion,
     )
     selectedVersionId.value = currentVersion?.id
+    exportVersionId.value = currentVersion?.id
     selectedVersionNumber.value = artifact.value.currentVersion
     return
   }
@@ -269,6 +507,11 @@ async function refreshAfterConflict(): Promise<void> {
 }
 
 onMounted(() => load())
+
+onBeforeUnmount(() => {
+  destroyed = true
+  if (exportPollTimer) window.clearTimeout(exportPollTimer)
+})
 </script>
 
 <style scoped>
@@ -309,6 +552,76 @@ onMounted(() => load())
 
 .version-list {
   padding: 6px 8px 8px;
+}
+
+.source-grid {
+  grid-template-columns: 1fr;
+}
+
+.source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 0;
+  color: var(--ow-primary-strong);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.source-link svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+
+.exports-feedback {
+  padding: 14px 16px;
+}
+
+.exports-alert {
+  width: auto;
+  margin: 12px 16px;
+}
+
+.export-list {
+  padding: 6px 8px 8px;
+}
+
+.export-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 58px;
+  padding: 8px;
+  border-bottom: 1px solid var(--ow-line-soft);
+}
+
+.export-row > svg {
+  width: 16px;
+  height: 16px;
+  color: var(--ow-primary);
+}
+
+.export-row > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.export-row small {
+  overflow: hidden;
+  color: var(--ow-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:deep(.el-dialog .el-select),
+:deep(.el-dialog .el-segmented) {
+  width: 100%;
 }
 
 .version-row {

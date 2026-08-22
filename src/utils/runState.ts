@@ -4,6 +4,7 @@ const CANCELLABLE_STATUSES: RunStatus[] = [
   'QUEUED',
   'RUNNING',
   'WAITING_USER',
+  'WAITING_APPROVAL',
   'PAUSED',
   'PAUSING',
 ]
