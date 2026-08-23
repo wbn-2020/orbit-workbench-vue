@@ -116,8 +116,6 @@
               <el-option label="用户" value="USER" />
               <el-option label="任务" value="TASK" />
               <el-option label="成果" value="ARTIFACT" />
-              <el-option label="Agent 运行" value="AGENT_RUN" />
-              <el-option label="Workflow 运行" value="WORKFLOW_RUN" />
             </el-select>
           </el-form-item>
           <el-form-item label="来源 ID">
