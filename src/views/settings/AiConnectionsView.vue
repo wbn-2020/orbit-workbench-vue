@@ -25,7 +25,7 @@
                 <span class="connection-mark"><Bot aria-hidden="true" /></span>
                 <span>
                   <strong>{{ row.name }}</strong>
-                  <small>{{ row.baseUrl }}{{ row.endpointPath }}</small>
+                  <small>{{ resolveAiConnectionUrl(row.baseUrl, row.endpointPath) }}</small>
                 </span>
               </div>
             </template>
@@ -118,10 +118,13 @@
             </el-select>
           </el-form-item>
         </div>
-        <el-form-item label="Base URL" prop="baseUrl">
-          <el-input v-model.trim="form.baseUrl" placeholder="https://api.example.com/v1" />
+        <el-form-item label="完整请求 URL" prop="baseUrl">
+          <el-input
+            v-model.trim="form.baseUrl"
+            placeholder="https://api.example.com/v1/chat/completions"
+          />
         </el-form-item>
-        <el-form-item label="Endpoint Path" prop="endpointPath">
+        <el-form-item label="Endpoint Path（兼容）" prop="endpointPath">
           <el-input v-model.trim="form.endpointPath" placeholder="/chat/completions" />
         </el-form-item>
         <el-form-item label="默认模型（ModelProfile）" prop="modelName">
@@ -260,6 +263,7 @@ import type {
   ProviderType,
 } from '@/types/api'
 import { isAiConnectionDraftDirty } from '@/utils/aiConnectionDraft'
+import { resolveAiConnectionUrl } from '@/utils/aiConnectionAddress'
 import { enumLabel, formatDateTime } from '@/utils/format'
 import { createLatestRequestGuard } from '@/utils/latestRequest'
 
