@@ -65,7 +65,7 @@ export type RunStatus =
   | 'CANCELLED'
 
 export type Priority = 'LOW' | 'NORMAL' | 'HIGH'
-export type ModuleType = 'TECH_LEARNING' | 'DATA_ANALYSIS'
+export type ModuleType = 'TECH_LEARNING' | 'DATA_ANALYSIS' | 'CONTENT_CREATION'
 export type ArtifactType =
   | 'LEARNING_NOTE'
   | 'QUIZ'
@@ -73,6 +73,8 @@ export type ArtifactType =
   | 'ANALYSIS_REPORT'
   | 'CHART_SPEC'
   | 'DATA_EXPORT'
+  | 'CONTENT_DRAFT'
+  | 'CONTENT_REVIEW'
   | string
 
 export interface TaskSummary {
@@ -724,6 +726,75 @@ export interface Memory {
 
 export interface MemoryCandidate extends Omit<Memory, 'status'> {
   status: MemoryCandidateStatus
+}
+
+export type ContentProjectStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED'
+export type ContentVersionOperation =
+  | 'OUTLINE'
+  | 'DRAFT'
+  | 'REWRITE'
+  | 'EXPAND'
+  | 'COMPRESS'
+  | 'REVIEW'
+export type ContentVersionStatus =
+  | 'QUEUED'
+  | 'RUNNING'
+  | 'SUCCEEDED'
+  | 'FAILED'
+  | 'PAUSED'
+  | 'CANCELLED'
+
+export interface ContentMaterial {
+  id: number
+  contentProjectId: number
+  sourceType: 'DOCUMENT' | 'ARTIFACT' | string
+  sourceId: number
+  relationType: string
+  sortOrder: number
+  sourceTitle?: string | null
+  createdAt?: string
+}
+
+export interface ContentVersion {
+  id: number
+  contentProjectId: number
+  versionNumber: number
+  operation: ContentVersionOperation | string
+  status: ContentVersionStatus | string
+  title: string
+  contentFormat: 'MARKDOWN' | string
+  content?: string | null
+  requestKey?: string | null
+  taskId?: number | null
+  sourceRunId?: number | null
+  artifactId?: number | null
+  artifactVersionId?: number | null
+  errorCode?: string | null
+  errorSummary?: string | null
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface ContentProjectSummary {
+  id: number
+  workspaceId: number
+  connectionId: number
+  title: string
+  topic: string
+  outputFormat: string
+  status: ContentProjectStatus | string
+  version: number
+  latestVersionNumber?: number | null
+  latestVersionStatus?: ContentVersionStatus | string | null
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface ContentProject extends ContentProjectSummary {
+  audience?: string | null
+  style?: string | null
+  materials: ContentMaterial[]
+  versions: ContentVersion[]
 }
 
 export interface SkillVersion {

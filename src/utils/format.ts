@@ -57,6 +57,7 @@ export function enumLabel(value?: string | null): string {
     HIGH: '高',
     TECH_LEARNING: '技术学习',
     DATA_ANALYSIS: '数据分析',
+    CONTENT_CREATION: '内容创作',
     TASK: '任务',
     DATASET: '数据集',
     DOCUMENT: '资料',

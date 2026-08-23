@@ -220,6 +220,7 @@
             <el-select v-model="form.moduleType">
               <el-option label="技术学习" value="TECH_LEARNING" />
               <el-option label="数据分析" value="DATA_ANALYSIS" />
+              <el-option label="内容创作" value="CONTENT_CREATION" />
             </el-select>
           </el-form-item>
         </div>

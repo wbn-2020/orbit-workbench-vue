@@ -91,6 +91,18 @@ const router = createRouter({
           meta: { title: '数据分析任务' },
         },
         {
+          path: 'content',
+          name: 'content-projects',
+          component: () => import('@/views/content/ContentProjectListView.vue'),
+          meta: { title: '内容创作' },
+        },
+        {
+          path: 'content/:id',
+          name: 'content-project-detail',
+          component: () => import('@/views/content/ContentProjectDetailView.vue'),
+          meta: { title: '内容项目' },
+        },
+        {
           path: 'runs/:id',
           name: 'run-detail',
           component: () => import('@/views/runs/RunDetailView.vue'),
