@@ -84,7 +84,7 @@
                     {{ session.title }}
                     <span class="ow-status" :class="statusClass(session.status)">{{ statusLabel(session.status) }}</span>
                   </div>
-                  <div class="ow-tm">{{ topicLabel(session.topicMode) }} · {{ fmtTime(session.createdAt) }}</div>
+                  <div class="ow-tm">{{ topicLabel(session.topicMode) }} · {{ session.scheduledAt ? '安排 ' + fmtTime(session.scheduledAt) : '未安排时间' }}</div>
                 </div>
                 <button class="ow-btn sm" type="button" @click="openSession(session)">
                   {{ session.status === 'COMPLETED' ? '报告' : session.status === 'READY' ? '开始' : '进入' }}
@@ -93,6 +93,37 @@
               <div v-if="!recentSessions.length" class="ow-empty">还没有面试会话，点「＋ 新建」开始第一场。</div>
             </div>
             <div class="ow-hint">题目与追问由 AI 实时生成（连接后端 InterviewSession）。</div>
+          </div>
+        </div>
+
+        <div class="ow-card">
+          <div class="ow-card-h">
+            <div class="ic b3"><CalendarDays aria-hidden="true" /></div>
+            近期日程
+            <div class="right">
+              <button class="ow-btn xs ghost" type="button" @click="router.push('/schedule')">全部</button>
+            </div>
+          </div>
+          <div class="ow-card-b">
+            <div class="ow-tlist">
+              <div v-for="item in upcomingAgenda" :key="item.sourceType + '-' + item.sourceId" class="ow-titem">
+                <span class="iv-ico">{{ scheduleSourceIcon(item.sourceType) }}</span>
+                <div class="grow">
+                  <div class="tt">{{ item.title }}</div>
+                  <div class="ow-tm">{{ agendaTimeLabel(item) }} · {{ scheduleSourceLabel(item.sourceType) }}</div>
+                </div>
+                <button
+                  v-if="item.resourceRoute"
+                  class="ow-btn sm ghost"
+                  type="button"
+                  @click="router.push(item.resourceRoute!)"
+                >
+                  查看
+                </button>
+              </div>
+              <div v-if="!upcomingAgenda.length" class="ow-empty">近两周暂无日程，可在「日程与提醒」新建。</div>
+            </div>
+            <div class="ow-hint">面试、复习、投递与自定义日程已统一到 /schedule 数据源。</div>
           </div>
         </div>
 
@@ -262,6 +293,7 @@ import {
 } from '@/api/interview'
 import { problemMessage } from '@/api/http'
 import { listApplications, type StageCounts } from '@/api/jobApplications'
+import { getAgenda, scheduleSourceIcon, scheduleSourceLabel, type AgendaItem } from '@/api/schedule'
 import ErrorState from '@/components/ErrorState.vue'
 
 const router = useRouter()
@@ -280,6 +312,7 @@ const scoredReports = ref<{
 const newTaskTitle = ref('')
 const addingTask = ref(false)
 const stageCounts = ref<StageCounts | null>(null)
+const agenda = ref<AgendaItem[]>([])
 
 const ACTIVE: InterviewSessionStatus[] = ['READY', 'RUNNING', 'PAUSED']
 
@@ -296,6 +329,14 @@ const openTasks = computed(() =>
 const pendingTaskCount = computed(() => openTasks.value.length)
 const doneTaskCount = computed(() => tasks.value.filter((task) => task.status === 'COMPLETED').length)
 const recentSessions = computed(() => sessions.value.slice(0, 4))
+const upcomingAgenda = computed(() => agenda.value.slice(0, 6))
+
+function agendaTimeLabel(item: AgendaItem): string {
+  const date = new Date(item.startAt)
+  const day = `${date.getMonth() + 1}/${date.getDate()}`
+  if (item.allDay) return `${day} 全天`
+  return `${day} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
 const avgScore = computed(() => {
   if (!scoredReports.value.length) return '--'
   const total = scoredReports.value.reduce((sum, item) => sum + item.score, 0)
@@ -387,14 +428,16 @@ async function loadAll(): Promise<void> {
   loadError.value = ''
   loading.value = true
   try {
-    const [sessionList, taskList, applications] = await Promise.all([
+    const [sessionList, taskList, applications, agendaList] = await Promise.all([
       listSessions(),
       listStudyTasks(),
       listApplications().catch(() => null),
+      getAgenda(new Date(), new Date(Date.now() + 14 * 86400000)).catch(() => []),
     ])
     sessions.value = sessionList
     tasks.value = taskList
     stageCounts.value = applications?.stages ?? null
+    agenda.value = agendaList
 
     const candidates = sessionList
       .filter((session) => !['READY', 'CANCELLED'].includes(session.status))

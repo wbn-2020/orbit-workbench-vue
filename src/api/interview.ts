@@ -31,6 +31,7 @@ export interface InterviewSession {
   followUpLimit: number
   turnLimit: number
   durationLimitMinutes: number
+  scheduledAt: string | null
   projectBindings: ProjectBindingSnapshot[]
   status: InterviewSessionStatus
   startedAt: string | null
@@ -100,6 +101,7 @@ export interface CreateSessionPayload {
   followUpLimit: number
   turnLimit: number
   durationLimitMinutes: number
+  scheduledAt?: string | null
   aiConnectionId?: number | null
   webSearchPolicy?: string
   projectBindings?: { projectId: number; versionId: number }[]

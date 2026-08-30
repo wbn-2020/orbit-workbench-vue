@@ -94,6 +94,10 @@
               <input v-model.number="form.durationLimitMinutes" class="ow-input" type="number" min="5" max="240">
             </div>
             <div class="ow-field">
+              <label>面试时间（可选，用于日程与提醒）</label>
+              <input v-model="form.scheduledAt" class="ow-input" type="datetime-local">
+            </div>
+            <div class="ow-field">
               <label>AI 账户（不选则用第一个启用账户）</label>
               <select v-model="form.aiConnectionId" class="ow-input">
                 <option :value="null">自动（第一个启用账户）</option>
@@ -221,6 +225,7 @@ const form = reactive({
   followUpLimit: 3,
   turnLimit: 12,
   durationLimitMinutes: 45,
+  scheduledAt: '',
   aiConnectionId: null as number | null,
 })
 
@@ -358,6 +363,7 @@ async function launch(): Promise<void> {
       followUpLimit: form.followUpLimit,
       turnLimit: form.turnLimit,
       durationLimitMinutes: form.durationLimitMinutes,
+      scheduledAt: form.scheduledAt ? new Date(form.scheduledAt).toISOString() : null,
       aiConnectionId: form.aiConnectionId ?? undefined,
       webSearchPolicy: form.webSearchPolicy,
       projectBindings: projectBindings.length ? projectBindings : undefined,

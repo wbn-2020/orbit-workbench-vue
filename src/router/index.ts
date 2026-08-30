@@ -37,6 +37,12 @@ const router = createRouter({
           meta: { title: '今日学习与面试' },
         },
         {
+          path: 'schedule',
+          name: 'schedule',
+          component: () => import('@/views/schedule/ScheduleView.vue'),
+          meta: { title: '日程与提醒' },
+        },
+        {
           path: 'study-plan',
           name: 'study-plan',
           component: () => import('@/views/study/StudyPlanView.vue'),

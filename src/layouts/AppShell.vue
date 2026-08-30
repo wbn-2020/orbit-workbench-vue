@@ -207,6 +207,7 @@ const navGroups = [
     label: '工作台',
     items: [
       { label: '今日工作台', to: '/workbench', icon: LayoutDashboard },
+      { label: '日程与提醒', to: '/schedule', icon: CalendarDays },
     ],
   },
   {
