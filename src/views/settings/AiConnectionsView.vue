@@ -76,6 +76,156 @@
       </div>
     </section>
 
+    <section class="surface">
+      <div class="section-head">
+        <div>
+          <h2>场景绑定</h2>
+          <p class="section-note">
+            为四类 AI 能力分别指定主用与备用账户。备用账户仅在主用出现可重试的上游失败
+            （服务不可用、超时、流中断、限流）后启用一次；凭据错误、模型不存在、请求非法
+            不会被切换掩盖。面试会话创建时已指定的账户优先级最高，该场景配置不介入。
+          </p>
+        </div>
+        <el-button :icon="RefreshCw" :loading="scenarioLoading" @click="loadScenarios">
+          重新加载
+        </el-button>
+      </div>
+
+      <div v-if="scenarioError" class="page-feedback">
+        <ErrorState :message="scenarioError" :retry="loadScenarios" />
+      </div>
+      <div v-else-if="scenarioLoading" class="page-feedback"><el-skeleton :rows="4" animated /></div>
+      <div v-else class="table-wrap">
+        <el-table :data="scenarioRoutes" row-key="scenario">
+          <el-table-column label="场景" min-width="200">
+            <template #default="{ row }">
+              <div class="connection-cell">
+                <span class="connection-mark"><Bot aria-hidden="true" /></span>
+                <span>
+                  <strong>{{ row.scenarioLabel }}</strong>
+                  <small>{{ AI_SCENARIO_HINTS[row.scenario as AiScenario] }}</small>
+                </span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="主用账户" min-width="190">
+            <template #default="{ row }">
+              <el-select v-model="draftOf(row.scenario).primaryConnectionId"
+                placeholder="选择账户" class="width-full">
+                <el-option
+                  v-for="item in selectableConnections"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </el-select>
+            </template>
+          </el-table-column>
+          <el-table-column label="备用账户" min-width="190">
+            <template #default="{ row }">
+              <el-select v-model="draftOf(row.scenario).backupConnectionId"
+                clearable placeholder="不启用" class="width-full">
+                <el-option
+                  v-for="item in selectableConnections"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                  :disabled="item.id === draftOf(row.scenario).primaryConnectionId"
+                />
+              </el-select>
+            </template>
+          </el-table-column>
+          <el-table-column label="故障切换" width="100">
+            <template #default="{ row }">
+              <el-switch
+                v-model="draftOf(row.scenario).failoverEnabled"
+                :disabled="!draftOf(row.scenario).backupConnectionId"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column label="当前生效" width="150">
+            <template #default="{ row }">
+              <el-tag :type="row.source === 'ROUTE' ? 'success' : 'info'" effect="plain" size="small">
+                {{ row.source === 'ROUTE' ? '已配置' : '默认回退' }}
+              </el-tag>
+              <small v-if="row.source === 'ROUTE'" class="cell-note">v{{ row.version }}</small>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="170" fixed="right">
+            <template #default="{ row }">
+              <div class="row-actions">
+                <el-button
+                  text
+                  type="primary"
+                  :loading="savingScenario === row.scenario"
+                  @click="saveScenario(row.scenario)"
+                >
+                  保存
+                </el-button>
+                <el-button
+                  v-if="row.source === 'ROUTE'"
+                  text
+                  @click="resetScenario(row.scenario)"
+                >
+                  恢复默认
+                </el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </section>
+
+    <section class="surface">
+      <div class="section-head">
+        <div>
+          <h2>最近 AI 调用</h2>
+          <p class="section-note">
+            审计记录场景、实际使用的账户、是否尝试过备用、耗时与文本长度；
+            不保存提示词、模型原文和任何凭据。
+          </p>
+        </div>
+        <el-button :icon="RefreshCw" :loading="auditLoading" @click="loadAudits">刷新</el-button>
+      </div>
+      <div v-if="auditLoading" class="page-feedback"><el-skeleton :rows="4" animated /></div>
+      <div v-else-if="auditError" class="page-feedback">
+        <ErrorState :message="auditError" :retry="loadAudits" />
+      </div>
+      <EmptyState v-else-if="audits.length === 0" title="还没有调用记录"
+        description="生成一次报告、画像事实或知识库问答后，这里会出现真实留痕。" :icon="Activity">
+      </EmptyState>
+      <div v-else class="table-wrap">
+        <el-table :data="audits" row-key="id">
+          <el-table-column label="时间" width="160">
+            <template #default="{ row }">{{ formatDateTime(row.createdAt) }}</template>
+          </el-table-column>
+          <el-table-column label="场景" width="130">
+            <template #default="{ row }">{{ row.scenarioLabel }}</template>
+          </el-table-column>
+          <el-table-column label="实际账户" min-width="150">
+            <template #default="{ row }">
+              {{ row.usedConnectionName || `#${row.usedConnectionId}` }}
+              <small v-if="row.backupAttempted" class="cell-note">已切换备用</small>
+            </template>
+          </el-table-column>
+          <el-table-column label="结果" width="150">
+            <template #default="{ row }">
+              <span :class="row.status === 'SUCCEEDED' ? 'audit-ok' : 'audit-fail'">
+                {{ aiAuditStatusLabel(row.status) }}
+              </span>
+              <small v-if="row.errorCode" class="mono cell-note">{{ row.errorCode }}</small>
+            </template>
+          </el-table-column>
+          <el-table-column label="延迟" width="100">
+            <template #default="{ row }">{{ typeof row.latencyMs === 'number' ? `${row.latencyMs} ms` : '—' }}</template>
+          </el-table-column>
+          <el-table-column label="请求/响应字数" width="140">
+            <template #default="{ row }">{{ row.requestChars }} / {{ row.responseChars }}</template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </section>
+
     <el-drawer
       v-model="drawerOpen"
       :title="editingId ? '编辑 AI 连接' : '添加 AI 连接'"
@@ -247,6 +397,15 @@ import {
   testSavedAiConnection,
   updateAiConnection,
 } from '@/api/aiConnections'
+import {
+  AI_SCENARIO_HINTS,
+  aiAuditStatusLabel,
+  listCallAudits,
+  listScenarioRoutes,
+  removeScenarioRoute,
+  saveScenarioRoute,
+} from '@/api/aiScenarios'
+import type { AiScenario, CallAudit, ScenarioRoute } from '@/api/aiScenarios'
 import { getProblem, problemMessage } from '@/api/http'
 import EmptyState from '@/components/EmptyState.vue'
 import ErrorState from '@/components/ErrorState.vue'
@@ -287,6 +446,22 @@ const saveConflict = ref('')
 const savedConnection = ref<AiConnection | null>(null)
 const metadataRequest = createLatestRequestGuard()
 const testRequest = createLatestRequestGuard()
+
+interface ScenarioDraft {
+  primaryConnectionId: number | null
+  backupConnectionId: number | null
+  failoverEnabled: boolean
+}
+
+const scenarioRoutes = ref<ScenarioRoute[]>([])
+const scenarioDraft = reactive<Record<string, ScenarioDraft>>({})
+const scenarioLoading = ref(false)
+const scenarioError = ref('')
+const savingScenario = ref<AiScenario | ''>('')
+const audits = ref<CallAudit[]>([])
+const auditLoading = ref(false)
+const auditError = ref('')
+const selectableConnections = computed(() => connections.value.filter((item) => item.enabled))
 
 const form = reactive({
   name: '',
@@ -359,6 +534,101 @@ async function load(): Promise<void> {
     error.value = problemMessage(loadError)
   } finally {
     loading.value = false
+  }
+  await loadScenarios()
+}
+
+function draftOf(scenario: AiScenario): ScenarioDraft {
+  if (!scenarioDraft[scenario]) {
+    scenarioDraft[scenario] = {
+      primaryConnectionId: selectableConnections.value[0]?.id ?? null,
+      backupConnectionId: null,
+      failoverEnabled: false,
+    }
+  }
+  // 再次经响应式代理读回：直接持有裸对象会让 v-model 失去追踪
+  return scenarioDraft[scenario]
+}
+
+async function loadScenarios(): Promise<void> {
+  scenarioLoading.value = true
+  scenarioError.value = ''
+  try {
+    const rows = await listScenarioRoutes()
+    // 先铺草稿再挂表格，避免模板读到尚未初始化的行
+    rows.forEach((row) => {
+      scenarioDraft[row.scenario] = {
+        primaryConnectionId: row.primaryConnectionId ?? selectableConnections.value[0]?.id ?? null,
+        backupConnectionId: row.backupConnectionId,
+        failoverEnabled: row.failoverEnabled,
+      }
+    })
+    scenarioRoutes.value = rows
+  } catch (reason) {
+    scenarioError.value = problemMessage(reason)
+  } finally {
+    scenarioLoading.value = false
+  }
+}
+
+async function loadAudits(): Promise<void> {
+  auditLoading.value = true
+  auditError.value = ''
+  try {
+    const result = await listCallAudits(1, 10)
+    audits.value = result.items
+  } catch (reason) {
+    audits.value = []
+    auditError.value = problemMessage(reason)
+  } finally {
+    auditLoading.value = false
+  }
+}
+
+async function saveScenario(scenario: AiScenario): Promise<void> {
+  const draft = scenarioDraft[scenario]
+  if (!draft?.primaryConnectionId) {
+    ElMessage.warning('请先为该场景选择主用账户')
+    return
+  }
+  savingScenario.value = scenario
+  try {
+    const updated = await saveScenarioRoute(scenario, {
+      primaryConnectionId: draft.primaryConnectionId,
+      backupConnectionId: draft.backupConnectionId ?? null,
+      failoverEnabled: draft.failoverEnabled && Boolean(draft.backupConnectionId),
+    })
+    scenarioRoutes.value = scenarioRoutes.value.map((row) =>
+      (row.scenario === scenario ? updated : row))
+    scenarioDraft[scenario] = {
+      primaryConnectionId: updated.primaryConnectionId,
+      backupConnectionId: updated.backupConnectionId,
+      failoverEnabled: updated.failoverEnabled,
+    }
+    ElMessage.success(`${updated.scenarioLabel}的账户绑定已保存`)
+  } catch (reason) {
+    ElMessage.error(problemMessage(reason))
+  } finally {
+    savingScenario.value = ''
+  }
+}
+
+async function resetScenario(scenario: AiScenario): Promise<void> {
+  try {
+    await ElMessageBox.confirm(
+      '恢复默认后，该场景将回退为“最近更新且已启用的第一个账户”，不再使用备用切换。',
+      '恢复默认账户',
+      { type: 'warning', confirmButtonText: '恢复默认', cancelButtonText: '取消' },
+    )
+  } catch {
+    return
+  }
+  try {
+    await removeScenarioRoute(scenario)
+    await loadScenarios()
+    ElMessage.success('已恢复为默认账户选择')
+  } catch (reason) {
+    ElMessage.error(problemMessage(reason))
   }
 }
 
@@ -594,7 +864,10 @@ async function remove(connection: AiConnection): Promise<void> {
   }
 }
 
-onMounted(() => load())
+onMounted(() => {
+  load()
+  loadAudits()
+})
 
 watch(protocolOptions, (options) => {
   if (!options.includes(form.protocol)) {
@@ -685,6 +958,54 @@ watch([testStreaming, testPrompt], () => {
 
 .save-conflict {
   margin-bottom: 16px;
+}
+
+.section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px 6px;
+}
+
+.section-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.section-note {
+  max-width: 900px;
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--ow-text-muted);
+}
+
+.cell-note {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--ow-text-muted);
+}
+
+.width-full {
+  width: 100%;
+}
+
+.audit-ok {
+  color: var(--ow-success, #18794e);
+}
+
+.audit-fail {
+  color: var(--ow-danger, #b42318);
+}
+
+@media (max-width: 700px) {
+  .section-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 .test-block {
