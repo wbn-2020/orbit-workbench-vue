@@ -7,8 +7,17 @@
         <div class="sub">{{ subText }}</div>
       </div>
       <div class="acts">
-        <button class="ow-btn ghost sm" type="button" @click="readAll">全部已读</button>
-        <button class="ow-btn ghost sm" type="button" @click="clearAll">清空</button>
+        <button
+          class="ow-btn ghost sm"
+          type="button"
+          :class="{ active: unreadOnly }"
+          @click="toggleFilter"
+        >
+          {{ unreadOnly ? '查看全部' : '仅看未读' }}
+        </button>
+        <button class="ow-btn ghost sm" type="button" :disabled="!unread" @click="readAll">
+          全部已读
+        </button>
       </div>
     </header>
 
@@ -16,28 +25,54 @@
       <div class="ow-card-h">
         <div class="ic b6"><MessageSquare aria-hidden="true" /></div>
         消息
-        <div class="right">通知为事件收件箱，不替代日程视图 · 演示数据</div>
+        <div class="right">通知为事件收件箱，仅记录状态变化，不删除原始业务记录</div>
       </div>
       <div class="ow-card-b">
-        <div v-if="!list.length" class="ow-empty-state">
+        <div v-if="loadError" class="notify-error">
+          <div class="t">{{ loadError }}</div>
+          <button class="ow-btn sm ghost" type="button" @click="load">重试</button>
+        </div>
+        <div v-else-if="loading && !items.length" class="ow-empty-state">
+          <div class="t">加载中…</div>
+        </div>
+        <div v-else-if="!items.length" class="ow-empty-state">
           <div class="ic">🔔</div>
-          <div class="t">暂无通知</div>
-          <div class="d">新的报告、面试邀约与训练提醒会出现在这里。</div>
+          <div class="t">{{ unreadOnly ? '没有未读通知' : '暂无通知' }}</div>
+          <div class="d">新的报告、面试、导入与复习提醒会出现在这里。</div>
         </div>
         <div v-else class="notif-list">
-          <div v-for="item in list" :key="item.id" class="notif" :class="{ unread: !item.read }">
-            <div class="ni">{{ item.icon }}</div>
-            <div class="nb">
+          <div
+            v-for="item in items"
+            :key="item.id"
+            class="notif"
+            :class="{ unread: !item.read }"
+          >
+            <div class="ni">{{ notificationIcon(item.eventType) }}</div>
+            <div class="nb" @click="open(item)">
               <div class="nt">
                 {{ item.title }}
                 <span v-if="!item.read" class="un">未读</span>
               </div>
-              <div class="nd">{{ item.text }}</div>
-              <div class="ntime">{{ relTime(item.time) }}</div>
+              <div class="nd">{{ item.content }}</div>
+              <div class="ntime">{{ relTime(item.createdAt) }}</div>
             </div>
             <div class="acts">
-              <button v-if="!item.read" class="ow-btn xs ghost" type="button" @click="readOne(item.id)">标已读</button>
-              <button class="ow-btn xs ghost danger-btn" type="button" aria-label="删除" @click="removeOne(item.id)">✕</button>
+              <button
+                v-if="item.resourceRoute"
+                class="ow-btn xs ghost"
+                type="button"
+                @click="open(item)"
+              >
+                查看
+              </button>
+              <button
+                v-if="!item.read"
+                class="ow-btn xs ghost"
+                type="button"
+                @click="readOne(item.id)"
+              >
+                标已读
+              </button>
             </div>
           </div>
         </div>
@@ -49,17 +84,55 @@
 <script setup lang="ts">
 import { Bell, MessageSquare } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-import { gapNotifications } from '@/mocks/gap'
+import {
+  getUnreadCount,
+  listNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+  notificationIcon,
+  type NotificationItem,
+} from '@/api/notifications'
+import { problemMessage } from '@/api/http'
 
-const list = ref(gapNotifications.map((item) => ({ ...item })))
+const router = useRouter()
+const items = ref<NotificationItem[]>([])
+const total = ref(0)
+const unread = ref(0)
+const loading = ref(true)
+const loadError = ref('')
+const unreadOnly = ref(false)
 
 const subText = computed(() =>
-  list.value.length
-    ? `${list.value.filter((item) => !item.read).length} 条未读 · 共 ${list.value.length} 条`
+  total.value
+    ? `${unread.value} 条未读 · 共 ${total.value} 条`
     : '暂无消息',
 )
+
+async function load(): Promise<void> {
+  loading.value = true
+  loadError.value = ''
+  try {
+    const [page, count] = await Promise.all([
+      listNotifications({ unreadOnly: unreadOnly.value, page: 1, size: 50 }),
+      getUnreadCount(),
+    ])
+    items.value = page.items
+    total.value = page.total
+    unread.value = count
+  } catch (error) {
+    loadError.value = problemMessage(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+function toggleFilter(): void {
+  unreadOnly.value = !unreadOnly.value
+  load()
+}
 
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
@@ -69,26 +142,37 @@ function relTime(iso: string): string {
   return `${Math.floor(hours / 24)} 天前`
 }
 
-function readOne(id: number): void {
-  const item = list.value.find((entry) => entry.id === id)
-  if (item) item.read = true
+async function readOne(id: number): Promise<void> {
+  try {
+    await markNotificationRead(id)
+    const item = items.value.find((entry) => entry.id === id)
+    if (item && !item.read) {
+      item.read = true
+      item.readAt = new Date().toISOString()
+      unread.value = Math.max(unread.value - 1, 0)
+      if (unreadOnly.value) items.value = items.value.filter((entry) => entry.id !== id)
+    }
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
+  }
 }
 
-function readAll(): void {
-  list.value.forEach((item) => {
-    item.read = true
-  })
-  ElMessage.success('已全部标记为已读（演示：仅影响收件箱视图）')
+async function readAll(): Promise<void> {
+  try {
+    await markAllNotificationsRead()
+    ElMessage.success('已全部标记为已读')
+    await load()
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
+  }
 }
 
-function removeOne(id: number): void {
-  list.value = list.value.filter((item) => item.id !== id)
+async function open(item: NotificationItem): Promise<void> {
+  if (!item.read) await readOne(item.id)
+  if (item.resourceRoute) router.push(item.resourceRoute)
 }
 
-function clearAll(): void {
-  list.value = []
-  ElMessage.info('通知已清空（演示：不影响原始业务记录）')
-}
+onMounted(load)
 </script>
 
 <style scoped>
@@ -101,6 +185,19 @@ function clearAll(): void {
   width: 24px;
   height: 24px;
   color: var(--brand);
+}
+
+.acts .ow-btn.active {
+  color: var(--brand);
+  border-color: var(--brand-200);
+}
+
+.notify-error {
+  display: grid;
+  gap: 10px;
+  place-items: center;
+  padding: 22px 0;
+  color: var(--muted);
 }
 
 .notif-list {
@@ -159,6 +256,7 @@ function clearAll(): void {
 .nb {
   flex: 1;
   min-width: 0;
+  cursor: pointer;
 }
 
 .nt {
@@ -197,9 +295,5 @@ function clearAll(): void {
   gap: 8px;
   align-items: center;
   flex: none;
-}
-
-.danger-btn {
-  color: var(--red-600);
 }
 </style>

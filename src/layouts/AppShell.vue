@@ -177,12 +177,12 @@ import {
   Zap,
 } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
-import { computed, defineComponent, h, ref } from 'vue'
+import { computed, defineComponent, h, onMounted, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
 import DreamyBackground from '@/components/DreamyBackground.vue'
-import { islandNotifications } from '@/mocks/island'
+import { getUnreadCount } from '@/api/notifications'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 
@@ -252,7 +252,22 @@ const navGroups = [
   },
 ]
 
-const unreadCount = islandNotifications.filter((item) => !item.read).length
+const unreadCount = ref(0)
+
+async function refreshUnreadCount(): Promise<void> {
+  if (!auth.user) {
+    unreadCount.value = 0
+    return
+  }
+  try {
+    unreadCount.value = await getUnreadCount()
+  } catch {
+    unreadCount.value = 0
+  }
+}
+
+onMounted(refreshUnreadCount)
+watch(() => route.path, refreshUnreadCount)
 
 const avatarText = computed(() => auth.user?.username.slice(0, 2).toUpperCase() || '求职')
 const authName = computed(() => auth.user?.username || '阿岛')
