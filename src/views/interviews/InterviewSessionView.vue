@@ -318,6 +318,8 @@ async function ask(turnType: 'MAIN' | 'FOLLOW_UP'): Promise<void> {
       },
       onError(message) {
         streamError = message
+        // 失败时后端不落库，前端的半截增量也必须一起丢弃，否则会显示出一条不存在的题目
+        streamingText.value = ''
       },
     })
     if (streamError) actionError.value = streamError
