@@ -1,18 +1,16 @@
 <template>
   <main class="auth-page">
+    <DreamyBackground />
     <section class="auth-panel">
-      <div class="auth-brand">
-        <span class="brand-mark">O</span>
-        <div>
-          <strong>Orbit Workbench</strong>
-          <span>个人 AI 工作台</span>
-        </div>
+      <div class="auth-logo" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="64" height="64">
+          <rect x="3" y="3" width="26" height="26" rx="7" fill="#3a6fd0" stroke="#fff" stroke-width="1.5" />
+          <path d="M16 6c-3 3-3 6 0 9 3-3 3-6 0-9z" fill="#eaa11f" stroke="#fff" stroke-width="1.5" />
+          <path d="M16 15v11M11 21l5 5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" />
+        </svg>
       </div>
-
-      <div class="auth-heading">
-        <h1>登录</h1>
-        <p>继续处理任务与运行记录。</p>
-      </div>
+      <h1>求职成长岛</h1>
+      <p class="auth-sub">Java + AI 求职成长工作台</p>
 
       <ErrorState v-if="error" :message="error" />
 
@@ -21,11 +19,10 @@
         :model="form"
         :rules="rules"
         label-position="top"
-        size="large"
         @submit.prevent="submit"
       >
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model.trim="form.username" autocomplete="username" autofocus />
+        <el-form-item label="账号" prop="username">
+          <el-input v-model.trim="form.username" autocomplete="username" placeholder="请输入账号" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input
@@ -33,6 +30,7 @@
             type="password"
             show-password
             autocomplete="current-password"
+            placeholder="请输入密码"
             @keyup.enter="submit"
           />
         </el-form-item>
@@ -42,9 +40,14 @@
           native-type="submit"
           :loading="auth.loading"
         >
-          登录
+          进入工作台
         </el-button>
       </el-form>
+
+      <p class="auth-demo">
+        登录需要本地后端服务 ·
+        <RouterLink to="/setup">首次使用？走一遍初始化向导 →</RouterLink>
+      </p>
     </section>
   </main>
 </template>
@@ -54,6 +57,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import DreamyBackground from '@/components/DreamyBackground.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import { problemMessage } from '@/api/http'
 import { useAuthStore } from '@/stores/auth'
@@ -66,7 +70,7 @@ const error = ref(route.query.expired ? '会话已过期，请重新登录。' :
 const form = reactive({ username: '', password: '' })
 
 const rules: FormRules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 }
 
@@ -88,65 +92,44 @@ async function submit(): Promise<void> {
 
 <style scoped>
 .auth-page {
+  position: relative;
   display: grid;
   min-height: 100vh;
   place-items: center;
-  padding: 24px;
-  background: var(--ow-bg);
+  padding: 20px;
+  overflow: hidden;
+  background: var(--login-bg);
 }
 
 .auth-panel {
-  width: min(430px, 100%);
-  padding: 30px;
-  background: var(--ow-surface);
-  border: 1px solid var(--ow-line);
-  border-radius: var(--ow-radius);
+  position: relative;
+  z-index: 1;
+  width: min(400px, 100%);
+  padding: 36px;
+  text-align: center;
+  background: var(--login-panel);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg), 0 0 50px var(--card-glow);
+  backdrop-filter: blur(18px) saturate(130%);
 }
 
-.auth-brand {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid var(--ow-line-soft);
+.auth-logo {
+  margin-bottom: 14px;
+  filter: drop-shadow(0 6px 14px rgb(58 123 212 / 35%));
 }
 
-.brand-mark {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  place-items: center;
-  color: var(--ow-primary-ink);
-  background: var(--ow-primary);
-  border-radius: 7px;
+h1 {
+  margin: 0 0 4px;
+  color: var(--ink);
+  font-size: 23px;
   font-weight: 800;
 }
 
-.auth-brand > div {
-  display: grid;
-}
-
-.auth-brand span:last-child {
-  color: var(--ow-muted);
-  font-size: 11px;
-}
-
-.auth-heading {
-  margin: 26px 0 22px;
-}
-
-.auth-heading h1 {
-  margin-bottom: 6px;
-  font-size: 22px;
-}
-
-.auth-heading p {
-  margin: 0;
-  color: var(--ow-muted);
-}
-
-.error-state {
-  margin-bottom: 18px;
+.auth-sub {
+  margin: 0 0 22px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .submit-button {
@@ -154,18 +137,24 @@ async function submit(): Promise<void> {
   margin-top: 6px;
 }
 
-@media (max-width: 600px) {
-  .auth-page {
-    display: block;
-    padding: 0;
-    background: var(--ow-bg);
-  }
+.auth-demo {
+  margin: 14px 0 0;
+  color: var(--faint);
+  font-size: 12px;
+}
 
+.auth-demo a {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.auth-demo a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
   .auth-panel {
-    width: 100%;
-    min-height: 100vh;
     padding: 26px 20px;
-    border: 0;
   }
 }
 </style>

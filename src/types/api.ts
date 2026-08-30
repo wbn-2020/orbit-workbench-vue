@@ -40,6 +40,92 @@ export interface Workspace {
   updatedAt?: string
 }
 
+export type CareerStage = 'GRADUATE' | 'CAREER_TRANSITION' | 'JOB_CHANGE'
+export type ExperienceBand =
+  | 'GRADUATE'
+  | 'ONE_TO_THREE_YEARS'
+  | 'THREE_TO_FIVE_YEARS'
+  | 'FIVE_PLUS_YEARS'
+  | 'CUSTOM'
+export type SkillLevel = 'BEGINNER' | 'WORKING_KNOWLEDGE' | 'PRACTICAL' | 'ADVANCED'
+
+export interface JobProfile {
+  id: number
+  targetRole: string
+  targetExperienceBand: ExperienceBand
+  careerStage: CareerStage
+  targetLevel: string | null
+  targetCompany: string | null
+  javaSkillLevel: SkillLevel
+  aiSkillLevel: SkillLevel
+  targetInterviewDate: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface JobProfileState {
+  completed: boolean
+  profile: JobProfile | null
+}
+
+export interface JobProfilePayload {
+  targetRole: string
+  targetExperienceBand: ExperienceBand
+  careerStage: CareerStage
+  targetLevel: string | null
+  targetCompany: string | null
+  javaSkillLevel: SkillLevel
+  aiSkillLevel: SkillLevel
+  targetInterviewDate: string | null
+}
+
+export type ProjectFileStatus = 'PARSED' | 'EXCLUDED' | 'FAILED'
+export type ProjectVersionStatus = 'REVIEW_REQUIRED' | 'PARTIAL' | 'PUBLISHED'
+export type KnowledgeBuildStatus = 'PENDING' | 'BUILDING' | 'READY' | 'FAILED'
+
+export interface ProjectFile {
+  id: number
+  relativePath: string
+  mediaType: string | null
+  sizeBytes: number
+  status: ProjectFileStatus
+  statusReason: string | null
+}
+
+export interface ProjectVersion {
+  id: number
+  versionNumber: number
+  sourceType: 'ZIP' | 'FILE' | 'GITHUB'
+  sourceFileName: string
+  status: ProjectVersionStatus
+  knowledgeBuildStatus: KnowledgeBuildStatus | null
+  knowledgeChunkCount: number
+  knowledgeBuildAttempts: number
+  knowledgeBuildError: string | null
+  knowledgeBuiltAt: string | null
+  totalFileCount: number
+  parsedFileCount: number
+  excludedFileCount: number
+  failedFileCount: number
+  totalSizeBytes: number
+  createdAt: string
+  files: ProjectFile[] | null
+}
+
+export interface ProjectSummary {
+  id: number
+  workspaceId: number
+  name: string
+  status: string
+  latestVersion: ProjectVersion | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ProjectDetail extends Omit<ProjectSummary, 'latestVersion'> {
+  versions: ProjectVersion[]
+}
+
 export type TaskStatus =
   | 'DRAFT'
   | 'READY'

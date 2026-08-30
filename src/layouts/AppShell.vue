@@ -1,22 +1,39 @@
 <template>
   <div class="app-shell">
+    <DreamyBackground />
+
     <aside class="sidebar">
       <BrandBlock />
       <nav class="nav-list" aria-label="主导航">
-        <RouterLink
-          v-for="item in navItems"
-          :key="item.to"
-          :to="item.to"
-          class="nav-item"
-        >
-          <component :is="item.icon" aria-hidden="true" />
-          <span>{{ item.label }}</span>
-        </RouterLink>
+        <div v-for="group in navGroups" :key="group.label" class="nav-group">
+          <div class="nav-group-title">{{ group.label }}</div>
+          <RouterLink
+            v-for="item in group.items"
+            :key="item.to"
+            :to="item.to"
+            class="nav-item"
+          >
+            <component :is="item.icon" aria-hidden="true" />
+            <span>{{ item.label }}</span>
+            <span v-if="item.badge" class="nav-badge">{{ item.badge }}</span>
+            <span v-if="item.new" class="nav-new">新</span>
+          </RouterLink>
+        </div>
       </nav>
       <div class="sidebar-footer">
-        <div class="local-note">
-          <HardDrive aria-hidden="true" />
-          <span>本地工作区</span>
+        <div class="user-summary">
+          <div class="user-summary-top">
+            <span class="user-avatar"><UserRound aria-hidden="true" /></span>
+            <span class="user-summary-name">
+              <strong>求职者·{{ authName }}</strong>
+              <small>Lv.7 在职勇士 · 演示</small>
+              <i class="mini-bar"><b style="width: 46%"></b></i>
+            </span>
+            <span class="user-gold">
+              <small>金币</small>
+              <strong>120</strong>
+            </span>
+          </div>
         </div>
       </div>
     </aside>
@@ -24,22 +41,27 @@
     <el-drawer
       v-model="mobileNavOpen"
       direction="ltr"
-      size="min(286px, 84vw)"
+      size="min(300px, 86vw)"
       :with-header="false"
       class="mobile-drawer"
     >
       <BrandBlock />
       <nav class="nav-list" aria-label="移动端主导航">
-        <RouterLink
-          v-for="item in navItems"
-          :key="item.to"
-          :to="item.to"
-          class="nav-item"
-          @click="mobileNavOpen = false"
-        >
-          <component :is="item.icon" aria-hidden="true" />
-          <span>{{ item.label }}</span>
-        </RouterLink>
+        <div v-for="group in navGroups" :key="group.label" class="nav-group">
+          <div class="nav-group-title">{{ group.label }}</div>
+          <RouterLink
+            v-for="item in group.items"
+            :key="item.to"
+            :to="item.to"
+            class="nav-item"
+            @click="mobileNavOpen = false"
+          >
+            <component :is="item.icon" aria-hidden="true" />
+            <span>{{ item.label }}</span>
+            <span v-if="item.badge" class="nav-badge">{{ item.badge }}</span>
+            <span v-if="item.new" class="nav-new">新</span>
+          </RouterLink>
+        </div>
       </nav>
     </el-drawer>
 
@@ -53,35 +75,55 @@
             aria-label="打开导航"
             @click="mobileNavOpen = true"
           />
-          <span>{{ route.meta.title }}</span>
+          <div class="breadcrumb">
+            <span class="crumb-root">求职成长岛 /&nbsp;</span>
+            <strong>{{ route.meta.title }}</strong>
+          </div>
         </div>
-        <div class="topbar-actions">
-          <form class="global-search" role="search" @submit.prevent="openSearch">
-            <button class="global-search-submit" type="submit" aria-label="打开统一搜索">
-              <Search aria-hidden="true" />
+        <div class="search">
+          <Search class="search-icon" aria-hidden="true" />
+          <input
+            v-model="searchKeyword"
+            class="search-input"
+            placeholder="搜索岗位、题目、项目、知识点…"
+            aria-label="全局搜索"
+            @focus="recentsOpen = true"
+            @blur="hideRecents"
+            @keydown.enter="onSearchEnter"
+          >
+          <div v-if="recentsOpen" class="recents">
+            <div class="recents-title">最近搜索 · 演示数据</div>
+            <button
+              v-for="recent in recents"
+              :key="recent"
+              type="button"
+              class="rec"
+              @mousedown.prevent="applyRecent(recent)"
+            >
+              {{ recent }}
             </button>
-            <input
-              v-model="searchQuery"
-              type="search"
-              minlength="2"
-              maxlength="100"
-              placeholder="搜索任务、数据集、资料或成果"
-              aria-label="全局搜索"
-            />
-          </form>
-          <RouterLink to="/tasks" class="run-indicator">
-            <Activity aria-hidden="true" />
-            <span v-if="runtime.runningCount">{{ runtime.runningCount }} 个任务运行中</span>
-            <span v-else>无运行中任务</span>
-          </RouterLink>
+          </div>
+        </div>
+        <div class="spacer" />
+        <div class="topbar-actions">
+          <button class="bell" type="button" aria-label="通知中心" @click="router.push('/notifications')">
+            <Bell aria-hidden="true" />
+            <span v-if="unreadCount" class="bell-dot">{{ unreadCount }}</span>
+          </button>
+          <button class="theme-toggle" type="button" aria-label="切换主题" @click="ui.toggleNext()">
+            <component :is="isDarkTheme ? Sun : MoonStar" aria-hidden="true" />
+          </button>
           <el-dropdown trigger="click">
             <button class="user-menu" type="button">
               <span class="avatar">{{ avatarText }}</span>
-              <span class="user-name">{{ auth.user?.username }}</span>
+              <span class="user-name">{{ auth.user?.username || '求职者' }}</span>
               <ChevronDown aria-hidden="true" />
             </button>
             <template #dropdown>
               <el-dropdown-menu>
+                <el-dropdown-item :icon="UserRound" @click="router.push('/profile/job')">
+                  求职档案
+                </el-dropdown-item>
                 <el-dropdown-item :icon="KeyRound" @click="passwordDialogOpen = true">
                   修改密码
                 </el-dropdown-item>
@@ -95,7 +137,11 @@
       </header>
 
       <main class="content">
-        <RouterView :key="route.fullPath" />
+        <RouterView v-slot="{ Component }">
+          <div :key="route.fullPath" class="ow-rise page-host">
+            <component :is="Component" />
+          </div>
+        </RouterView>
       </main>
     </div>
 
@@ -105,106 +151,162 @@
 
 <script setup lang="ts">
 import {
-  Activity,
-  Archive,
-  BarChart3,
-  Brain,
+  Bell,
+  BookOpen,
   Bot,
+  BriefcaseBusiness,
+  CalendarDays,
   ChevronDown,
-  Database,
+  FileBarChart,
   FileText,
-  GitBranch,
-  HardDrive,
+  FolderKanban,
+  HelpCircle,
   KeyRound,
   LayoutDashboard,
-  ListChecks,
-  PenLine,
   LogOut,
   Menu,
-  PlugZap,
+  MoonStar,
+  Network,
+  NotebookPen,
   Search,
-  Sparkles,
-  Wrench,
+  Settings,
+  Sun,
+  Target,
+  UserRound,
+  UsersRound,
+  Zap,
 } from 'lucide-vue-next'
-import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import { computed, defineComponent, h, ref } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
+import DreamyBackground from '@/components/DreamyBackground.vue'
+import { islandNotifications } from '@/mocks/island'
 import { useAuthStore } from '@/stores/auth'
-import { useRuntimeStore } from '@/stores/runtime'
-import { useSearchStore } from '@/stores/search'
+import { useUiStore } from '@/stores/ui'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-const runtime = useRuntimeStore()
-const search = useSearchStore()
-
+const ui = useUiStore()
 const mobileNavOpen = ref(false)
 const passwordDialogOpen = ref(false)
-const searchQuery = ref('')
-let runtimeTimer: number | undefined
+const searchKeyword = ref('')
+const recentsOpen = ref(false)
 
-const navItems = [
-  { label: '工作台', to: '/workbench', icon: LayoutDashboard },
-  { label: '任务', to: '/tasks', icon: ListChecks },
-  { label: '数据集', to: '/datasets', icon: Database },
-  { label: '内容创作', to: '/content', icon: PenLine },
-  { label: '资料', to: '/documents', icon: FileText },
-  { label: '成果', to: '/artifacts', icon: Archive },
-  { label: 'Workflow', to: '/workflows', icon: GitBranch },
-  { label: 'Tools', to: '/tools', icon: Wrench },
-  { label: 'Skills', to: '/skills', icon: Sparkles },
-  { label: 'MCP Servers', to: '/mcp/servers', icon: PlugZap },
-  { label: '长期记忆', to: '/memories', icon: Brain },
-  { label: '模型统计', to: '/statistics/model-usage', icon: BarChart3 },
-  { label: 'AI 连接', to: '/settings/ai-connections', icon: Bot },
+const recents = [
+  '秒杀系统 如何保证不超卖',
+  'Redis 缓存一致性',
+  '项目深挖面试官',
+  '美团 技术面报告',
 ]
 
-const avatarText = computed(() => auth.user?.username.slice(0, 2).toUpperCase() || 'OW')
+const navGroups = [
+  {
+    label: '工作台',
+    items: [
+      { label: '今日工作台', to: '/workbench', icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: '成长',
+    items: [
+      { label: '复习计划', to: '/study-plan', icon: Zap },
+      { label: '面试记录', to: '/interviews', icon: NotebookPen, badge: '4' },
+      { label: '错题本', to: '/practice/wrong-answers', icon: Target, new: true },
+    ],
+  },
+  {
+    label: '求职',
+    items: [
+      { label: '求职档案', to: '/profile/job', icon: UserRound },
+      { label: '项目资料', to: '/projects', icon: FolderKanban },
+      { label: '简历工作台', to: '/resume', icon: FileText, new: true },
+      { label: '岗位与 JD 匹配', to: '/jobs', icon: BriefcaseBusiness, new: true },
+    ],
+  },
+  {
+    label: '数据',
+    items: [
+      { label: '我的报告中心', to: '/reports', icon: FileBarChart, new: true },
+      { label: '技能图谱', to: '/skill-map', icon: Network, new: true },
+      { label: '求职进度', to: '/applications', icon: CalendarDays },
+    ],
+  },
+  {
+    label: '智能',
+    items: [
+      { label: '知识库问答', to: '/knowledge/ask', icon: BookOpen },
+      { label: '面试官', to: '/interviewers', icon: UsersRound },
+      { label: 'AI 账户', to: '/settings/ai-connections', icon: Bot },
+    ],
+  },
+  {
+    label: '系统',
+    items: [
+      { label: '通知中心', to: '/notifications', icon: Bell },
+      { label: '帮助与引导', to: '/help', icon: HelpCircle, new: true },
+      { label: '设置', to: '/settings', icon: Settings },
+    ],
+  },
+]
+
+const unreadCount = islandNotifications.filter((item) => !item.read).length
+
+const avatarText = computed(() => auth.user?.username.slice(0, 2).toUpperCase() || '求职')
+const authName = computed(() => auth.user?.username || '阿岛')
+const isDarkTheme = computed(() => ui.theme !== 'light' && ['dark', 'abyss', 'cosmos', 'aurora'].includes(ui.theme))
 
 const BrandBlock = defineComponent({
   setup() {
     return () =>
       h(RouterLink, { to: '/workbench', class: 'brand-block' }, () => [
-        h('span', { class: 'brand-mark' }, 'O'),
+        h('span', { class: 'brand-mark', 'aria-hidden': 'true' }, [
+          h(
+            'svg',
+            { viewBox: '0 0 32 32', width: 26, height: 26 },
+            [
+              h('rect', { x: 3, y: 3, width: 26, height: 26, rx: 7, fill: '#3a6fd0', stroke: '#fff', 'stroke-width': 1.5 }),
+              h('path', { d: 'M16 6c-3 3-3 6 0 9 3-3 3-6 0-9z', fill: '#eaa11f', stroke: '#fff', 'stroke-width': 1.5 }),
+              h('path', { d: 'M16 15v11M11 21l5 5 5-5', stroke: '#fff', 'stroke-width': 2, fill: 'none', 'stroke-linecap': 'round' }),
+            ],
+          ),
+        ]),
         h('span', { class: 'brand-copy' }, [
-          h('strong', 'Orbit Workbench'),
-          h('small', '个人 AI 工作台'),
+          h('strong', '求职成长岛'),
+          h('small', 'JOB QUEST'),
         ]),
       ])
   },
 })
 
+function hideRecents(): void {
+  recentsOpen.value = false
+}
+
+function applyRecent(recent: string): void {
+  searchKeyword.value = recent
+  recentsOpen.value = false
+  ElMessage.info(`「${recent}」的全局搜索将随后端检索能力接入（演示）`)
+}
+
+function onSearchEnter(): void {
+  if (!searchKeyword.value) return
+  recentsOpen.value = false
+  ElMessage.info(`「${searchKeyword.value}」的全局搜索将随后端检索能力接入（演示）`)
+}
+
 async function handleLogout(): Promise<void> {
   await auth.logout().catch(() => undefined)
   await router.replace('/login')
 }
-
-function openSearch(): void {
-  const normalized = searchQuery.value.trim()
-  search.query = normalized
-  void router.push({
-    path: '/search',
-    query: normalized.length >= 2 ? { q: normalized } : undefined,
-  })
-}
-
-onMounted(() => {
-  runtime.refresh().catch(() => undefined)
-  runtimeTimer = window.setInterval(
-    () => runtime.refresh(true).catch(() => undefined),
-    30_000,
-  )
-})
-
-onBeforeUnmount(() => {
-  if (runtimeTimer) window.clearInterval(runtimeTimer)
-})
 </script>
 
 <style scoped>
 .app-shell {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: var(--ow-sidebar-width) minmax(0, 1fr);
   min-height: 100vh;
@@ -216,108 +318,287 @@ onBeforeUnmount(() => {
   display: flex;
   height: 100vh;
   flex-direction: column;
-  padding: 18px 12px;
-  background: var(--ow-sidebar);
-  border-right: 1px solid var(--ow-line-soft);
+  padding: 0 12px 14px;
+  overflow-y: auto;
+  color: #d7deec;
+  background: linear-gradient(180deg, var(--nav-1) 0%, var(--nav-2) 55%, var(--nav-3) 100%);
+  box-shadow: 4px 0 30px rgb(10 40 30 / 28%);
+}
+
+.sidebar::after {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 150px;
+  pointer-events: none;
+  content: '';
+  background: linear-gradient(180deg, rgb(255 255 255 / 6%), transparent);
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 16%);
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background-clip: content-box;
 }
 
 :deep(.brand-block) {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 42px;
-  padding: 0 8px 18px;
+  gap: 11px;
+  min-height: 72px;
+  padding: 17px 6px 14px;
+  margin: 0 6px;
+  border-bottom: 1px solid var(--nav-line);
+  position: relative;
+  z-index: 1;
 }
 
 :deep(.brand-mark) {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   flex: none;
   place-items: center;
-  color: var(--ow-primary-ink);
-  background: var(--ow-primary);
-  border-radius: 7px;
-  font-weight: 800;
+  filter: drop-shadow(0 3px 7px rgb(0 0 0 / 40%));
 }
 
 :deep(.brand-copy) {
   display: grid;
+  min-width: 0;
+  gap: 1px;
 }
 
 :deep(.brand-copy strong) {
-  font-size: 14px;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
 }
 
 :deep(.brand-copy small) {
-  color: var(--ow-muted);
-  font-size: 11px;
+  color: rgb(255 255 255 / 50%);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
 }
 
 .nav-list {
   display: grid;
+  gap: 14px;
+  padding: 16px 0 12px;
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+.nav-group {
+  display: grid;
   gap: 4px;
+}
+
+.nav-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 8px;
+  color: rgb(255 255 255 / 55%);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.nav-group-title::before {
+  display: inline-block;
+  width: 3px;
+  height: 11px;
+  border-radius: 3px;
+  content: '';
+  background: linear-gradient(180deg, var(--gold), rgb(246 183 60 / 25%));
+  box-shadow: 0 0 8px rgb(246 183 60 / 45%);
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
   min-height: 40px;
-  padding: 0 11px;
-  color: var(--ow-ink-secondary);
-  border: 1px solid transparent;
-  border-radius: var(--ow-radius-sm);
+  padding: 10px 12px;
+  color: #d7deec;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
   transition:
-    color 180ms ease-out,
-    background-color 180ms ease-out,
-    border-color 180ms ease-out;
+    color 160ms ease-out,
+    background-color 160ms ease-out,
+    transform 100ms ease-out;
 }
 
 .nav-item svg {
-  width: 17px;
-  height: 17px;
+  width: 19px;
+  height: 19px;
   flex: none;
-  color: var(--ow-muted);
-  stroke-width: 1.8;
+  opacity: 0.85;
+  transition: transform 180ms ease, opacity 180ms ease;
 }
 
 .nav-item:hover {
-  color: var(--ow-ink);
-  background: var(--ow-surface);
+  color: #fff;
+  background: rgb(255 255 255 / 7%);
+  transform: translateX(2px);
+}
+
+.nav-item:hover svg {
+  opacity: 1;
+  transform: scale(1.08);
 }
 
 .nav-item.router-link-active {
-  color: var(--ow-ink);
-  background: var(--ow-primary-soft);
-  border-color: oklch(0.4 0.08 140);
+  color: #fff;
+  background: linear-gradient(90deg, rgb(255 255 255 / 20%), rgb(255 255 255 / 4%));
+  box-shadow:
+    inset 3px 0 0 var(--gold),
+    0 6px 18px rgb(0 0 0 / 18%),
+    0 0 18px rgb(246 183 60 / 22%);
 }
 
 .nav-item.router-link-active svg {
-  color: var(--ow-primary-strong);
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgb(246 183 60 / 60%));
+}
+
+.nav-badge {
+  margin-left: auto;
+  color: #5a3a00;
+  background: linear-gradient(180deg, #f6b841, #e89412);
+  border-radius: 11px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  padding: 0 8px;
+  box-shadow: 0 2px 5px rgb(0 0 0 / 25%);
+}
+
+.nav-new {
+  margin-left: auto;
+  color: #fff;
+  background: var(--brand);
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 16px;
+  padding: 0 7px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 20%);
+}
+
+.nav-badge + .nav-new {
+  margin-left: 6px;
 }
 
 .sidebar-footer {
+  position: relative;
+  z-index: 1;
   margin-top: auto;
-  padding: 12px 8px 2px;
-  border-top: 1px solid var(--ow-line-soft);
+  padding: 5px 6px 0;
 }
 
-.local-note {
+.user-summary {
+  display: grid;
+  gap: 10px;
+  padding: 13px;
+  background: rgb(255 255 255 / 7%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 14px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 8%),
+    0 8px 22px rgb(0 0 0 / 20%);
+}
+
+.user-summary-top {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--ow-muted);
-  font-size: 12px;
+  gap: 10px;
 }
 
-.local-note svg {
-  width: 15px;
-  height: 15px;
+.user-avatar {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, var(--av-1), var(--av-2));
+  border-radius: 11px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 32%);
+}
+
+.user-avatar svg {
+  width: 18px;
+  height: 18px;
+}
+
+.user-summary-name {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+}
+
+.user-summary-name strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-summary-name small {
+  color: rgb(255 255 255 / 62%);
+  font-size: 10px;
+}
+
+.mini-bar {
+  display: block;
+  height: 5px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 14%);
+  border-radius: 3px;
+}
+
+.mini-bar b {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #f6b43a, #e79412);
+  border-radius: 3px;
+}
+
+.user-gold {
+  text-align: right;
+  flex: none;
+}
+
+.user-gold small {
+  display: block;
+  color: rgb(255 255 255 / 60%);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.user-gold strong {
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .shell-main {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .topbar {
@@ -327,97 +608,218 @@ onBeforeUnmount(() => {
   display: flex;
   min-height: var(--ow-topbar-height);
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 0 28px;
-  background: oklch(0.115 0 0 / 0.94);
-  border-bottom: 1px solid var(--ow-line-soft);
-  backdrop-filter: blur(10px);
+  gap: 14px;
+  padding: 13px 30px;
+  background: linear-gradient(180deg, var(--topbar-1), var(--topbar-2));
+  border-bottom: 1px solid var(--topbar-border);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: 0 6px 20px rgb(22 82 60 / 6%);
+}
+
+.topbar::after {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  pointer-events: none;
+  content: '';
+  background: linear-gradient(90deg, transparent, var(--brand), transparent);
+  opacity: 0.16;
 }
 
 .topbar-context {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--ow-ink-secondary);
-  font-weight: 650;
+  min-width: 0;
 }
 
-.topbar-actions,
-.run-indicator,
-.user-menu {
+.breadcrumb {
   display: flex;
   align-items: center;
+  gap: 2px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.crumb-root {
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.breadcrumb strong {
+  overflow: hidden;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search {
+  position: relative;
+  flex: 1;
+  max-width: 460px;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 9px 12px 9px 38px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1.5px solid var(--line-2);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.14s, box-shadow 0.14s;
+}
+
+.search-input::placeholder {
+  color: var(--faint);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow:
+    0 0 0 4px var(--brand-50),
+    0 6px 18px var(--card-glow);
+}
+
+.recents {
+  position: absolute;
+  inset: calc(100% + 6px) 0 auto 0;
+  z-index: 40;
+  padding: 6px;
+  background: var(--recents);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(14px);
+}
+
+.recents-title {
+  padding: 6px 12px;
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rec {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  overflow: hidden;
+  color: var(--ink-2);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.rec:hover {
+  color: var(--brand-700);
+  background: var(--brand-50);
+}
+
+.spacer {
+  flex: 1;
 }
 
 .topbar-actions {
-  gap: 12px;
-}
-
-.global-search {
   display: flex;
-  width: min(340px, 34vw);
-  height: 36px;
   align-items: center;
-  gap: 8px;
-  padding: 0 10px;
-  background: var(--ow-surface);
-  border: 1px solid var(--ow-line-soft);
-  border-radius: var(--ow-radius-sm);
+  gap: 10px;
 }
 
-.global-search:focus-within {
-  border-color: var(--ow-primary);
-}
-
-.global-search-submit {
+.bell {
+  position: relative;
   display: grid;
-  width: 18px;
-  height: 28px;
-  flex: none;
-  padding: 0;
+  width: 42px;
+  height: 42px;
   place-items: center;
-  color: var(--ow-muted);
-  background: transparent;
-  border: 0;
+  color: var(--ink-2);
+  background: var(--glass);
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
   cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: 0.15s;
 }
 
-.global-search-submit svg {
-  width: 15px;
-  height: 15px;
+.bell svg {
+  width: 20px;
+  height: 20px;
 }
 
-.global-search input {
-  width: 100%;
-  min-width: 0;
-  color: var(--ow-ink-secondary);
-  background: transparent;
-  border: 0;
-  outline: 0;
+.bell:hover {
+  color: var(--brand-700);
+  background: var(--brand-50);
+  border-color: var(--brand);
+  box-shadow: 0 6px 16px var(--card-glow);
+  transform: translateY(-1px);
 }
 
-.global-search input::placeholder {
-  color: var(--ow-muted);
+.bell-dot {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: flex;
+  min-width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  color: #fff;
+  background: var(--red);
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px var(--surface);
+  font-size: 11px;
+  font-weight: 800;
 }
 
-.run-indicator {
-  gap: 7px;
-  color: var(--ow-muted);
-  font-size: 12px;
+.theme-toggle {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  color: var(--ink-2);
+  background: var(--glass);
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 17px;
+  transition: 0.15s;
 }
 
-.run-indicator:hover {
-  color: var(--ow-primary-strong);
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
 }
 
-.run-indicator svg {
-  width: 15px;
-  height: 15px;
+.theme-toggle:hover {
+  border-color: var(--brand);
+  box-shadow: 0 6px 16px var(--card-glow);
+  transform: translateY(-1px);
 }
 
 .user-menu {
+  display: flex;
   gap: 8px;
+  align-items: center;
   min-height: 38px;
   padding: 4px 7px 4px 4px;
   color: var(--ow-ink-secondary);
@@ -428,7 +830,7 @@ onBeforeUnmount(() => {
 }
 
 .user-menu:hover {
-  background: var(--ow-surface);
+  background: var(--ow-surface-hover);
   border-color: var(--ow-line-soft);
 }
 
@@ -439,19 +841,27 @@ onBeforeUnmount(() => {
 
 .avatar {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   place-items: center;
-  color: var(--ow-primary-ink);
-  background: var(--ow-accent);
-  border-radius: 50%;
-  font-size: 10px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--av-1), var(--av-2));
+  border-radius: 12px;
+  font-size: 12px;
   font-weight: 800;
+  box-shadow: 0 4px 12px rgb(31 158 116 / 40%);
 }
 
 .content {
-  min-height: calc(100vh - var(--ow-topbar-height));
-  padding: 28px;
+  flex: 1;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 26px 34px 52px;
+}
+
+.page-host {
+  min-width: 0;
 }
 
 .mobile-menu {
@@ -473,47 +883,33 @@ onBeforeUnmount(() => {
   }
 
   .topbar {
-    padding: 0 18px;
+    padding: 10px 18px;
+  }
+
+  .search {
+    display: none;
   }
 
   .content {
-    padding: 22px 18px;
-  }
-
-  .global-search {
-    width: min(300px, 42vw);
+    padding: 18px;
   }
 
   :deep(.mobile-drawer .el-drawer__body) {
-    padding: 18px 12px;
+    padding: 16px 12px;
   }
 }
 
 @media (max-width: 560px) {
-  .global-search {
-    width: 38px;
-    padding: 0 11px;
-  }
-
-  .global-search input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-  }
-
-  .run-indicator span,
   .user-name {
     display: none;
   }
 
   .topbar {
-    padding: 0 12px;
+    padding: 10px 12px;
   }
 
   .content {
-    padding: 20px 14px;
+    padding: 18px 14px 26px;
   }
 }
 </style>
