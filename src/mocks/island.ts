@@ -338,7 +338,7 @@ export const islandAiScenes: IslandAiScene[] = [
 export const islandAiHistory: IslandAiHistory[] = [
   { date: plusDays(-1), account: '我的主账户', model: 'gpt-4o', proto: 'Chat Completions', prompt: '你好，请介绍你自己', result: '成功', latency: 220, status: 'SUCCEEDED', error: '' },
   { date: plusDays(-3), account: '备用账户', model: 'claude-3.5-sonnet', proto: 'Responses', prompt: '你好', result: '成功', latency: 310, status: 'SUCCEEDED', error: '' },
-  { date: plusDays(-6), account: '我的主账户', model: 'gpt-4o', proto: 'Chat Completions', prompt: '测试超时场景', result: '失败', latency: 0, status: 'TIMEOUT', error: '请求超过 60s 未响应，已自动切换备用账户（claude-3.5-sonnet）' },
+  { date: plusDays(-6), account: '我的主账户', model: 'gpt-4o', proto: 'Chat Completions', prompt: '测试超时场景', result: '失败', latency: 0, status: 'TIMEOUT', error: '请求超过 60s 未响应（当前版本不做自动切换，失败即返回业务层）' },
 ]
 
 export const islandNotifications: IslandNotification[] = [
