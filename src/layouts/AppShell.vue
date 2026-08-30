@@ -85,23 +85,46 @@
           <input
             v-model="searchKeyword"
             class="search-input"
-            placeholder="搜索岗位、题目、项目、知识点…"
+            placeholder="搜索项目、知识块、面试、报告、投递…"
             aria-label="全局搜索"
-            @focus="recentsOpen = true"
-            @blur="hideRecents"
+            @focus="openSearchPanel"
+            @blur="hideSearchPanel"
+            @input="onSearchInput"
             @keydown.enter="onSearchEnter"
           >
-          <div v-if="recentsOpen" class="recents">
-            <div class="recents-title">最近搜索 · 演示数据</div>
-            <button
-              v-for="recent in recents"
-              :key="recent"
-              type="button"
-              class="rec"
-              @mousedown.prevent="applyRecent(recent)"
-            >
-              {{ recent }}
-            </button>
+          <div v-if="searchPanelOpen" class="recents search-results">
+            <div v-if="searchLoading" class="recents-title">
+              搜索中…
+            </div>
+            <div v-else-if="searchError" class="recents-title">
+              {{ searchError }}
+            </div>
+            <template v-else-if="searchResult && searchResult.total > 0">
+              <div v-for="group in searchResult.groups" :key="group.type" class="search-group">
+                <div class="recents-title">
+                  {{ group.label }} · {{ group.total }}
+                </div>
+                <button
+                  v-for="hit in group.items"
+                  :key="`${hit.type}-${hit.id}`"
+                  type="button"
+                  class="rec search-hit"
+                  @mousedown.prevent="goToHit(hit)"
+                >
+                  <span class="hit-line">
+                    <span class="hit-title">{{ hit.title }}</span>
+                    <span v-if="hit.sub" class="hit-sub">{{ hit.sub }}</span>
+                  </span>
+                  <span v-if="hit.snippet" class="hit-snippet">{{ hit.snippet }}</span>
+                </button>
+              </div>
+            </template>
+            <div v-else-if="searchKeyword.trim().length >= 2" class="recents-title">
+              没有匹配「{{ searchKeyword.trim() }}」的结果
+            </div>
+            <div v-else class="recents-title">
+              输入至少 2 个字符开始搜索
+            </div>
           </div>
         </div>
         <div class="spacer" />
@@ -176,13 +199,14 @@ import {
   UsersRound,
   Zap,
 } from 'lucide-vue-next'
-import { ElMessage } from 'element-plus'
 import { computed, defineComponent, h, onMounted, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
 import DreamyBackground from '@/components/DreamyBackground.vue'
+import { getProblem } from '@/api/http'
 import { getUnreadCount } from '@/api/notifications'
+import { searchAll, type SearchHit, type SearchResponse } from '@/api/search'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 
@@ -193,14 +217,12 @@ const ui = useUiStore()
 const mobileNavOpen = ref(false)
 const passwordDialogOpen = ref(false)
 const searchKeyword = ref('')
-const recentsOpen = ref(false)
-
-const recents = [
-  '秒杀系统 如何保证不超卖',
-  'Redis 缓存一致性',
-  '项目深挖面试官',
-  '美团 技术面报告',
-]
+const searchPanelOpen = ref(false)
+const searchLoading = ref(false)
+const searchError = ref('')
+const searchResult = ref<SearchResponse | null>(null)
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+let searchRequestId = 0
 
 const navGroups = [
   {
@@ -297,20 +319,70 @@ const BrandBlock = defineComponent({
   },
 })
 
-function hideRecents(): void {
-  recentsOpen.value = false
+function openSearchPanel(): void {
+  searchPanelOpen.value = true
 }
 
-function applyRecent(recent: string): void {
-  searchKeyword.value = recent
-  recentsOpen.value = false
-  ElMessage.info(`「${recent}」的全局搜索将随后端检索能力接入（演示）`)
+function hideSearchPanel(): void {
+  searchPanelOpen.value = false
+}
+
+function onSearchInput(): void {
+  searchError.value = ''
+  if (searchTimer) clearTimeout(searchTimer)
+  const query = searchKeyword.value.trim()
+  if (query.length < 2) {
+    searchResult.value = null
+    searchLoading.value = false
+    return
+  }
+  searchLoading.value = true
+  searchTimer = setTimeout(() => {
+    void runSearch(query)
+  }, 300)
+}
+
+async function runSearch(query: string): Promise<void> {
+  const requestId = ++searchRequestId
+  try {
+    const result = await searchAll(query)
+    if (requestId !== searchRequestId) return
+    searchResult.value = result
+    searchError.value = ''
+  } catch (error) {
+    if (requestId !== searchRequestId) return
+    searchResult.value = null
+    searchError.value = problemMessage(error)
+  } finally {
+    if (requestId === searchRequestId) searchLoading.value = false
+  }
+}
+
+function firstHit(): SearchHit | null {
+  for (const group of searchResult.value?.groups ?? []) {
+    if (group.items.length) return group.items[0]
+  }
+  return null
+}
+
+function goToHit(hit: SearchHit): void {
+  searchPanelOpen.value = false
+  void router.push(hit.route)
 }
 
 function onSearchEnter(): void {
-  if (!searchKeyword.value) return
-  recentsOpen.value = false
-  ElMessage.info(`「${searchKeyword.value}」的全局搜索将随后端检索能力接入（演示）`)
+  const hit = firstHit()
+  if (hit) {
+    goToHit(hit)
+    return
+  }
+  const query = searchKeyword.value.trim()
+  if (query.length >= 2) void runSearch(query)
+}
+
+function problemMessage(error: unknown): string {
+  const problem = getProblem(error)
+  return problem.detail || problem.title || '搜索失败，请稍后重试'
 }
 
 async function handleLogout(): Promise<void> {
@@ -749,6 +821,54 @@ async function handleLogout(): Promise<void> {
 .rec:hover {
   color: var(--brand-700);
   background: var(--brand-50);
+}
+
+.search-results {
+  max-height: min(60vh, 480px);
+  overflow-y: auto;
+}
+
+.search-group + .search-group {
+  margin-top: 4px;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 2px;
+}
+
+.search-hit {
+  display: block;
+  white-space: normal;
+}
+
+.hit-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.hit-title {
+  overflow: hidden;
+  flex: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.hit-sub {
+  flex-shrink: 0;
+  color: var(--faint);
+  font-size: 11px;
+}
+
+.hit-snippet {
+  display: -webkit-box;
+  margin-top: 2px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .spacer {
