@@ -360,7 +360,8 @@ async function runSearch(query: string): Promise<void> {
 
 function firstHit(): SearchHit | null {
   for (const group of searchResult.value?.groups ?? []) {
-    if (group.items.length) return group.items[0]
+    const hit = group.items[0]
+    if (hit) return hit
   }
   return null
 }
