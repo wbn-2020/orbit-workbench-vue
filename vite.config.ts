@@ -24,5 +24,10 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    build: {
+      // 入口 chunk 现为 778 kB（main.ts 全量注册 Element Plus）；预算 800 kB，
+      // 真正的修复是改为按需引入，届时把预算压回 500 以下。
+      chunkSizeWarningLimit: 800,
+    },
   }
 })
