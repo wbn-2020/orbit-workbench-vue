@@ -41,6 +41,8 @@
 - 所有控件必须有 hover、focus-visible、active、disabled 和 loading 状态。
 - 加载使用骨架屏或局部占位；空状态说明下一步操作；错误状态展示可重试入口。
 - 图标统一使用 Lucide，图标按钮提供 tooltip 和 aria-label。
+- 组件类默认值不要交给 `withDefaults`：函数形状的 prop 默认值会被 Vue 当工厂函数调用（`Component` 这类 TS 类型推不出运行时类型），组件因此在渲染期中断。改为在组件内 `computed(() => props.icon ?? 默认图标)` 兜底。
+- 带可选入参的处理函数必须写成 `@click="fn()"`：`@click="fn"` 会把 `PointerEvent` 作为第一个实参传入，拼进 URL 或 id 时表现为 400/404 而不是类型错误。
 
 ## Motion
 
