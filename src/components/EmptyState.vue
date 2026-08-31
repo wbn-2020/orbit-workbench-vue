@@ -1,6 +1,6 @@
 <template>
   <div class="empty-state">
-    <component :is="icon" class="empty-icon" aria-hidden="true" />
+    <component :is="shownIcon" class="empty-icon" aria-hidden="true" />
     <h3>{{ title }}</h3>
     <p v-if="description">{{ description }}</p>
     <slot />
@@ -9,19 +9,18 @@
 
 <script setup lang="ts">
 import { Inbox } from 'lucide-vue-next'
+import { computed } from 'vue'
+
 import type { Component } from 'vue'
 
-withDefaults(
-  defineProps<{
-    title: string
-    description?: string
-    icon?: Component
-  }>(),
-  {
-    description: undefined,
-    icon: Inbox,
-  },
-)
+const props = defineProps<{
+  title: string
+  description?: string
+  icon?: Component
+}>()
+
+// 图标默认值不能交给 withDefaults：组件本身是函数，Vue 会把它当工厂函数调用。
+const shownIcon = computed(() => props.icon ?? Inbox)
 </script>
 
 <style scoped>

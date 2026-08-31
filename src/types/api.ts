@@ -1268,3 +1268,116 @@ export interface WorkflowRunCommandResponse {
   command: 'CANCEL'
   successorRunId?: number | null
 }
+
+export type ResumeSectionKey =
+  | 'BASIC_INFO'
+  | 'EDUCATION'
+  | 'WORK_EXPERIENCE'
+  | 'PROJECT_EXPERIENCE'
+  | 'SKILLS'
+  | string
+export type ResumeItemKind = 'FIELD' | 'ENTRY' | string
+export type ResumeSourceType = 'MANUAL' | 'JOB_PROFILE' | 'PROJECT_VERSION' | 'PROJECT_FACT' | string
+export type ResumeVersionStatus = 'DRAFT' | 'FINAL' | string
+export type ResumeExportStatus = 'SUCCEEDED' | 'FAILED' | string
+
+export interface ResumeItemSource {
+  type: ResumeSourceType
+  refId: number | null
+  label: string | null
+}
+
+/** 响应侧 `ItemResponse` 把来源摊平成三个字段，只有请求体才用嵌套 `source`。 */
+export interface ResumeItem {
+  id: string
+  order: number
+  kind: ResumeItemKind
+  label: string | null
+  text: string
+  sourceType: ResumeSourceType
+  sourceRefId: number | null
+  sourceLabel: string | null
+  edited: boolean
+}
+
+export interface ResumeSection {
+  key: ResumeSectionKey
+  items: ResumeItem[]
+}
+
+export interface ResumeItemPayload {
+  id: string
+  order: number
+  kind: ResumeItemKind
+  label: string | null
+  text: string
+  source: ResumeItemSource
+  edited: boolean
+}
+
+export interface ResumeSectionPayload {
+  key: ResumeSectionKey
+  items: ResumeItemPayload[]
+}
+
+export interface ResumeExportRecord {
+  id: number
+  status: ResumeExportStatus
+  sizeBytes: number | null
+  fontName: string | null
+  failureReason: string | null
+  createdAt: string
+}
+
+export interface ResumeVersionSummary {
+  id: number
+  versionNumber: number
+  status: ResumeVersionStatus
+  changeSummary: string | null
+  sectionCount: number
+  itemCount: number
+  totalChars: number
+  pdfAvailable: boolean
+  pdfGeneratedAt: string | null
+  exportCount: number
+  lastExportedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ResumeVersionDetail {
+  id: number
+  versionNumber: number
+  status: ResumeVersionStatus
+  changeSummary: string | null
+  sections: ResumeSection[]
+  exports: ResumeExportRecord[]
+  pdfGeneratedAt: string | null
+  sourceSnapshotAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ResumeState {
+  exists: boolean
+  resumeId: number | null
+  title: string | null
+  activeVersionId: number | null
+  activeVersion: ResumeVersionSummary | null
+  draft: ResumeVersionDetail | null
+  versions: ResumeVersionSummary[]
+}
+
+export interface ResumePreflight {
+  ready: boolean
+  blockers: string[]
+  totalChars: number
+  itemCount: number
+}
+
+export interface ResumeDraftPayload {
+  sections: ResumeSectionPayload[]
+  expectedUpdatedAt?: string | null
+  title?: string | null
+  changeSummary?: string | null
+}

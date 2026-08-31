@@ -1,25 +1,7 @@
 /*
  功能缺口补全（P6 扩展页）演示数据（移植自原型 gapSeed）。
- 覆盖：简历、报告中心、错题本、JD 匹配、通知中心、设置偏好、技能图谱期段。
+ 覆盖：报告中心、错题本、JD 匹配、通知中心、设置偏好、技能图谱期段。
 */
-
-export interface GapResumeBasic {
-  name: string
-  target: string
-  phone: string
-  email: string
-  city: string
-  summary: string
-}
-
-export interface GapResume {
-  created: boolean
-  basic: GapResumeBasic
-  educations: { id: number; school: string; major: string; time: string; honor: string }[]
-  works: { id: number; company: string; role: string; time: string; desc: string }[]
-  projects: { id: number; name: string; role: string; time: string; tech: string; desc: string; highlights: string }[]
-  skills: { id: number; name: string; level: number }[]
-}
 
 export interface GapReport {
   id: number
@@ -81,33 +63,6 @@ let uidSeed = 1
 function uid(): number {
   uidSeed += 1
   return uidSeed
-}
-
-export const gapResume: GapResume = {
-  created: true,
-  basic: {
-    name: '阿岛', target: 'Java 后端工程师（Java + AI 方向）', phone: '138****6688', email: 'island@job.com',
-    city: '北京 / 远程', summary: '3 年后端经验，主导过高并发秒杀与营销系统，正在补齐 AI 工程能力。',
-  },
-  educations: [
-    { id: uid(), school: '某 211 高校', major: '计算机科学与技术 · 本科', time: '2019 - 2023', honor: '国家奖学金' },
-    { id: uid(), school: '某在线学院', major: 'AI 工程微硕士（在读）', time: '2024 - 至今', honor: '' },
-  ],
-  works: [
-    { id: uid(), company: '某电商中台', role: '后端工程师', time: '2023.01 - 至今', desc: '主导营销与秒杀核心链路，QPS 10k 下零超卖；负责库存与订单服务拆分。' },
-    { id: uid(), company: '某创业公司', role: 'Java 开发', time: '2021.07 - 2022.12', desc: '从 0 搭建订单与支付清结算模块，支撑日百万级交易。' },
-  ],
-  projects: [
-    { id: uid(), name: '秒杀系统', role: '主项目', time: '2023', tech: 'Spring Boot + Redis + Kafka + MySQL', desc: '高并发限时抢购，峰值 10k QPS。', highlights: '库存扣减与幂等设计、热点 Key 防护' },
-    { id: uid(), name: 'AI 问答助手', role: '个人项目', time: '2024', tech: 'Spring AI + RAG + Vector DB', desc: '基于检索增强的面试问答助手。', highlights: 'Tool Calling 编排、上下文压缩' },
-  ],
-  skills: [
-    { id: uid(), name: 'Java / JVM', level: 4 },
-    { id: uid(), name: 'Spring Cloud', level: 4 },
-    { id: uid(), name: 'Redis / 高并发', level: 3 },
-    { id: uid(), name: 'MySQL 调优', level: 3 },
-    { id: uid(), name: 'AI 工程（RAG/Agent）', level: 2 },
-  ],
 }
 
 export const gapReports: GapReport[] = [
