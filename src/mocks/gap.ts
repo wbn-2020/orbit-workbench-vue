@@ -1,18 +1,8 @@
 /*
  功能缺口补全（P6 扩展页）演示数据（移植自原型 gapSeed）。
- 覆盖：报告中心、错题本、JD 匹配、通知中心、设置偏好、技能图谱期段。
+ 覆盖：错题本、JD 匹配、通知中心、设置偏好、技能图谱期段。
+ 报告中心已改接真实 /api/v1/reports**，本文件不再保留报告演示数据。
 */
-
-export interface GapReport {
-  id: number
-  company: string
-  role: string
-  type: '面试' | '笔试'
-  score: number
-  date: string
-  tags: string[]
-  dims: Record<string, number>
-}
 
 export interface GapWrongItem {
   id: number
@@ -53,24 +43,11 @@ export interface SkillPeriod {
   dims: Record<string, number>
 }
 
-function plusDays(n: number): string {
-  const d = new Date()
-  d.setDate(d.getDate() + n)
-  return d.toISOString().slice(0, 10)
-}
-
 let uidSeed = 1
 function uid(): number {
   uidSeed += 1
   return uidSeed
 }
-
-export const gapReports: GapReport[] = [
-  { id: uid(), company: '美团', role: '后端开发工程师', type: '面试', score: 78, date: plusDays(-3), tags: ['技术面', '已过'], dims: { 业务理解: 80, 技术深度: 70, 项目实践: 78, 问题分析: 76, 架构取舍: 72, 表达沟通: 84, 边界意识: 77 } },
-  { id: uid(), company: '阿里云', role: 'Java 开发', type: '面试', score: 91, date: plusDays(-12), tags: ['模拟面', '优秀'], dims: { 业务理解: 90, 技术深度: 90, 项目实践: 91, 问题分析: 89, 架构取舍: 87, 表达沟通: 93, 边界意识: 90 } },
-  { id: uid(), company: '某大厂', role: 'Java + AI', type: '笔试', score: 85, date: plusDays(-1), tags: ['笔试', '算法'], dims: { 业务理解: 82, 技术深度: 88, 项目实践: 80, 问题分析: 86, 架构取舍: 79, 表达沟通: 83, 边界意识: 84 } },
-  { id: uid(), company: '字节跳动', role: '后端研发', type: '面试', score: 73, date: plusDays(-20), tags: ['技术面', '待提升'], dims: { 业务理解: 70, 技术深度: 65, 项目实践: 72, 问题分析: 68, 架构取舍: 60, 表达沟通: 80, 边界意识: 71 } },
-]
 
 export const gapWrong: GapWrongItem[] = [
   { id: uid(), dim: '技术深度', source: '美团面试', q: 'Redis 与数据库双写时如何保证一致性？', mine: '直接先写数据库再删缓存。', ref: '采用「先更新数据库，再删除缓存」的 Cache-Aside，并对缓存删除失败做重试 / Binlog 订阅补偿，避免脏读。', analysis: '要点是删除而非更新缓存、失败补偿、以及应对并发读写时的短暂不一致窗口。', opt: ['先更新数据库再删除缓存（配合补偿）', '同时更新数据库和缓存保证强一致', '只写数据库不碰缓存', '用定时任务全量刷新'], answer: 0, mastered: false },

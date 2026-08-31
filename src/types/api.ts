@@ -1381,3 +1381,93 @@ export interface ResumeDraftPayload {
   title?: string | null
   changeSummary?: string | null
 }
+
+/** 报告中心（C-02）。后端全局 `non_null`：可空字段是整键缺失，因此一律声明为可选。 */
+export interface ReportListItem {
+  reportId: number
+  sessionId: number
+  sessionTitle: string
+  topicMode: string | null
+  form: string | null
+  round: string | null
+  targetRole?: string | null
+  targetExperienceBand?: string | null
+  interviewerId?: number | null
+  interviewerName?: string | null
+  sessionStatus: string | null
+  reportStatus: string
+  totalScore?: number | null
+  dimensionCount: number
+  dimensionAverage?: number | null
+  hiringRecommendation?: string | null
+  /** 缺失 = 该报告生成时还没有规则版本承载（V30 之前），不得参与趋势与比较。 */
+  scoringRuleVersion?: string | null
+  failureReason?: string | null
+  retryCount: number
+  generatedAt?: string | null
+  scheduledAt?: string | null
+  createdAt: string
+}
+
+export interface ReportListResponse {
+  items: ReportListItem[]
+  total: number
+  page: number
+  size: number
+}
+
+export interface ReportListQuery {
+  days?: number | null
+  topicMode?: string | null
+  form?: string | null
+  recommendation?: string | null
+  interviewerId?: number | null
+  page?: number | null
+  size?: number | null
+}
+
+export interface ReportDimensionAverage {
+  name: string
+  sampleCount: number
+  average: number
+}
+
+export interface ReportRuleVersionSample {
+  ruleVersion: string
+  sampleCount: number
+}
+
+export interface ReportScorePoint {
+  reportId: number
+  generatedAt: string
+  totalScore: number
+}
+
+export interface ReportSummary {
+  minTrendSamples: number
+  /** 缺失 = 一条带规则版本的报告都没有，趋势无对象可算。 */
+  ruleVersion?: string | null
+  sampleCount: number
+  renderable: boolean
+  dimensions: ReportDimensionAverage[]
+  scoreSeries: ReportScorePoint[]
+  versions: ReportRuleVersionSample[]
+}
+
+export interface ReportAnswerSource {
+  answerSource: string
+  count: number
+}
+
+export interface ReportDetail {
+  report: ReportListItem
+  dimensionScores: Record<string, number>
+  strengths: string[]
+  weaknesses: string[]
+  followUpFindings: string[]
+  projectMastery: string[]
+  knowledgeGaps: string[]
+  studySuggestions: string[]
+  answerSources: ReportAnswerSource[]
+  aiModelSnapshot?: string | null
+}

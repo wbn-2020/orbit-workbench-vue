@@ -176,6 +176,14 @@ export function getProblem(error: unknown): ProblemDetail {
         errorCode: 'NETWORK_ERROR',
       }
     }
+
+    // 有响应但不是 ProblemDetail（网关 502、HTML 错误页等）：不能把 axios 的英文原文当用户提示。
+    return {
+      title: '服务返回了无法解析的错误',
+      status: axiosError.response.status,
+      detail: `服务返回 HTTP ${axiosError.response.status}，且没有给出标准错误说明。请稍后重试。`,
+      errorCode: 'UNPARSED_ERROR_RESPONSE',
+    }
   }
 
   return {

@@ -43,6 +43,8 @@
 - 图标统一使用 Lucide，图标按钮提供 tooltip 和 aria-label。
 - 组件类默认值不要交给 `withDefaults`：函数形状的 prop 默认值会被 Vue 当工厂函数调用（`Component` 这类 TS 类型推不出运行时类型），组件因此在渲染期中断。改为在组件内 `computed(() => props.icon ?? 默认图标)` 兜底。
 - 带可选入参的处理函数必须写成 `@click="fn()"`：`@click="fn"` 会把 `PointerEvent` 作为第一个实参传入，拼进 URL 或 id 时表现为 400/404 而不是类型错误。
+- 「被拒绝的交互」要手动回写原生表单状态：`:checked` / `:value` 只在**绑定值变化**时才写回 DOM。若处理器因校验不过而没有改动状态，原生控件会停在用户点出来的样子（勾选框看起来已选中，实际未被选中）。处理完必须在末尾按当前状态回写，如 `box.checked = selected.includes(id)`。
+- 错误提示不得直接展示 axios 原文：响应体不是 ProblemDetail 时（网关 502 的 `text/plain`、HTML 错误页）会落进 `getProblem` 的兜底分支，只取 `error.message` 就会把 “Request failed with status code 502” 显示给用户。统一由 `getProblem` 生成中文说明并保留状态码。
 
 ## Motion
 
