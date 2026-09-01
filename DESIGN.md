@@ -45,6 +45,9 @@
 - 带可选入参的处理函数必须写成 `@click="fn()"`：`@click="fn"` 会把 `PointerEvent` 作为第一个实参传入，拼进 URL 或 id 时表现为 400/404 而不是类型错误。
 - 「被拒绝的交互」要手动回写原生表单状态：`:checked` / `:value` 只在**绑定值变化**时才写回 DOM。若处理器因校验不过而没有改动状态，原生控件会停在用户点出来的样子（勾选框看起来已选中，实际未被选中）。处理完必须在末尾按当前状态回写，如 `box.checked = selected.includes(id)`。
 - 错误提示不得直接展示 axios 原文：响应体不是 ProblemDetail 时（网关 502 的 `text/plain`、HTML 错误页）会落进 `getProblem` 的兜底分支，只取 `error.message` 就会把 “Request failed with status code 502” 显示给用户。统一由 `getProblem` 生成中文说明并保留状态码。
+- 后端判定阈值不得写死在界面文案里：样本下限、掌握所需的连续次数与自评分线等，随响应一起下发（`minTrendSamples`、`masteredStreak`/`masteredSelfScore`）。界面照抄数字时，后端改了判定而页面还在宣传旧规则，且没有任何一处会报错。
+- 空态与引导文案要按当前视图分支：带「队列中 / 已归档 / 全部」这类三态切换时，一句固定的“切到已归档看看”会在已归档视图里说错话。文案与实际视图一起计算，不复用一个通用串。
+- 「看来源」按来源类型分流，不要一律跳同一个页面：同一份数据可能来自报告（`/interviews/{id}/report`）或面试轮次（`/interviews/{id}`），一律跳报告页时，没有报告的那条会落到空页面。
 
 ## Motion
 
