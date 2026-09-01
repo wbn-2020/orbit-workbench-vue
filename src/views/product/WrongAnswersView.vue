@@ -70,10 +70,8 @@
         <section v-else-if="items.length === 0" class="ow-card">
           <EmptyState
             :icon="Target"
-            :title="filtersActive ? '当前筛选条件下没有条目' : '错题本还是空的'"
-            :description="filtersActive
-              ? '换一个掌握状态、来源或归类看看；也可以切到「已归档」找回被移出队列的条目。'
-              : '先完成一场模拟面试并让它生成报告，然后把报告的薄弱清单或没答上来的轮次导入到这里。你也可以手工记一条正在卡住的题。'"
+            :title="emptyTitle"
+            :description="emptyDescription"
           >
             <el-button v-if="filtersActive" @click="resetFilters">清空筛选</el-button>
             <template v-else>
@@ -471,6 +469,18 @@ const createError = ref('')
 const pageCount = computed(() => Math.max(1, Math.ceil(total.value / SIZE)))
 const filtersActive = computed(() => Boolean(mastery.value || sourceType.value || topic.value)
   || archived.value !== 'false')
+// 空态文案必须跟着「队列」视图走：在已归档里提示「切到已归档」是错的。
+const emptyTitle = computed(() => {
+  if (archived.value === 'true') return '还没有归档过条目'
+  if (filtersActive.value) return '当前筛选条件下没有条目'
+  return '错题本还是空的'
+})
+const emptyDescription = computed(() => {
+  if (archived.value === 'true') return '归档过的条目会出现在这里；归档只是移出练习队列，不会删除任何重练记录。'
+  if (archived.value === 'all') return '换一个掌握状态、来源或归类看看；库里还没有任何练习条目时，可以从报告或面试轮次导入。'
+  if (filtersActive.value) return '换一个掌握状态、来源或归类看看；被移出队列的条目在「已归档」里。'
+  return '先完成一场模拟面试并让它生成报告，然后把报告的薄弱清单或没答上来的轮次导入到这里。你也可以手工记一条正在卡住的题。'
+})
 const masteryPercent = computed(() => {
   const data = summary.value
   if (!data || data.total === 0) return 0
