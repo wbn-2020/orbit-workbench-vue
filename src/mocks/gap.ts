@@ -1,8 +1,9 @@
 /*
  功能缺口补全（P6 扩展页）演示数据（移植自原型 gapSeed）。
- 覆盖：JD 匹配、通知中心、设置偏好、技能图谱期段、帮助内容。
+ 覆盖：JD 匹配、通知中心、设置偏好、帮助内容。
  报告中心已改接真实 /api/v1/reports，错题本已改接真实 /api/v1/practice-items，
- 本文件不再保留报告或错题演示数据——错题的假公司来源、假参考答案与假选择题随 C-03c 一并删除。
+ 技能图谱已改接真实 /api/v1/capabilities——假公司来源、假参考答案、假选择题、
+ 假能力期段（入职初 / 3 个月后 / 当前）、假趋势线与写死的 80/65/50 档位均已删除。
 */
 
 export interface GapJd {
@@ -24,11 +25,6 @@ export interface GapNotification {
   text: string
   time: string
   read: boolean
-}
-
-export interface SkillPeriod {
-  name: string
-  dims: Record<string, number>
 }
 
 let uidSeed = 1
@@ -58,42 +54,6 @@ export const gapSettings = {
   notifyReport: true,
   notifyInterview: true,
   notifyTraining: true,
-}
-
-export const skillPeriods: SkillPeriod[] = [
-  { name: '入职初', dims: { 业务理解: 55, 技术深度: 50, 项目实践: 58, 问题分析: 52, 架构取舍: 48, 表达沟通: 60, 边界意识: 55 } },
-  { name: '3 个月后', dims: { 业务理解: 70, 技术深度: 66, 项目实践: 72, 问题分析: 68, 架构取舍: 64, 表达沟通: 74, 边界意识: 70 } },
-  { name: '当前', dims: { 业务理解: 84, 技术深度: 80, 项目实践: 82, 问题分析: 78, 架构取舍: 76, 表达沟通: 88, 边界意识: 81 } },
-]
-
-export const skillTrend = {
-  periods: ['入职初', '3 个月后', '当前'],
-  series: [
-    { name: '综合', values: [55, 69, 82] },
-    { name: '技术深度', values: [50, 66, 80] },
-    { name: '表达沟通', values: [60, 74, 88] },
-  ],
-}
-
-export const SKILL_CATEGORY: Record<string, { cat: string; cls: string; tag: string }> = {
-  技术深度: { cat: '技术硬实力', cls: 'tech', tag: 'blue' },
-  项目实践: { cat: '技术硬实力', cls: 'tech', tag: 'blue' },
-  业务理解: { cat: '思维判断', cls: 'think', tag: 'green' },
-  问题分析: { cat: '思维判断', cls: 'think', tag: 'green' },
-  架构取舍: { cat: '思维判断', cls: 'think', tag: 'green' },
-  边界意识: { cat: '思维判断', cls: 'think', tag: 'green' },
-  表达沟通: { cat: '沟通表达', cls: 'comm', tag: 'yel' },
-}
-
-export function skillCategoryOf(key: string): { cat: string; cls: string; tag: string } {
-  return SKILL_CATEGORY[key] ?? { cat: '其他', cls: 'think', tag: 'gray' }
-}
-
-export function skillLevelOf(value: number): { text: string; cls: string } {
-  if (value >= 80) return { text: '优秀', cls: 'excellent' }
-  if (value >= 65) return { text: '良好', cls: 'good' }
-  if (value >= 50) return { text: '平均', cls: 'avg' }
-  return { text: '待提升', cls: 'basic' }
 }
 
 export interface HelpFaq {

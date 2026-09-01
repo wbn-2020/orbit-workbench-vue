@@ -1569,3 +1569,73 @@ export interface PracticeListQuery {
   page?: number
   size?: number
 }
+
+/**
+ * 技能图谱（C-04）线上契约，口径见 `16_技能图谱与能力记录设计.md` §8。
+ * 后端全局 `non_null`：可空字段是**整个键缺失**，因此这里全部声明为可选。
+ */
+export interface CapabilityDimensionView {
+  name: string
+  category: string
+  /** 缺该维度的观测时后端不下发 score 键；界面显示「本期无观测」而不是 0 分。 */
+  score?: number | null
+  sampleCount: number
+}
+
+export interface CapabilityScorePoint {
+  reportId: number
+  sessionId: number
+  generatedAt: string
+  totalScore: number
+}
+
+export interface CapabilityRuleVersion {
+  ruleVersion: string
+  sampleCount: number
+}
+
+/** 自评层只有两个四档序数字段，后端不做 0-100 折算（`16` §6.2）。 */
+export interface CapabilitySelfAssessment {
+  javaSkillLevel?: string | null
+  aiSkillLevel?: string | null
+  updatedAt?: string | null
+}
+
+export interface CapabilitySources {
+  reportSamples: number
+  unversionedReports: number
+  practiceItems: number
+  masteredPracticeItems: number
+  confirmedProjectFacts: number
+}
+
+export interface CapabilityOverview {
+  rangeDays?: number | null
+  ruleVersion?: string | null
+  maxScore: number
+  sampleCount: number
+  minTrendSamples: number
+  renderable: boolean
+  reason?: string | null
+  dimensions: CapabilityDimensionView[]
+  series: CapabilityScorePoint[]
+  selfAssessment?: CapabilitySelfAssessment | null
+  sources: CapabilitySources
+  versions: CapabilityRuleVersion[]
+}
+
+export interface CapabilityEvidenceItem {
+  reportId: number
+  sessionId: number
+  generatedAt: string
+  score: number
+}
+
+export interface CapabilityEvidence {
+  name: string
+  category: string
+  rangeDays?: number | null
+  ruleVersion?: string | null
+  sampleCount: number
+  items: CapabilityEvidenceItem[]
+}
