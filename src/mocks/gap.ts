@@ -1,21 +1,9 @@
 /*
  功能缺口补全（P6 扩展页）演示数据（移植自原型 gapSeed）。
- 覆盖：错题本、JD 匹配、通知中心、设置偏好、技能图谱期段。
- 报告中心已改接真实 /api/v1/reports**，本文件不再保留报告演示数据。
+ 覆盖：JD 匹配、通知中心、设置偏好、技能图谱期段、帮助内容。
+ 报告中心已改接真实 /api/v1/reports，错题本已改接真实 /api/v1/practice-items，
+ 本文件不再保留报告或错题演示数据——错题的假公司来源、假参考答案与假选择题随 C-03c 一并删除。
 */
-
-export interface GapWrongItem {
-  id: number
-  dim: string
-  source: string
-  q: string
-  mine: string
-  ref: string
-  analysis: string
-  opt: string[]
-  answer: number
-  mastered: boolean
-}
 
 export interface GapJd {
   id: number
@@ -48,15 +36,6 @@ function uid(): number {
   uidSeed += 1
   return uidSeed
 }
-
-export const gapWrong: GapWrongItem[] = [
-  { id: uid(), dim: '技术深度', source: '美团面试', q: 'Redis 与数据库双写时如何保证一致性？', mine: '直接先写数据库再删缓存。', ref: '采用「先更新数据库，再删除缓存」的 Cache-Aside，并对缓存删除失败做重试 / Binlog 订阅补偿，避免脏读。', analysis: '要点是删除而非更新缓存、失败补偿、以及应对并发读写时的短暂不一致窗口。', opt: ['先更新数据库再删除缓存（配合补偿）', '同时更新数据库和缓存保证强一致', '只写数据库不碰缓存', '用定时任务全量刷新'], answer: 0, mastered: false },
-  { id: uid(), dim: '架构取舍', source: '字节面试', q: '秒杀库存扣减如何防超卖？', mine: '用数据库乐观锁版本号。', ref: 'Redis 预扣减 + Lua 原子扣减 + 异步落库，数据库做最终兜底校验，配合限流与降级。', analysis: '高并发下应把扣减前置到 Redis 原子操作，数据库仅做最终一致校验。', opt: ['Redis Lua 原子扣减 + 异步落库', '纯数据库乐观锁', '前端限制点击频率', '增加服务器数量'], answer: 0, mastered: false },
-  { id: uid(), dim: '问题分析', source: '某大厂笔试', q: 'Kafka 消费重复消息如何保证幂等？', mine: '在业务里判断一下。', ref: '利用消息 key 做去重表 / 唯一约束，或消费端记录已处理 offset 幂等键，确保重复消息不重复生效。', analysis: '幂等的核心是「同一消息多次消费结果一致」，常用唯一键 + 去重表。', opt: ['唯一键 + 去重表', '消费前 sleep 随机时间', '扩大消费者并发', '忽略重复日志'], answer: 0, mastered: true },
-  { id: uid(), dim: '技术深度', source: '阿里云模拟面', q: '什么是 RAG？它如何缓解大模型幻觉？', mine: '就是把知识喂给模型。', ref: '检索增强生成：先检索可信知识片段注入上下文，再让模型基于证据回答，显著降低无依据幻觉。', analysis: '强调「检索 + 上下文注入 + 引用溯源」三步，以及切分与向量召回质量的影响。', opt: ['检索外部知识注入上下文再生成', '微调一个大模型替代检索', '关闭采样温度到 0', '让模型多生成几遍取最长'], answer: 0, mastered: false },
-  { id: uid(), dim: '边界意识', source: '美团面试', q: '缓存击穿与缓存雪崩的区别与应对？', mine: '都加锁就行。', ref: '击穿是单 Key 失效高并发打 DB，用互斥锁 / 逻辑过期；雪崩是大量 Key 同时失效，用错峰过期 + 多级缓存。', analysis: '需区分单点击穿与大面积失效，对应互斥重建与过期错峰两套策略。', opt: ['击穿用互斥锁、雪崩用错峰过期', '两者都用同一把全局锁', '都不处理靠数据库扛', '只增加缓存容量'], answer: 0, mastered: false },
-  { id: uid(), dim: '表达沟通', source: '字节面试', q: '请用 30 秒介绍你最得意的项目。', mine: '我做了秒杀系统，很复杂。', ref: '结构化：背景（高并发抢购）→ 角色（主导库存链路）→ 动作（Redis 原子扣减 + 限流）→ 结果（10k QPS 零超卖）。', analysis: 'STAR 结构（情境-任务-行动-结果）让表达有层次、可量化。', opt: ['STAR 结构 + 量化结果', '想到哪说到哪', '只说技术栈罗列', '强调自己最辛苦'], answer: 0, mastered: true },
-]
 
 export const gapJds: GapJd[] = [
   { id: uid(), title: 'Java 后端工程师（高并发方向）', company: '美团', city: '北京', salary: '30k-50k · 16薪', tags: ['高并发', '分布式', 'Redis'], match: 88, desc: '负责核心交易链路，要求熟悉高并发、分布式事务与缓存架构，有秒杀 / 营销经验优先。', bd: { skill: 90, exp: 85, project: 88 } },

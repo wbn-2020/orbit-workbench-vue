@@ -200,3 +200,15 @@ export function problemMessage(error: unknown): string {
 }
 
 export type RequestConfig = AxiosRequestConfig
+
+/**
+ * 后端把缺省与空串一律按「不过滤」处理，但 axios 仍会把 undefined 发成 `days=` 这类空参数，
+ * 因此查询参数在出门前统一剔除空值。
+ */
+export function cleanParams(input: object): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  Object.entries(input as Record<string, unknown>).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') out[key] = value
+  })
+  return out
+}

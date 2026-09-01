@@ -1,4 +1,4 @@
-import { http } from './http'
+import { cleanParams, http } from './http'
 
 import type {
   ReportDetail,
@@ -23,13 +23,4 @@ export async function getReportSummary(days?: number | null, ruleVersion?: strin
 export async function getReportDetail(reportId: number): Promise<ReportDetail> {
   const { data } = await http.get<ReportDetail>(`/reports/${reportId}`)
   return data
-}
-
-/** 后端把缺省与空串按「不过滤」处理，但 undefined/null 仍要在前端剔除，避免发出 `days=` 这类空参数。 */
-function cleanParams(input: object): Record<string, unknown> {
-  const out: Record<string, unknown> = {}
-  Object.entries(input as Record<string, unknown>).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') out[key] = value
-  })
-  return out
 }

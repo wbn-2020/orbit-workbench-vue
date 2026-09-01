@@ -1471,3 +1471,101 @@ export interface ReportDetail {
   answerSources: ReportAnswerSource[]
   aiModelSnapshot?: string | null
 }
+
+/** 错题本 / 专项复练（C-03）。同样受后端全局 `non_null` 影响：可空字段整键缺失。 */
+export type PracticeSource = 'REPORT' | 'INTERVIEW_TURN' | 'MANUAL'
+export type PracticeMastery = 'NEW' | 'LEARNING' | 'MASTERED'
+export type PracticeResult = 'RETRY' | 'PARTIAL' | 'PASSED'
+
+export interface PracticeAttempt {
+  id: number
+  answer: string
+  result: PracticeResult
+  selfScore?: number | null
+  feedback?: string | null
+  attemptedAt: string
+}
+
+export interface PracticeItem {
+  itemId: number
+  sourceType: PracticeSource
+  sourceId: number
+  topic: string
+  question: string
+  /** 只有用户自己粘贴过才有值，系统永不自动生成。 */
+  referenceAnswer?: string | null
+  masteryStatus: PracticeMastery
+  nextReviewDate?: string | null
+  archived: boolean
+  createdAt: string
+  updatedAt: string
+  attemptCount: number
+  lastAttemptAt?: string | null
+  lastResult?: PracticeResult | null
+  lastSelfScore?: number | null
+  consecutivePassed: number
+  sourceSessionId?: number | null
+  sourceSessionTitle?: string | null
+  sourceTopicMode?: string | null
+  sourceForm?: string | null
+  reportTotalScore?: number | null
+  reportScoringRuleVersion?: string | null
+  originalQuestion?: string | null
+  originalAnswer?: string | null
+  originalAnswerSource?: string | null
+  originalTurnType?: string | null
+  traceableToQuestion: boolean
+  /** 追不到原始问题时后端给出的说明文本；能追到时该键缺失。 */
+  traceLimitation?: string | null
+}
+
+export interface PracticeListResponse {
+  items: PracticeItem[]
+  total: number
+  page: number
+  size: number
+}
+
+export interface PracticeDetailResponse {
+  item: PracticeItem
+  attempts: PracticeAttempt[]
+}
+
+export interface PracticeTopicCount {
+  topic: string
+  itemCount: number
+  notMasteredCount: number
+}
+
+export interface PracticeSummary {
+  total: number
+  newCount: number
+  learningCount: number
+  masteredCount: number
+  renderable: boolean
+  topics: PracticeTopicCount[]
+  lastAttemptAt?: string | null
+  /** 掌握判定阈值由后端下发，界面只复述不自己写死。 */
+  masteredStreak: number
+  masteredSelfScore: number
+}
+
+export interface PracticeImportResponse {
+  sessionId: number
+  sessionTitle?: string | null
+  reportId?: number | null
+  created: number
+  skipped: number
+  topics: string[]
+  note?: string | null
+}
+
+/** `archived` 是三态：不传=只看未归档，`true`=只看已归档，`all`=两类都要。 */
+export interface PracticeListQuery {
+  mastery?: PracticeMastery | null
+  sourceType?: PracticeSource | null
+  topic?: string | null
+  archived?: 'true' | 'false' | 'all' | null
+  page?: number
+  size?: number
+}

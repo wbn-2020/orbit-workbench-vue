@@ -1,228 +1,814 @@
 <template>
   <div class="page wrong-page">
-    <header class="ow-page-top">
-      <div>
-        <div class="ow-crumb">成长 / 错题本</div>
-        <h1><TriangleAlert aria-hidden="true" /> 错题本 · 专项训练</h1>
-        <div class="sub">按维度聚合薄弱点，重练巩固（演示数据）</div>
+    <PageHeader
+      title="错题本 · 专项复练"
+      description="条目只从已经发生过的观测里来：面试报告的薄弱清单、没答上来的面试轮次，或你自己手工记的一条。重练结果由你自评，系统不替你判定掌握，也不生成参考答案。"
+    >
+      <template #actions>
+        <el-button :icon="RefreshCw" :loading="loading || summaryLoading" @click="reload">刷新</el-button>
+        <el-button :icon="Download" @click="openImport">导入错题</el-button>
+        <el-button type="primary" :icon="Plus" @click="openCreate">手工记一条</el-button>
+      </template>
+    </PageHeader>
+
+    <section class="ow-card">
+      <div class="filters">
+        <div class="filter-group">
+          <span class="filter-label">掌握状态</span>
+          <div class="ow-seg">
+            <button
+              v-for="option in MASTERY_OPTIONS"
+              :key="`mastery-${option.value ?? 'all'}`"
+              type="button"
+              :class="{ on: mastery === option.value }"
+              @click="applyFilter({ mastery: option.value })"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">队列</span>
+          <div class="ow-seg">
+            <button
+              v-for="option in ARCHIVED_OPTIONS"
+              :key="`archived-${option.value}`"
+              type="button"
+              :class="{ on: archived === option.value }"
+              @click="applyFilter({ archived: option.value })"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+        </div>
+        <label class="filter-group">
+          <span class="filter-label">来源</span>
+          <el-select :model-value="sourceType" clearable placeholder="全部来源" @change="onSourceChange">
+            <el-option v-for="(label, value) in SOURCE_LABELS" :key="value" :label="label" :value="value" />
+          </el-select>
+        </label>
+        <label class="filter-group">
+          <span class="filter-label">归类</span>
+          <el-select :model-value="topic" clearable filterable placeholder="全部归类" @change="onTopicChange">
+            <el-option
+              v-for="entry in summary?.topics ?? []"
+              :key="entry.topic"
+              :label="`${entry.topic}（${entry.itemCount}）`"
+              :value="entry.topic"
+            />
+          </el-select>
+        </label>
+        <div class="filter-spacer" />
+        <el-button text :icon="FilterX" :disabled="!filtersActive" @click="resetFilters">清空筛选</el-button>
       </div>
-      <div class="acts">
-        <button class="ow-btn gold" type="button" @click="startQuiz">重练薄弱点</button>
-      </div>
-    </header>
+    </section>
 
     <div class="wrong-grid">
       <div class="col8">
-        <div class="ow-row" style="margin-bottom: 14px;">
-          <select v-model="wrongDim" class="ow-input" style="max-width: 200px;" aria-label="按维度筛选">
-            <option value="全部">全部维度</option>
-            <option v-for="dim in dims" :key="dim" :value="dim">{{ dim }}</option>
-          </select>
-          <select v-model="wrongSrc" class="ow-input" style="max-width: 200px;" aria-label="按来源筛选">
-            <option value="全部">全部来源</option>
-            <option v-for="src in sources" :key="src" :value="src">{{ src }}</option>
-          </select>
-          <span class="ow-hint" style="margin: 0 0 0 auto;">共 {{ gapWrong.length }} 道错题 · 已掌握 {{ masteredCount }} 道</span>
+        <div v-if="loading" class="ow-card"><div class="ow-card-b"><el-skeleton :rows="8" animated /></div></div>
+        <ErrorState v-else-if="listError" :message="listError" :retry="loadList" />
+        <section v-else-if="items.length === 0" class="ow-card">
+          <EmptyState
+            :icon="Target"
+            :title="filtersActive ? '当前筛选条件下没有条目' : '错题本还是空的'"
+            :description="filtersActive
+              ? '换一个掌握状态、来源或归类看看；也可以切到「已归档」找回被移出队列的条目。'
+              : '先完成一场模拟面试并让它生成报告，然后把报告的薄弱清单或没答上来的轮次导入到这里。你也可以手工记一条正在卡住的题。'"
+          >
+            <el-button v-if="filtersActive" @click="resetFilters">清空筛选</el-button>
+            <template v-else>
+              <el-button type="primary" :icon="Download" @click="openImport">导入错题</el-button>
+              <el-button :icon="Plus" @click="openCreate">手工记一条</el-button>
+            </template>
+          </EmptyState>
+        </section>
+
+        <div v-else class="wrong-list">
+          <article v-for="item in items" :key="item.itemId" class="wrong-card">
+            <div class="wrong-tags">
+              <span class="ow-tag" :class="MASTERY_TAG_CLASS[item.masteryStatus]">
+                {{ MASTERY_LABELS[item.masteryStatus] }}
+              </span>
+              <span class="ow-tag blue">{{ item.topic }}</span>
+              <span class="ow-tag gray">{{ SOURCE_LABELS[item.sourceType] }}</span>
+              <span v-if="item.archived" class="ow-tag red">已归档</span>
+            </div>
+
+            <p class="q">{{ item.question }}</p>
+
+            <div class="meta">
+              <span>{{ sourceHint(item) }}</span>
+              <span>尝试 {{ item.attemptCount }} 次</span>
+              <span v-if="item.lastResult">
+                最近一次 {{ RESULT_LABELS[item.lastResult] }}
+                <template v-if="item.lastSelfScore !== null && item.lastSelfScore !== undefined">· 自评 {{ item.lastSelfScore }}</template>
+              </span>
+              <span v-if="item.consecutivePassed > 0">末段连续答通 {{ item.consecutivePassed }} 次</span>
+              <span v-if="item.nextReviewDate">计划复习 {{ item.nextReviewDate }}</span>
+              <span>加入于 {{ formatDateTime(item.createdAt) }}</span>
+            </div>
+
+            <div class="ow-row wrong-actions">
+              <el-button size="small" type="primary" :icon="Dumbbell" @click="toggleExpand(item)">
+                {{ expandedId === item.itemId ? '收起重练' : '重练这一条' }}
+              </el-button>
+              <el-button
+                v-if="item.sourceSessionId"
+                size="small"
+                text
+                :icon="ExternalLink"
+                @click="openSource(item)"
+              >
+                {{ item.sourceType === 'REPORT' ? '看这份报告' : '看这场面试' }}
+              </el-button>
+            </div>
+
+            <div v-if="expandedId === item.itemId" class="detail">
+              <div v-if="detailLoading"><el-skeleton :rows="4" animated /></div>
+              <ErrorState v-else-if="detailError" :message="detailError" :retry="() => loadDetail(item.itemId)" />
+              <template v-else-if="detail">
+                <div class="block">
+                  <div class="block-h">原始问答</div>
+                  <template v-if="detail.item.traceableToQuestion">
+                    <p class="trace-line"><b>问题</b>{{ detail.item.originalQuestion }}</p>
+                    <p class="trace-line">
+                      <b>当时的回答</b>{{ detail.item.originalAnswer || '（这一轮没有作答记录）' }}
+                    </p>
+                    <p v-if="detail.item.originalAnswerSource" class="muted">
+                      回答来源：{{ answerSourceLabel(detail.item.originalAnswerSource) }}
+                      <template v-if="detail.item.originalTurnType"> · {{ turnTypeLabel(detail.item.originalTurnType) }}</template>
+                    </p>
+                  </template>
+                  <p v-else class="missing">
+                    {{ detail.item.traceLimitation || '这条错题没有可追溯的原始问答。' }}
+                  </p>
+                </div>
+
+                <div class="block">
+                  <div class="block-h">重练记录<span class="muted">（只新增、不覆盖，按时间升序）</span></div>
+                  <p v-if="detail.attempts.length === 0" class="missing">
+                    这条还没有重练过。掌握需要末段连续 {{ summary?.masteredStreak ?? '?' }} 次「答通」且每次自评 ≥ {{ summary?.masteredSelfScore ?? '?' }}。
+                  </p>
+                  <ol v-else class="attempts">
+                    <li v-for="attempt in detail.attempts" :key="attempt.id">
+                      <div class="attempt-head">
+                        <span class="ow-tag" :class="resultTagClass(attempt.result)">{{ RESULT_LABELS[attempt.result] }}</span>
+                        <span v-if="attempt.selfScore !== null && attempt.selfScore !== undefined" class="ow-tag gray">
+                          自评 {{ attempt.selfScore }}
+                        </span>
+                        <span v-if="basisIds.has(attempt.id)" class="ow-tag green">计入掌握依据</span>
+                        <span class="muted">{{ formatDateTime(attempt.attemptedAt) }}</span>
+                      </div>
+                      <p class="attempt-answer">{{ attempt.answer }}</p>
+                      <p v-if="attempt.feedback" class="muted">备注：{{ attempt.feedback }}</p>
+                    </li>
+                  </ol>
+                </div>
+
+                <div class="block">
+                  <div class="block-h">这次重练</div>
+                  <el-input
+                    v-model="attemptForm.answer"
+                    type="textarea"
+                    :rows="3"
+                    maxlength="8000"
+                    show-word-limit
+                    placeholder="自己把答案写下来。这里不做选择题，也没有系统给的参考答案。"
+                  />
+                  <div class="ow-row attempt-form-row">
+                    <el-radio-group v-model="attemptForm.result">
+                      <el-radio-button v-for="(label, value) in RESULT_LABELS" :key="value" :value="value">
+                        {{ label }}
+                      </el-radio-button>
+                    </el-radio-group>
+                    <el-input-number
+                      v-model="attemptForm.selfScore"
+                      :min="0"
+                      :max="100"
+                      :step="5"
+                      placeholder="自评"
+                      controls-position="right"
+                    />
+                    <el-input v-model="attemptForm.feedback" maxlength="512" placeholder="备注（可选）" class="feedback" />
+                    <el-button
+                      type="primary"
+                      :icon="Send"
+                      :loading="attemptSubmitting"
+                      :disabled="!attemptReady || Boolean(attemptHint)"
+                      @click="submitAttempt"
+                    >
+                      提交这次重练
+                    </el-button>
+                  </div>
+                  <p v-if="attemptHint" class="missing">{{ attemptHint }}</p>
+                  <p class="muted">
+                    自评与结果都由你判定；界面按 {{ masteryRuleBrief }} 复算掌握，没有「直接标记已掌握」的入口。
+                  </p>
+                  <p v-if="attemptError" class="error-line">{{ attemptError }}</p>
+                </div>
+
+                <div class="block">
+                  <div class="block-h">归类与复习计划</div>
+                  <div class="ow-row classify-row">
+                    <el-input v-model="classifyForm.topic" maxlength="128" placeholder="归类名称" class="topic-input" />
+                    <el-date-picker
+                      v-model="classifyForm.nextReviewDate"
+                      type="date"
+                      value-format="YYYY-MM-DD"
+                      placeholder="计划复习日（可选）"
+                    />
+                    <el-button :loading="classifySubmitting" @click="saveClassification">保存归类</el-button>
+                  </div>
+                  <el-input
+                    v-model="classifyForm.referenceAnswer"
+                    type="textarea"
+                    :rows="3"
+                    maxlength="4000"
+                    show-word-limit
+                    placeholder="参考答案：只保存你自己写或粘贴的内容，系统不会自动生成。"
+                  />
+                  <p v-if="classifyError" class="error-line">{{ classifyError }}</p>
+                </div>
+
+                <div class="ow-row end">
+                  <el-button size="small" text @click="toggleArchive(detail.item)">
+                    {{ detail.item.archived ? '取消归档（放回队列）' : '归档（移出队列，保留全部重练记录）' }}
+                  </el-button>
+                </div>
+                <p v-if="actionError" class="error-line">{{ actionError }}</p>
+              </template>
+            </div>
+          </article>
         </div>
 
-        <div v-if="!filteredList.length" class="ow-empty-state">
-          <div class="ic">🎉</div>
-          <div class="t">该筛选下没有错题</div>
-          <div class="d">换个维度或来源看看吧。</div>
-        </div>
-        <div v-else class="wrong-list">
-          <div v-for="item in filteredList" :key="item.id" class="wrong-card">
-            <div class="wrong-tags">
-              <span class="ow-tag" :class="item.mastered ? 'green' : 'orange'">{{ item.mastered ? '已掌握' : '待巩固' }}</span>
-              <span class="ow-tag blue">{{ item.dim }}</span>
-              <span class="ow-tag gray">{{ item.source }}</span>
-            </div>
-            <div class="q">{{ item.q }}</div>
-            <div class="qa">
-              <div class="bl mine"><div class="h">我的回答</div>{{ item.mine }}</div>
-              <div class="bl ref"><div class="h">参考答案</div>{{ item.ref }}</div>
-              <div class="bl ana"><div class="h">解析</div>{{ item.analysis }}</div>
-            </div>
-            <div class="ow-row end" style="margin-top: 12px;">
-              <button class="ow-btn xs ghost" type="button" @click="toggleMastered(item)">
-                {{ item.mastered ? '标记为待巩固' : '标记为已掌握' }}
-              </button>
-            </div>
-          </div>
+        <div v-if="!loading && !listError && items.length" class="pager">
+          <el-button size="small" :disabled="page <= 1" @click="goPage(page - 1)">上一页</el-button>
+          <span class="muted">第 {{ page }} 页 / 共 {{ pageCount }} 页 · 共 {{ total }} 条</span>
+          <el-button size="small" :disabled="page >= pageCount" @click="goPage(page + 1)">下一页</el-button>
         </div>
       </div>
 
       <div class="col4 side">
-        <div class="ow-card">
-          <div class="ow-card-h">
-            <div class="ic b4"><CircleCheckBig aria-hidden="true" /></div>
-            掌握进度
-          </div>
+        <section class="ow-card">
+          <div class="ow-card-h"><CircleCheckBig aria-hidden="true" /> 掌握进度</div>
           <div class="ow-card-b">
-            <div class="mastery-total">
-              <span>总体掌握度</span>
-              <b>{{ masteryPercent }}%</b>
-            </div>
-            <div class="ow-prog" style="margin-top: 5px;"><i :style="{ width: `${masteryPercent}%` }" /></div>
-            <div v-for="(stat, dim) in masteryByDim" :key="dim" class="dim">
-              <div class="name">{{ dim }}</div>
-              <div class="track"><i class="green" :style="{ width: `${(stat.m / stat.t) * 100}%` }" /></div>
-              <div class="score">{{ stat.m }}/{{ stat.t }}</div>
-            </div>
+            <div v-if="summaryLoading"><el-skeleton :rows="3" animated /></div>
+            <ErrorState v-else-if="summaryError" :message="summaryError" :retry="loadSummary" />
+            <p v-else-if="summary && !summary.renderable" class="missing">
+              当前队列里一条错题都没有，掌握进度不画。零条数据算出来的 0% 或 100% 都不说明任何问题。
+            </p>
+            <template v-else-if="summary">
+              <div class="mastery-total">
+                <span>已掌握 {{ summary.masteredCount }} / {{ summary.total }} 条</span>
+                <b>{{ masteryPercent }}%</b>
+              </div>
+              <div class="ow-prog"><i :style="{ width: `${masteryPercent}%` }" /></div>
+              <div class="state-row">
+                <span>未练过 {{ summary.newCount }}</span>
+                <span>巩固中 {{ summary.learningCount }}</span>
+                <span>已掌握 {{ summary.masteredCount }}</span>
+              </div>
+              <p class="muted rule">{{ masteryRuleText }}</p>
+              <div v-for="entry in summary.topics" :key="entry.topic" class="dim">
+                <div class="name">{{ entry.topic }}</div>
+                <div class="track"><i :style="{ width: `${percentOf(entry)}%` }" /></div>
+                <div class="score">{{ entry.itemCount - entry.notMasteredCount }}/{{ entry.itemCount }}</div>
+              </div>
+              <p class="muted">最近一次重练：{{ formatDateTime(summary.lastAttemptAt) }}</p>
+            </template>
           </div>
-        </div>
+        </section>
       </div>
     </div>
 
-    <div v-if="quiz" class="ow-modal" @click.self="quiz = null">
-      <div class="box wide">
-        <template v-if="!quiz.finished && currentQuiz">
-          <h3>专项训练 · {{ currentQuiz.dim }}</h3>
-          <p class="quiz-sub">第 {{ quiz.idx + 1 }} / {{ quiz.items.length }} 题 · 来源：{{ currentQuiz.source }} · 演示测验</p>
-          <div class="quiz-q">{{ currentQuiz.q }}</div>
-          <button
-            v-for="(option, index) in currentQuiz.opt"
-            :key="option"
-            type="button"
-            class="quiz-opt"
-            :class="quizClass(index)"
-            :disabled="quiz.picked !== null"
-            @click="pick(index)"
-          >
-            {{ String.fromCharCode(65 + index) }}. {{ option }}
-          </button>
-          <div v-if="feedback" class="quiz-feedback show" :class="feedback.ok ? 'ok' : 'err'">
-            {{ feedback.text }}
-          </div>
-          <div class="ow-row" style="margin-top: 14px; justify-content: space-between;">
-            <button class="ow-btn ghost" type="button" @click="quiz = null">退出训练</button>
-            <button class="ow-btn" type="button" :disabled="quiz.picked === null" @click="next">
-              {{ quiz.idx === quiz.items.length - 1 ? '结算' : '下一题' }}
-            </button>
-          </div>
-        </template>
-        <template v-else>
-          <div style="text-align: center;">
-            <div style="font-size: 40px;">{{ resultEmoji }}</div>
-            <h3 style="justify-content: center;">训练结算（模拟）</h3>
-            <div class="result-score" :style="{ color: resultColor }">{{ resultAcc }}<small> 分</small></div>
-            <div class="ow-hint">正确 {{ quiz.correct }} / {{ quiz.items.length }} 题 · 正确率 {{ resultAcc }}% · 答对的错题已标记为「已掌握」（仅当前演示会话）。</div>
-            <div class="ow-row" style="justify-content: center; margin-top: 16px; gap: 10px;">
-              <button class="ow-btn ghost" type="button" @click="quiz = null">关闭</button>
-              <button class="ow-btn" type="button" @click="startQuiz">再来一组</button>
-            </div>
-          </div>
-        </template>
+    <el-dialog v-model="importOpen" title="导入错题" width="min(600px, calc(100vw - 32px))" destroy-on-close>
+      <p class="muted">
+        导入只是把已经发生过的观测复制成练习条目，不改动报告与面试会话；同一条内容重复导入会被跳过。
+      </p>
+      <div class="import-group">
+        <div class="block-h">从报告的薄弱清单导入</div>
+        <el-select v-model="importReportId" filterable placeholder="选择一场已生成报告的面试" class="pick">
+          <el-option
+            v-for="report in readyReports"
+            :key="report.reportId"
+            :label="`${report.sessionTitle} · 总分 ${report.totalScore ?? '—'} · ${report.scoringRuleVersion ?? '未记录规则版本'}`"
+            :value="report.sessionId"
+          />
+        </el-select>
+        <div>
+          <el-button :loading="importing === 'report'" :disabled="!importReportId" @click="runImport('report')">
+            导入这份报告的四类清单
+          </el-button>
+        </div>
+        <p v-if="readyReports.length === 0" class="missing">
+          还没有已完成的报告。报告中心里状态为「已完成」的会话才能导入薄弱清单。
+        </p>
       </div>
-    </div>
+      <div class="import-group">
+        <div class="block-h">从面试轮次导入</div>
+        <el-select v-model="importSessionId" filterable placeholder="选择一场面试" class="pick">
+          <el-option
+            v-for="session in sessions"
+            :key="session.id"
+            :label="`${session.title} · ${statusLabel(session.status)}`"
+            :value="session.id"
+          />
+        </el-select>
+        <div>
+          <el-button :loading="importing === 'session'" :disabled="!importSessionId" @click="runImport('session')">
+            导入没独立答上来的轮次
+          </el-button>
+        </div>
+        <p class="muted">
+          只导入回答空白、提示后作答、AI 辅助作答与 AI 生成作答四类轮次；独立作答和外部导入的历史记录不进错题本。
+        </p>
+      </div>
+      <p v-if="importError" class="error-line">{{ importError }}</p>
+      <p v-if="importResult" class="ok-line">
+        「{{ importResult.sessionTitle }}」新增 {{ importResult.created }} 条、跳过 {{ importResult.skipped }} 条<template v-if="importResult.topics.length">，归类：{{ importResult.topics.join('、') }}</template>。
+        <template v-if="importResult.note">{{ importResult.note }}</template>
+      </p>
+      <template #footer>
+        <el-button @click="importOpen = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="createOpen" title="手工记一条" width="min(600px, calc(100vw - 32px))" destroy-on-close>
+      <p class="muted">手工条目同样只能靠提交重练结果推进掌握状态。</p>
+      <el-input v-model="createForm.topic" maxlength="128" placeholder="归类名称，例如「缓存一致性」" class="mb" />
+      <el-input
+        v-model="createForm.question"
+        type="textarea"
+        :rows="3"
+        maxlength="4000"
+        show-word-limit
+        placeholder="把你卡住的问题写下来"
+        class="mb"
+      />
+      <el-input
+        v-model="createForm.referenceAnswer"
+        type="textarea"
+        :rows="2"
+        maxlength="4000"
+        show-word-limit
+        placeholder="参考答案（可选，只保存你自己写的内容）"
+      />
+      <p v-if="createError" class="error-line">{{ createError }}</p>
+      <template #footer>
+        <el-button @click="createOpen = false">取消</el-button>
+        <el-button type="primary" :loading="creating" @click="runCreate">加入错题本</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { CircleCheckBig, TriangleAlert } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { CircleCheckBig, Download, Dumbbell, ExternalLink, FilterX, Plus, RefreshCw, Send, Target } from 'lucide-vue-next'
+import { computed, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-import { gapWrong, type GapWrongItem } from '@/mocks/gap'
+import {
+  MASTERY_LABELS,
+  MASTERY_TAG_CLASS,
+  RESULT_LABELS,
+  SOURCE_LABELS,
+  addPracticeAttempt,
+  archivePracticeItem,
+  createPracticeItem,
+  getPracticeDetail,
+  getPracticeSummary,
+  importFromReport,
+  importFromSession,
+  listPracticeItems,
+  unarchivePracticeItem,
+  updatePracticeClassification,
+} from '@/api/practice'
+import { listReports } from '@/api/reports'
+import { problemMessage } from '@/api/http'
+import { listSessions } from '@/api/interview'
+import { topicModeLabel } from '@/api/interviewers'
+import EmptyState from '@/components/EmptyState.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import PageHeader from '@/components/PageHeader.vue'
+import { formatDateTime } from '@/utils/format'
 
-const items = gapWrong
-const wrongDim = ref('全部')
-const wrongSrc = ref('全部')
+import type { InterviewSession } from '@/api/interview'
+import type {
+  PracticeDetailResponse,
+  PracticeImportResponse,
+  PracticeItem,
+  PracticeMastery,
+  PracticeResult,
+  PracticeSource,
+  PracticeSummary,
+  ReportListItem,
+} from '@/types/api'
 
-const dims = [...new Set(items.map((item) => item.dim))]
-const sources = [...new Set(items.map((item) => item.source))]
+const router = useRouter()
 
-const filteredList = computed(() =>
-  items.filter(
-    (item) =>
-      (wrongDim.value === '全部' || item.dim === wrongDim.value) &&
-      (wrongSrc.value === '全部' || item.source === wrongSrc.value),
-  ),
-)
+const SIZE = 10
 
-const masteredCount = computed(() => items.filter((item) => item.mastered).length)
-const masteryPercent = computed(() => (items.length ? Math.round((masteredCount.value / items.length) * 100) : 0))
+const MASTERY_OPTIONS: { value: PracticeMastery | null; label: string }[] = [
+  { value: null, label: '全部' },
+  { value: 'NEW', label: MASTERY_LABELS.NEW },
+  { value: 'LEARNING', label: MASTERY_LABELS.LEARNING },
+  { value: 'MASTERED', label: MASTERY_LABELS.MASTERED },
+]
+// 归档等于移出队列，所以默认视图只看未归档；显式 all 才把两类一起列出。
+const ARCHIVED_OPTIONS = [
+  { value: 'false', label: '队列中' },
+  { value: 'true', label: '已归档' },
+  { value: 'all', label: '全部' },
+] as const
 
-const masteryByDim = computed(() => {
-  const result: Record<string, { t: number; m: number }> = {}
-  items.forEach((item) => {
-    const bucket = result[item.dim] ?? { t: 0, m: 0 }
-    bucket.t += 1
-    if (item.mastered) bucket.m += 1
-    result[item.dim] = bucket
-  })
-  return result
+const items = ref<PracticeItem[]>([])
+const total = ref(0)
+const page = ref(1)
+const mastery = ref<PracticeMastery | null>(null)
+const sourceType = ref<PracticeSource | null>(null)
+const topic = ref<string | null>(null)
+const archived = ref<'true' | 'false' | 'all'>('false')
+const loading = ref(true)
+const listError = ref('')
+
+const summary = ref<PracticeSummary | null>(null)
+const summaryLoading = ref(true)
+const summaryError = ref('')
+
+const expandedId = ref<number | null>(null)
+const detail = ref<PracticeDetailResponse | null>(null)
+const detailLoading = ref(false)
+const detailError = ref('')
+const actionError = ref('')
+
+const attemptForm = reactive({
+  answer: '',
+  result: 'PARTIAL' as PracticeResult,
+  selfScore: null as number | null,
+  feedback: '',
+})
+const attemptSubmitting = ref(false)
+const attemptError = ref('')
+
+const classifyForm = reactive({ topic: '', referenceAnswer: '', nextReviewDate: null as string | null })
+const classifySubmitting = ref(false)
+const classifyError = ref('')
+
+const importOpen = ref(false)
+const importReportId = ref<number | null>(null)
+const importSessionId = ref<number | null>(null)
+const readyReports = ref<ReportListItem[]>([])
+const sessions = ref<InterviewSession[]>([])
+const importing = ref<'report' | 'session' | ''>('')
+const importError = ref('')
+const importResult = ref<PracticeImportResponse | null>(null)
+
+const createOpen = ref(false)
+const createForm = reactive({ topic: '', question: '', referenceAnswer: '' })
+const creating = ref(false)
+const createError = ref('')
+
+const pageCount = computed(() => Math.max(1, Math.ceil(total.value / SIZE)))
+const filtersActive = computed(() => Boolean(mastery.value || sourceType.value || topic.value)
+  || archived.value !== 'false')
+const masteryPercent = computed(() => {
+  const data = summary.value
+  if (!data || data.total === 0) return 0
+  return Math.round((data.masteredCount / data.total) * 100)
+})
+// 阈值取接口下发的值，不写死在文案里。
+const masteryRuleText = computed(() => {
+  const data = summary.value
+  if (!data) return ''
+  return `掌握判定：末段连续 ${data.masteredStreak} 次「答通」且这些自评都 ≥ ${data.masteredSelfScore}；中途答砸一次退回「巩固中」，回退是允许的。`
+})
+const masteryRuleBrief = computed(() => {
+  const data = summary.value
+  if (!data) return '后端下发的阈值'
+  return `连续 ${data.masteredStreak} 次答通且自评 ≥ ${data.masteredSelfScore}`
 })
 
-function toggleMastered(item: GapWrongItem): void {
-  item.mastered = !item.mastered
-}
-
-interface QuizState {
-  items: GapWrongItem[]
-  idx: number
-  correct: number
-  picked: number | null
-  finished: boolean
-}
-
-const quiz = ref<QuizState | null>(null)
-const feedback = ref<{ ok: boolean; text: string } | null>(null)
-
-const currentQuiz = computed(() => {
-  const state = quiz.value
-  if (!state) return null
-  return state.items[state.idx] ?? null
+/** 只展示与后端规则一致的掌握依据；掌握判定仍以服务端重算结果为准。 */
+const basisIds = computed(() => {
+  const attempts = detail.value?.attempts ?? []
+  const ids = new Set<number>()
+  const rule = summary.value
+  if (!rule) return ids
+  for (let index = attempts.length - 1; index >= 0; index -= 1) {
+    const attempt = attempts[index]
+    if (!attempt || attempt.result !== 'PASSED') break
+    if (attempt.selfScore === null
+      || attempt.selfScore === undefined
+      || attempt.selfScore < rule.masteredSelfScore) return new Set<number>()
+    ids.add(attempt.id)
+  }
+  return ids
 })
 
-function startQuiz(): void {
-  const pending = items.filter((item) => !item.mastered)
-  if (!pending.length) return
-  quiz.value = { items: pending.slice(0, 5), idx: 0, correct: 0, picked: null, finished: false }
-  feedback.value = null
-}
-
-function quizClass(index: number): string {
-  const state = quiz.value
-  const current = currentQuiz.value
-  if (!state || state.picked === null || !current) return ''
-  if (index === current.answer) return 'correct'
-  if (index === state.picked) return 'wrong'
+const attemptReady = computed(() => attemptForm.answer.trim().length > 0)
+const attemptHint = computed(() => {
+  if (!attemptForm.answer.trim()) return '先把这次的答案写下来再提交。'
+  if (attemptForm.result === 'PASSED' && attemptForm.selfScore === null) {
+    return `选「答通」必须给自评分（0-100）：自评 ≥ ${summary.value?.masteredSelfScore ?? 80} 才可能进入已掌握。`
+  }
   return ''
+})
+
+function resultTagClass(result: PracticeResult): string {
+  if (result === 'PASSED') return 'green'
+  return result === 'PARTIAL' ? 'orange' : 'red'
 }
 
-function pick(index: number): void {
-  const state = quiz.value
-  const current = currentQuiz.value
-  if (!state || state.picked !== null || !current) return
-  state.picked = index
-  const ok = index === current.answer
-  if (ok) {
-    state.correct += 1
-    current.mastered = true
-    feedback.value = { ok: true, text: `✅ 回答正确！${current.ref}` }
-  } else {
-    feedback.value = { ok: false, text: `❌ 正确答案：${String.fromCharCode(65 + current.answer)}。${current.ref}` }
+function percentOf(entry: PracticeSummary['topics'][number]): number {
+  if (entry.itemCount === 0) return 0
+  return Math.round(((entry.itemCount - entry.notMasteredCount) / entry.itemCount) * 100)
+}
+
+function answerSourceLabel(value: string): string {
+  const map: Record<string, string> = {
+    INDEPENDENT: '独立作答',
+    PROMPTED: '提示后作答',
+    AI_ASSISTED: 'AI 辅助作答',
+    AI_GENERATED: 'AI 生成作答',
+    HISTORY_IMPORT: '历史导入',
+  }
+  return map[value] ?? value
+}
+
+function turnTypeLabel(value: string): string {
+  const map: Record<string, string> = { MAIN: '主问题', FOLLOW_UP: '追问' }
+  return map[value] ?? value
+}
+
+function statusLabel(status: string): string {
+  const map: Record<string, string> = {
+    READY: '待开始',
+    RUNNING: '进行中',
+    PAUSED: '已暂停',
+    USER_ENDED: '已结束',
+    COMPLETING: '收尾中',
+    COMPLETED: '已完成',
+    FAILED: '失败',
+    CANCELLED: '已取消',
+  }
+  return map[status] ?? status
+}
+
+function sourceHint(item: PracticeItem): string {
+  const parts = [SOURCE_LABELS[item.sourceType]]
+  if (item.sourceSessionTitle) parts.push(item.sourceSessionTitle)
+  if (item.sourceTopicMode) parts.push(topicModeLabel(item.sourceTopicMode))
+  return parts.join(' · ')
+}
+
+function openSource(item: PracticeItem): void {
+  if (!item.sourceSessionId) return
+  void router.push(item.sourceType === 'REPORT'
+    ? `/interviews/${item.sourceSessionId}/report`
+    : `/interviews/${item.sourceSessionId}`)
+}
+
+async function loadList(): Promise<void> {
+  loading.value = true
+  listError.value = ''
+  try {
+    const data = await listPracticeItems({
+      mastery: mastery.value,
+      sourceType: sourceType.value,
+      topic: topic.value,
+      archived: archived.value,
+      page: page.value,
+      size: SIZE,
+    })
+    items.value = data.items
+    total.value = data.total
+    page.value = data.page
+    // 换页或换筛选后展开中的条目可能已不在列表里，重练面板随之收起。
+    if (expandedId.value !== null && !data.items.some((entry) => entry.itemId === expandedId.value)) {
+      closeDetail()
+    }
+  } catch (error) {
+    listError.value = problemMessage(error)
+  } finally {
+    loading.value = false
   }
 }
 
-function next(): void {
-  const state = quiz.value
-  if (!state) return
-  if (state.picked === null) return
-  state.idx += 1
-  state.picked = null
-  feedback.value = null
-  if (state.idx >= state.items.length) state.finished = true
+async function loadSummary(): Promise<void> {
+  summaryLoading.value = true
+  summaryError.value = ''
+  try {
+    summary.value = await getPracticeSummary(archived.value)
+  } catch (error) {
+    summaryError.value = problemMessage(error)
+  } finally {
+    summaryLoading.value = false
+  }
 }
 
-const resultAcc = computed(() => {
-  const state = quiz.value
-  if (!state) return 0
-  return Math.round((state.correct / state.items.length) * 100)
-})
+function applyFilter(next: {
+  mastery?: string | null
+  sourceType?: string | null
+  topic?: string | null
+  archived?: string
+}): void {
+  if ('mastery' in next) mastery.value = (next.mastery as PracticeMastery | null) ?? null
+  if ('sourceType' in next) sourceType.value = (next.sourceType as PracticeSource | null) ?? null
+  if ('topic' in next) topic.value = next.topic ?? null
+  if ('archived' in next) archived.value = (next.archived as 'true' | 'false' | 'all') ?? 'false'
+  page.value = 1
+  void loadList()
+  void loadSummary()
+}
 
-const resultEmoji = computed(() => (resultAcc.value >= 80 ? '🏆' : resultAcc.value >= 50 ? '💪' : '📚'))
-const resultColor = computed(() => (resultAcc.value >= 80 ? 'var(--green)' : resultAcc.value >= 50 ? 'var(--gold-600)' : 'var(--red-600)'))
+function onSourceChange(value: unknown): void {
+  applyFilter({ sourceType: (value as PracticeSource | undefined) ?? null })
+}
+
+function onTopicChange(value: unknown): void {
+  applyFilter({ topic: typeof value === 'string' && value ? value : null })
+}
+
+function resetFilters(): void {
+  applyFilter({ mastery: null, sourceType: null, topic: null, archived: 'false' })
+}
+
+function goPage(target: number): void {
+  page.value = Math.min(Math.max(1, target), pageCount.value)
+  void loadList()
+}
+
+function resetForms(data: PracticeDetailResponse): void {
+  attemptForm.answer = ''
+  attemptForm.result = 'PARTIAL'
+  attemptForm.selfScore = null
+  attemptForm.feedback = ''
+  attemptError.value = ''
+  classifyForm.topic = data.item.topic
+  classifyForm.referenceAnswer = data.item.referenceAnswer ?? ''
+  classifyForm.nextReviewDate = data.item.nextReviewDate ?? null
+  classifyError.value = ''
+  actionError.value = ''
+}
+
+async function loadDetail(itemId: number): Promise<void> {
+  detailLoading.value = true
+  detailError.value = ''
+  try {
+    const data = await getPracticeDetail(itemId)
+    detail.value = data
+    resetForms(data)
+  } catch (error) {
+    detailError.value = problemMessage(error)
+  } finally {
+    detailLoading.value = false
+  }
+}
+
+function closeDetail(): void {
+  expandedId.value = null
+  detail.value = null
+  detailError.value = ''
+  actionError.value = ''
+}
+
+function toggleExpand(item: PracticeItem): void {
+  if (expandedId.value === item.itemId) {
+    closeDetail()
+    return
+  }
+  expandedId.value = item.itemId
+  void loadDetail(item.itemId)
+}
+
+async function submitAttempt(): Promise<void> {
+  const itemId = detail.value?.item.itemId
+  if (!itemId || !attemptReady.value) return
+  attemptSubmitting.value = true
+  attemptError.value = ''
+  try {
+    const data = await addPracticeAttempt(itemId, {
+      answer: attemptForm.answer.trim(),
+      result: attemptForm.result,
+      selfScore: attemptForm.selfScore,
+      feedback: attemptForm.feedback.trim() || null,
+    })
+    detail.value = data
+    resetForms(data)
+    await Promise.all([loadList(), loadSummary()])
+  } catch (error) {
+    attemptError.value = problemMessage(error)
+  } finally {
+    attemptSubmitting.value = false
+  }
+}
+
+async function saveClassification(): Promise<void> {
+  const current = detail.value
+  if (!current || !classifyForm.topic.trim()) {
+    classifyError.value = '归类名称不能为空。'
+    return
+  }
+  classifySubmitting.value = true
+  classifyError.value = ''
+  try {
+    const updated = await updatePracticeClassification(current.item.itemId, {
+      topic: classifyForm.topic.trim(),
+      referenceAnswer: classifyForm.referenceAnswer.trim() || null,
+      nextReviewDate: classifyForm.nextReviewDate || null,
+      expectedUpdatedAt: current.item.updatedAt,
+    })
+    detail.value = { ...current, item: updated }
+    await Promise.all([loadList(), loadSummary()])
+  } catch (error) {
+    classifyError.value = `${problemMessage(error)} 归类未保存——这条可能在你打开后被改过，收起再展开可拿到最新版本。`
+  } finally {
+    classifySubmitting.value = false
+  }
+}
+
+async function toggleArchive(item: PracticeItem): Promise<void> {
+  actionError.value = ''
+  try {
+    const updated = item.archived
+      ? await unarchivePracticeItem(item.itemId)
+      : await archivePracticeItem(item.itemId)
+    // 归档改变队列归属：列表与进度都要跟着变，展开中的详情用新状态替换。
+    if (detail.value?.item.itemId === updated.itemId) detail.value = { ...detail.value, item: updated }
+    await Promise.all([loadList(), loadSummary()])
+  } catch (error) {
+    actionError.value = problemMessage(error)
+  }
+}
+
+async function openImport(): Promise<void> {
+  importOpen.value = true
+  importError.value = ''
+  importResult.value = null
+  try {
+    const [reportPage, sessionList] = await Promise.all([listReports({ size: 50 }), listSessions()])
+    readyReports.value = reportPage.items.filter((entry) => entry.reportStatus === 'REPORT_READY')
+    sessions.value = sessionList
+  } catch (error) {
+    importError.value = problemMessage(error)
+  }
+}
+
+async function runImport(mode: 'report' | 'session'): Promise<void> {
+  const target = mode === 'report' ? importReportId.value : importSessionId.value
+  if (!target) return
+  importing.value = mode
+  importError.value = ''
+  importResult.value = null
+  try {
+    importResult.value = mode === 'report'
+      ? await importFromReport(target)
+      : await importFromSession(target)
+    await Promise.all([loadList(), loadSummary()])
+  } catch (error) {
+    importError.value = problemMessage(error)
+  } finally {
+    importing.value = ''
+  }
+}
+
+function openCreate(): void {
+  createOpen.value = true
+  createError.value = ''
+}
+
+async function runCreate(): Promise<void> {
+  if (!createForm.topic.trim() || !createForm.question.trim()) {
+    createError.value = '归类名称和问题都要填。'
+    return
+  }
+  creating.value = true
+  createError.value = ''
+  try {
+    const created = await createPracticeItem({
+      topic: createForm.topic.trim(),
+      question: createForm.question.trim(),
+      referenceAnswer: createForm.referenceAnswer.trim() || null,
+    })
+    createOpen.value = false
+    createForm.topic = ''
+    createForm.question = ''
+    createForm.referenceAnswer = ''
+    await Promise.all([loadList(), loadSummary()])
+    expandedId.value = created.itemId
+    void loadDetail(created.itemId)
+  } catch (error) {
+    createError.value = problemMessage(error)
+  } finally {
+    creating.value = false
+  }
+}
+
+async function reload(): Promise<void> {
+  await Promise.all([loadList(), loadSummary()])
+}
+
+void reload()
 </script>
 
 <style scoped>
@@ -231,16 +817,35 @@ const resultColor = computed(() => (resultAcc.value >= 80 ? 'var(--green)' : res
   gap: 18px;
 }
 
-.wrong-page h1 svg {
-  width: 24px;
-  height: 24px;
-  color: var(--brand);
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px 18px;
+  padding: 16px 18px;
+}
+
+.filter-group {
+  display: grid;
+  gap: 6px;
+  min-width: 150px;
+}
+
+.filter-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.filter-spacer {
+  flex: 1 1 auto;
 }
 
 .wrong-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 18px;
+  align-items: start;
 }
 
 .col4 { grid-column: span 4; }
@@ -249,7 +854,6 @@ const resultColor = computed(() => (resultAcc.value >= 80 ? 'var(--green)' : res
 .side {
   position: sticky;
   top: 18px;
-  align-self: start;
 }
 
 .wrong-list {
@@ -260,69 +864,149 @@ const resultColor = computed(() => (resultAcc.value >= 80 ? 'var(--green)' : res
 .wrong-card {
   padding: 16px 18px;
   background: var(--glass-2);
-  backdrop-filter: blur(var(--glass-2-blur));
   border: 1.5px solid var(--line);
   border-radius: 14px;
-  transition: border-color 0.14s, box-shadow 0.14s;
-}
-
-.wrong-card:hover {
-  border-color: var(--line-2);
-  box-shadow: var(--shadow-md);
 }
 
 .wrong-tags {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
-  flex-wrap: wrap;
 }
 
-.wrong-card .q {
+.q {
+  margin: 0;
   color: var(--ink);
   font-size: 15px;
   font-weight: 700;
   line-height: 1.6;
 }
 
-.qa {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 12px;
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12.5px;
 }
 
-.bl {
-  padding: 11px 13px;
-  border-radius: 11px;
+.wrong-actions {
+  margin-top: 12px;
+  align-items: center;
+}
+
+.detail {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+
+.block-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.trace-line {
+  margin: 0 0 6px;
   color: var(--ink-2);
   font-size: 13.5px;
+  line-height: 1.65;
+}
+
+.trace-line b {
+  margin-right: 8px;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.attempts {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.attempt-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.attempt-answer {
+  margin: 6px 0 0;
+  color: var(--ink-2);
+  font-size: 13.5px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.attempt-form-row {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.feedback {
+  flex: 1 1 200px;
+}
+
+.classify-row {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.topic-input {
+  max-width: 220px;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.rule {
+  margin: 10px 0 4px;
   line-height: 1.6;
 }
 
-.bl .h {
-  margin-bottom: 4px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  opacity: 0.85;
-}
-
-.bl.mine {
-  background: var(--red-50);
-  border: 1px solid #f6c9cb;
-}
-
-.bl.ref {
-  background: var(--green-50);
-  border: 1px solid #bfe6cd;
-}
-
-.bl.ana {
-  grid-column: 1 / -1;
+.missing {
+  margin: 0;
+  padding: 10px 12px;
+  color: var(--ink-2);
   background: var(--surface-2);
   border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.error-line {
+  margin: 8px 0 0;
+  color: var(--red-600);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.ok-line {
+  margin: 12px 0 0;
+  color: var(--green-700);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .mastery-total {
@@ -336,6 +1020,15 @@ const resultColor = computed(() => (resultAcc.value >= 80 ? 'var(--green)' : res
   color: var(--ink);
 }
 
+.state-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
 .dim {
   display: flex;
   align-items: center;
@@ -344,8 +1037,7 @@ const resultColor = computed(() => (resultAcc.value >= 80 ? 'var(--green)' : res
 }
 
 .dim .name {
-  width: 84px;
-  flex: 0 0 84px;
+  flex: 0 0 96px;
   color: var(--ink-2);
   font-size: 12.5px;
   font-weight: 600;
@@ -359,7 +1051,7 @@ const resultColor = computed(() => (resultAcc.value >= 80 ? 'var(--green)' : res
   overflow: hidden;
 }
 
-.dim .track i.green {
+.dim .track i {
   display: block;
   height: 100%;
   border-radius: 6px;
@@ -367,98 +1059,33 @@ const resultColor = computed(() => (resultAcc.value >= 80 ? 'var(--green)' : res
 }
 
 .dim .score {
-  width: 34px;
-  flex: 0 0 34px;
+  flex: 0 0 42px;
   color: var(--ink);
   font-size: 12.5px;
   font-weight: 800;
   text-align: right;
 }
 
-.quiz-sub {
-  margin: -10px 0 16px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.quiz-q {
-  margin-bottom: 14px;
-  color: var(--ink);
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.6;
-}
-
-.quiz-opt {
+.pager {
   display: flex;
   align-items: center;
-  gap: 11px;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.import-group {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.pick {
   width: 100%;
-  margin-bottom: 9px;
-  padding: 12px 14px;
-  color: var(--ink);
-  background: var(--surface-2);
-  border: 1.5px solid var(--line);
-  border-radius: 11px;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-  font-size: 14px;
-  transition: border-color 0.14s, background 0.14s;
 }
 
-.quiz-opt:hover:not(:disabled) {
-  border-color: var(--brand);
-  background: var(--brand-50);
-}
-
-.quiz-opt.correct {
-  border-color: var(--green);
-  background: var(--green-50);
-}
-
-.quiz-opt.wrong {
-  border-color: var(--red);
-  background: var(--red-50);
-}
-
-.quiz-feedback {
-  margin-top: 12px;
-  padding: 12px 14px;
-  border-radius: 11px;
-  color: var(--ink-2);
-  font-size: 13.5px;
-  line-height: 1.65;
-}
-
-.quiz-feedback.ok {
-  background: var(--green-50);
-  border: 1px solid #bfe6cd;
-  color: var(--green-700);
-}
-
-.quiz-feedback.err {
-  background: var(--red-50);
-  border: 1px solid #f6c9cb;
-  color: var(--red-600);
-}
-
-.result-score {
-  margin-top: 6px;
-  font-size: 46px;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.result-score small {
-  color: var(--muted);
-  font-size: 18px;
-}
-
-@media (max-width: 640px) {
-  .qa {
-    grid-template-columns: 1fr;
-  }
+.mb {
+  margin-bottom: 10px;
 }
 
 @media (max-width: 1100px) {
