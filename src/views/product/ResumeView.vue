@@ -189,6 +189,75 @@
             </div>
           </div>
         </div>
+
+        <div v-if="(resume?.versions.length ?? 0) > 1" class="surface section-card">
+          <div class="surface-header">
+            <div>
+              <h2 class="surface-title">版本比较</h2>
+              <span class="surface-subtitle">按条目对齐两个版本，标出新增、删除、改动与顺序调整</span>
+            </div>
+            <div class="toolbar">
+              <el-select v-model="diffFromId" style="width: 150px" @change="loadDiffSides">
+                <el-option
+                  v-for="version in resume?.versions ?? []"
+                  :key="`from-${version.id}`"
+                  :label="`起点 v${version.versionNumber}`"
+                  :value="version.id"
+                />
+              </el-select>
+              <span class="muted">→</span>
+              <el-select v-model="diffToId" style="width: 150px" @change="loadDiffSides">
+                <el-option
+                  v-for="version in resume?.versions ?? []"
+                  :key="`to-${version.id}`"
+                  :label="`对比到 v${version.versionNumber}`"
+                  :value="version.id"
+                />
+              </el-select>
+            </div>
+          </div>
+          <div class="surface-body">
+            <ErrorState v-if="diffError" :message="diffError" :retry="loadDiffSides" />
+            <div v-else-if="diffLoading" class="page-feedback"><el-skeleton :rows="4" animated /></div>
+            <p v-else-if="diffFromId === diffToId" class="muted">两个下拉选不同版本才能比较。</p>
+            <template v-else-if="diff">
+              <p class="muted diff-meta">{{ diffLabel }}</p>
+              <p v-if="!diff.sections.length" class="muted">这两个版本的正文完全一致，包括条目顺序。</p>
+              <template v-else>
+                <p class="diff-counts">
+                  <span v-for="(label, change) in DIFF_CHANGE_LABELS" :key="change">
+                    {{ label }} {{ diff?.counts[change] ?? 0 }}
+                  </span>
+                </p>
+                <div v-for="section in diff.sections" :key="section.key" class="diff-section">
+                  <h3>{{ section.heading }}</h3>
+                  <div v-for="entry in section.entries" :key="entry.id" class="diff-entry">
+                    <span class="diff-tags">
+                      <span
+                        v-for="change in entry.changes"
+                        :key="change"
+                        class="ow-tag"
+                        :class="changeTagClass(change)"
+                      >{{ DIFF_CHANGE_LABELS[change] }}</span>
+                    </span>
+                    <b class="diff-label">{{ entry.label || '（无标题）' }}</b>
+                    <p v-if="entry.changes.includes('modified')" class="diff-text">
+                      <span class="diff-old">{{ entry.from || '（空）' }}</span>
+                      <span class="diff-arrow">→</span>
+                      <span class="diff-new">{{ entry.to || '（清空）' }}</span>
+                    </p>
+                    <p v-else-if="entry.changes.includes('removed')" class="diff-text">
+                      <span class="diff-old">{{ entry.from }}</span>
+                    </p>
+                    <p v-else-if="entry.changes.includes('added')" class="diff-text">
+                      <span class="diff-new">{{ entry.to }}</span>
+                    </p>
+                  </div>
+                </div>
+              </template>
+            </template>
+          </div>
+        </div>
       </div>
 
       <aside class="resume-side">
@@ -324,6 +393,7 @@ import {
   setActiveResumeVersion,
 } from '@/api/resume'
 import { getProblem, problemMessage } from '@/api/http'
+import { DIFF_CHANGE_LABELS, diffVersions, type VersionDiff } from '@/utils/resumeDiff'
 import EmptyState from '@/components/EmptyState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import PageHeader from '@/components/PageHeader.vue'
@@ -411,6 +481,11 @@ const downloadingId = ref<number | null>(null)
 const preflight = ref<ResumePreflight | null>(null)
 const exportRows = ref<ResumeExportRecord[]>([])
 const localErrors = ref<string[]>([])
+const diffFromId = ref<number | null>(null)
+const diffToId = ref<number | null>(null)
+const diffSides = ref<Record<number, ResumeVersionDetail>>({})
+const diffLoading = ref(false)
+const diffError = ref('')
 let itemSeq = 0
 
 const resume = computed(() => (state.value?.exists ? state.value : null))
@@ -437,6 +512,52 @@ const displayedVersionLabel = computed(() => {
   const version = state.value?.versions.find((item) => item.id === id)
   return version ? `v${version.versionNumber}` : '当前版本'
 })
+
+const diff = computed<VersionDiff | null>(() => {
+  const fromId = diffFromId.value
+  const toId = diffToId.value
+  if (fromId === null || toId === null || fromId === toId) return null
+  const from = diffSides.value[fromId]
+  const to = diffSides.value[toId]
+  if (!from || !to) return null
+  return diffVersions(from, to, (key) => sectionMeta.find((meta) => meta.key === key)?.heading ?? key)
+})
+
+const diffLabel = computed(() => {
+  const versions = state.value?.versions ?? []
+  const from = versions.find((version) => version.id === diffFromId.value)
+  const to = versions.find((version) => version.id === diffToId.value)
+  if (!from || !to) return ''
+  // 需求要求比较时必须能看到两个版本号与各自生成时间（13 §10）。
+  return `v${from.versionNumber}（${formatTime(from.createdAt)}） → v${to.versionNumber}（${formatTime(to.createdAt)}）`
+})
+
+/** 补齐两个下拉所选版本的正文；同一版本只取一次。 */
+async function loadDiffSides(): Promise<void> {
+  diffError.value = ''
+  const targets = [diffFromId.value, diffToId.value].filter(
+    (id): id is number => id !== null && !diffSides.value[id],
+  )
+  if (!targets.length) return
+  diffLoading.value = true
+  try {
+    const loaded = await Promise.all(targets.map((id) => getResumeVersion(id)))
+    const next = { ...diffSides.value }
+    targets.forEach((id, index) => { next[id] = loaded[index] as ResumeVersionDetail })
+    diffSides.value = next
+  } catch (error) {
+    diffError.value = problemMessage(error)
+  } finally {
+    diffLoading.value = false
+  }
+}
+
+function changeTagClass(change: string): string {
+  if (change === 'added') return 'green'
+  if (change === 'removed') return 'red'
+  if (change === 'moved') return 'cyan'
+  return 'orange'
+}
 
 function sectionOf(key: ResumeSectionKey): ResumeSection {
   return sections.value.find((section) => section.key === key) ?? { key, items: [] }
@@ -1059,4 +1180,72 @@ onBeforeRouteLeave(async () => {
     flex: 1;
   }
 }
+.diff-meta,
+.diff-counts {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+}
+
+.diff-counts {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  color: var(--ink-2);
+  font-weight: 700;
+}
+
+.diff-section {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.diff-section h3 {
+  margin: 0;
+  color: var(--ow-ink-secondary);
+  font-size: 13px;
+}
+
+.diff-entry {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--ow-line-soft);
+  border-radius: 9px;
+  font-size: 12.5px;
+}
+
+.diff-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.diff-label {
+  color: var(--ow-ink-secondary);
+}
+
+.diff-text {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin: 0;
+  line-height: 1.7;
+}
+
+.diff-old {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.diff-new {
+  color: var(--ink-2);
+}
+
+.diff-arrow {
+  color: var(--muted);
+}
+
 </style>
