@@ -293,8 +293,10 @@ import {
 } from '@/api/interview'
 import { problemMessage } from '@/api/http'
 import { listApplications, type StageCounts } from '@/api/jobApplications'
+import { getPreferences } from '@/api/preferences'
 import { getAgenda, scheduleSourceIcon, scheduleSourceLabel, type AgendaItem } from '@/api/schedule'
 import ErrorState from '@/components/ErrorState.vue'
+import { timezoneDateTimeLabel } from '@/utils/timezone'
 
 const router = useRouter()
 const loadError = ref('')
@@ -313,6 +315,7 @@ const newTaskTitle = ref('')
 const addingTask = ref(false)
 const stageCounts = ref<StageCounts | null>(null)
 const agenda = ref<AgendaItem[]>([])
+const timezone = ref('Asia/Shanghai')
 
 const ACTIVE: InterviewSessionStatus[] = ['READY', 'RUNNING', 'PAUSED']
 
@@ -332,10 +335,9 @@ const recentSessions = computed(() => sessions.value.slice(0, 4))
 const upcomingAgenda = computed(() => agenda.value.slice(0, 6))
 
 function agendaTimeLabel(item: AgendaItem): string {
-  const date = new Date(item.startAt)
-  const day = `${date.getMonth() + 1}/${date.getDate()}`
-  if (item.allDay) return `${day} 全天`
-  return `${day} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+  const date = timezoneDateTimeLabel(item.startAt, timezone.value)
+  if (item.allDay) return `${date} 全天`
+  return `${date}`
 }
 const avgScore = computed(() => {
   if (!scoredReports.value.length) return '--'
@@ -387,9 +389,7 @@ function statusClass(status: InterviewSessionStatus): string {
 }
 
 function fmtTime(value: string): string {
-  return new Date(value).toLocaleString('zh-CN', {
-    month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit',
-  })
+  return timezoneDateTimeLabel(value, timezone.value)
 }
 
 function openSession(session: InterviewSession): void {
@@ -419,21 +419,21 @@ function recommendationLabel(value: string | null): string {
 
 function shortTime(value: string | null): string {
   if (!value) return '—'
-  return new Date(value).toLocaleString('zh-CN', {
-    month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit',
-  })
+  return timezoneDateTimeLabel(value, timezone.value)
 }
 
 async function loadAll(): Promise<void> {
   loadError.value = ''
   loading.value = true
   try {
-    const [sessionList, taskList, applications, agendaList] = await Promise.all([
+    const [sessionList, taskList, applications, agendaList, preference] = await Promise.all([
       listSessions(),
       listStudyTasks(),
       listApplications().catch(() => null),
       getAgenda(new Date(), new Date(Date.now() + 14 * 86400000)).catch(() => []),
+      getPreferences().catch(() => null),
     ])
+    if (preference?.timezoneId) timezone.value = preference.timezoneId
     sessions.value = sessionList
     tasks.value = taskList
     stageCounts.value = applications?.stages ?? null

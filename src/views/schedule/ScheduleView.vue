@@ -133,6 +133,12 @@ import {
   type AgendaItem,
 } from '@/api/schedule'
 import { problemMessage } from '@/api/http'
+import { getPreferences } from '@/api/preferences'
+import {
+  timezoneDateKey,
+  timezoneDateLabel,
+  timezoneTimeLabel,
+} from '@/utils/timezone'
 
 interface Row extends AgendaItem {
   reminderHint?: string
@@ -145,6 +151,7 @@ const error = ref('')
 const rangeDays = ref(14)
 const showForm = ref(false)
 const saving = ref(false)
+const timezone = ref('Asia/Shanghai')
 const form = ref<{
   title: string
   startAt: string
@@ -163,13 +170,13 @@ const subText = computed(() =>
 const grouped = computed(() => {
   const map = new Map<string, Row[]>()
   for (const item of items.value) {
-    const day = new Date(item.startAt).toLocaleDateString('sv')
+    const day = timezoneDateKey(item.startAt, timezone.value)
     if (!map.has(day)) map.set(day, [])
     map.get(day)!.push(item)
   }
   return Array.from(map.entries()).map(([day, list]) => ({
     day,
-    label: new Date(day).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' }),
+    label: timezoneDateLabel(list[0]?.startAt ?? day, timezone.value),
     items: list,
   }))
 })
@@ -180,7 +187,12 @@ async function load(): Promise<void> {
   try {
     const now = new Date()
     const to = new Date(now.getTime() + rangeDays.value * 86400000)
-    items.value = await getAgenda(now, to)
+    const [preference, agenda] = await Promise.all([
+      getPreferences().catch(() => null),
+      getAgenda(now, to),
+    ])
+    if (preference?.timezoneId) timezone.value = preference.timezoneId
+    items.value = agenda
   } catch (e) {
     error.value = problemMessage(e)
   } finally {
@@ -195,11 +207,9 @@ function setRange(days: number): void {
 
 function timeLabel(item: Row): string {
   if (item.allDay) return '全天'
-  const start = new Date(item.startAt)
-  const s = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`
+  const s = timezoneTimeLabel(item.startAt, timezone.value)
   if (!item.endAt) return s
-  const end = new Date(item.endAt)
-  return `${s}–${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`
+  return `${s}–${timezoneTimeLabel(item.endAt, timezone.value)}`
 }
 
 async function create(): Promise<void> {
