@@ -240,8 +240,8 @@ const notificationSettings = computed(() => [
   },
   {
     key: 'notifyInterview' as const,
-    label: '面试提醒',
-    desc: '为后续面试安排提醒保留的偏好开关',
+    label: '面试与日程提醒',
+    desc: '面试安排或自定义日程到提醒时间时通知你',
     enabled: preferenceDraft.notifyInterview,
   },
   {

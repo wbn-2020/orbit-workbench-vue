@@ -9,6 +9,7 @@ export type NotificationEventType =
   | 'KNOWLEDGE_BUILD_FAILED'
   | 'PROJECT_IMPORT_PARTIAL'
   | 'STUDY_TASK_DUE'
+  | 'SCHEDULE_REMINDER'
 
 export interface NotificationItem {
   id: number
@@ -60,6 +61,7 @@ export const NOTIFICATION_ICONS: Record<NotificationEventType, string> = {
   KNOWLEDGE_BUILD_FAILED: '🧩',
   PROJECT_IMPORT_PARTIAL: '📦',
   STUDY_TASK_DUE: '⏰',
+  SCHEDULE_REMINDER: '📅',
 }
 
 export function notificationIcon(type: NotificationEventType): string {

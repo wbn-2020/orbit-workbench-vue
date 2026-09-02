@@ -45,6 +45,17 @@
             <span>备注</span>
             <input v-model="form.note" type="text" maxlength="512" placeholder="可选" />
           </label>
+          <label class="fld">
+            <span>提醒</span>
+            <select v-model="form.reminderMinutes">
+              <option :value="null">不提醒</option>
+              <option :value="0">开始时</option>
+              <option :value="5">提前 5 分钟</option>
+              <option :value="15">提前 15 分钟</option>
+              <option :value="30">提前 30 分钟</option>
+              <option :value="60">提前 1 小时</option>
+            </select>
+          </label>
           <label class="chk">
             <input v-model="form.allDay" type="checkbox" /> 全天
           </label>
@@ -134,8 +145,15 @@ const error = ref('')
 const rangeDays = ref(14)
 const showForm = ref(false)
 const saving = ref(false)
-const form = ref<{ title: string; startAt: string; endAt: string; allDay: boolean; note: string }>({
-  title: '', startAt: '', endAt: '', allDay: false, note: '',
+const form = ref<{
+  title: string
+  startAt: string
+  endAt: string
+  allDay: boolean
+  reminderMinutes: number | null
+  note: string
+}>({
+  title: '', startAt: '', endAt: '', allDay: false, reminderMinutes: null, note: '',
 })
 
 const subText = computed(() =>
@@ -193,10 +211,11 @@ async function create(): Promise<void> {
       startAt: new Date(form.value.startAt).toISOString(),
       endAt: form.value.endAt ? new Date(form.value.endAt).toISOString() : null,
       allDay: form.value.allDay,
+      reminderMinutes: form.value.reminderMinutes,
       note: form.value.note || null,
     })
     ElMessage.success('日程已创建')
-    form.value = { title: '', startAt: '', endAt: '', allDay: false, note: '' }
+    form.value = { title: '', startAt: '', endAt: '', allDay: false, reminderMinutes: null, note: '' }
     showForm.value = false
     await load()
   } catch (e) {
@@ -278,6 +297,15 @@ onMounted(load)
 }
 
 .fld input {
+  padding: 8px 10px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+
+.fld select {
+  min-height: 35px;
   padding: 8px 10px;
   color: var(--ink);
   background: var(--surface);
