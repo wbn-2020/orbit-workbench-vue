@@ -117,7 +117,7 @@
                 <template v-if="item.lastSelfScore !== null && item.lastSelfScore !== undefined">· 自评 {{ item.lastSelfScore }}</template>
               </span>
               <span v-if="item.consecutivePassed > 0">末段连续答通 {{ item.consecutivePassed }} 次</span>
-              <span v-if="item.nextReviewDate">计划复习 {{ item.nextReviewDate }}</span>
+              <span v-if="item.nextReviewDate">{{ reviewDateText(item) }}</span>
               <span>加入于 {{ formatDateTime(item.createdAt) }}</span>
             </div>
 
@@ -224,6 +224,9 @@
 
                 <div class="block">
                   <div class="block-h">归类与复习计划</div>
+                  <p v-if="detail.item.nextReviewDate" class="muted">
+                    当前复习日：{{ reviewDateText(detail.item) }}
+                  </p>
                   <div class="ow-row classify-row">
                     <el-input v-model="classifyForm.topic" maxlength="128" placeholder="归类名称" class="topic-input" />
                     <el-date-picker
@@ -236,7 +239,8 @@
                   </div>
                   <p class="muted">
                     这里手改的复习日只保留到下一次提交重练：提交后系统会按上面的阶梯重算一个覆盖它。
-                    条目上没有额外的列来区分「你自己设的」和「规则算出来的」，所以规则无法绕过手工值。
+                    保存后会记录为「手工设定」；重练后会改为「规则排期」。迁移前已有日期可能显示为「历史数据未记录来源」。
+                    当前仍不支持钉住复习日。
                   </p>
                   <el-input
                     v-model="classifyForm.referenceAnswer"
@@ -389,6 +393,7 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   MASTERY_LABELS,
   MASTERY_TAG_CLASS,
+  REVIEW_DATE_SOURCE_LABELS,
   RESULT_LABELS,
   SOURCE_LABELS,
   addPracticeAttempt,
@@ -591,6 +596,14 @@ function sourceHint(item: PracticeItem): string {
   if (item.sourceSessionTitle) parts.push(item.sourceSessionTitle)
   if (item.sourceTopicMode) parts.push(topicModeLabel(item.sourceTopicMode))
   return parts.join(' · ')
+}
+
+function reviewDateText(item: PracticeItem): string {
+  if (!item.nextReviewDate) return ''
+  const source = item.reviewDateSource
+    ? REVIEW_DATE_SOURCE_LABELS[item.reviewDateSource]
+    : '历史数据未记录来源'
+  return `计划复习 ${item.nextReviewDate} · ${source}`
 }
 
 function openSource(item: PracticeItem): void {

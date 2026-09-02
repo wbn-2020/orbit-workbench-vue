@@ -1502,6 +1502,7 @@ export interface PracticeItem {
   referenceAnswer?: string | null
   masteryStatus: PracticeMastery
   nextReviewDate?: string | null
+  reviewDateSource?: 'MANUAL' | 'RULE' | null
   archived: boolean
   createdAt: string
   updatedAt: string

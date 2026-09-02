@@ -117,3 +117,8 @@ export const SOURCE_LABELS: Record<PracticeSource, string> = {
   INTERVIEW_TURN: '来自面试轮次',
   MANUAL: '手工新增',
 }
+
+export const REVIEW_DATE_SOURCE_LABELS = {
+  MANUAL: '手工设定',
+  RULE: '规则排期',
+} as const

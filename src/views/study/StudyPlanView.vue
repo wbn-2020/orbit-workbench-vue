@@ -116,8 +116,9 @@
                 </span>
                 <div class="grow">
                   <div class="tt q-clamp">{{ item.question }}</div>
-                  <div class="ow-tm">
-                    归类 {{ item.topic }} · 复习日 {{ item.nextReviewDate }}（{{ dueHint(item) }}）
+                    <div class="ow-tm">
+                      归类 {{ item.topic }} · 复习日 {{ item.nextReviewDate }}
+                      （{{ dueHint(item) }} · {{ reviewDateSourceLabel(item) }}）
                     · 已重练 {{ item.attemptCount }} 次
                   </div>
                 </div>
@@ -186,7 +187,12 @@ import {
   type StudyTask,
   type StudyTaskStatus,
 } from '@/api/interview'
-import { MASTERY_LABELS, MASTERY_TAG_CLASS, listPracticeItems } from '@/api/practice'
+import {
+  MASTERY_LABELS,
+  MASTERY_TAG_CLASS,
+  REVIEW_DATE_SOURCE_LABELS,
+  listPracticeItems,
+} from '@/api/practice'
 import { problemMessage } from '@/api/http'
 import ErrorState from '@/components/ErrorState.vue'
 
@@ -278,6 +284,11 @@ function isDue(item: PracticeItem): boolean {
 function dueHint(item: PracticeItem): string {
   const overdue = daysOverdue(item) ?? 0
   return overdue > 0 ? `逾期 ${overdue} 天` : '今天到期'
+}
+
+function reviewDateSourceLabel(item: PracticeItem): string {
+  if (item.reviewDateSource) return REVIEW_DATE_SOURCE_LABELS[item.reviewDateSource]
+  return '历史数据未记录来源'
 }
 
 const dueWrongItems = computed(() => wrongItems.value
