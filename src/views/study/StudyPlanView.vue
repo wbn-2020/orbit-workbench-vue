@@ -11,7 +11,7 @@
       </div>
     </header>
 
-    <ErrorState v-if="error" :message="error" :retry="load" />
+    <ErrorState v-if="error" :message="error" :retry="loadAll" />
 
     <div v-else class="study-grid">
       <div class="ow-card col8">
@@ -91,6 +91,52 @@
           <div class="ow-hint">真实熟练度将在能力数据（CapabilityRecord）落地后按报告与练习记录计算。</div>
         </div>
       </div>
+
+      <div class="ow-card col12">
+        <div class="ow-card-h">
+          <div class="ic b4"><Dumbbell aria-hidden="true" /></div>
+          待巩固错题
+          <div class="right">{{ dueWrongItems.length }} 条到期 · 未掌握队列 {{ wrongQueueTotal }} 条 · 只读派生</div>
+        </div>
+        <div class="ow-card-b">
+          <div v-if="wrongLoading"><el-skeleton :rows="3" animated /></div>
+          <ErrorState v-else-if="wrongError" :message="wrongError" :retry="loadWrongAnswers" />
+          <div v-else-if="!dueWrongItems.length" class="ow-empty-state">
+            <div class="ic">🎯</div>
+            <div class="t">今天没有到期的错题</div>
+            <div class="d">
+              到期指复习日不晚于今天。没有复习日的条目说明它还没被重练过——复习日是在错题本提交重练结果时按阶梯排出来的。
+            </div>
+          </div>
+          <template v-else>
+            <div class="ow-tlist">
+              <div v-for="item in dueWrongItems" :key="`wrong-${item.itemId}`" class="ow-titem">
+                <span class="ow-tag" :class="MASTERY_TAG_CLASS[item.masteryStatus]">
+                  {{ MASTERY_LABELS[item.masteryStatus] }}
+                </span>
+                <div class="grow">
+                  <div class="tt q-clamp">{{ item.question }}</div>
+                  <div class="ow-tm">
+                    归类 {{ item.topic }} · 复习日 {{ item.nextReviewDate }}（{{ dueHint(item) }}）
+                    · 已重练 {{ item.attemptCount }} 次
+                  </div>
+                </div>
+                <span class="ow-tag gray">只读</span>
+              </div>
+            </div>
+            <div v-if="wrongTruncated" class="ow-hint">
+              到期条目多过一次拉取的上限，这里每档只显示前 {{ WRONG_PAGE_SIZE }} 条，完整队列请到错题本页查看。
+            </div>
+            <div class="ow-hint">
+              只读派生：错题不会变成一条复习任务，所以这里没有完成、跳过和删除——掌握状态只能由错题本里提交重练尝试推进。
+              这张卡片只把「今天该重练哪些错题」放到你每天打开的页面上。
+            </div>
+            <div class="wrong-actions">
+              <el-button size="small" :icon="Dumbbell" @click="goWrongAnswers">到错题本重练</el-button>
+            </div>
+          </template>
+        </div>
+      </div>
     </div>
 
     <el-dialog v-model="createOpen" title="新建复习任务" width="min(480px, calc(100vw - 32px))" destroy-on-close>
@@ -123,9 +169,10 @@
 </template>
 
 <script setup lang="ts">
-import { CircleCheckBig, ListChecks, Plus, Target } from 'lucide-vue-next'
+import { CircleCheckBig, Dumbbell, ListChecks, Plus, Target } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import {
   completeTask,
@@ -136,14 +183,28 @@ import {
   type StudyTask,
   type StudyTaskStatus,
 } from '@/api/interview'
+import { MASTERY_LABELS, MASTERY_TAG_CLASS, listPracticeItems } from '@/api/practice'
 import { problemMessage } from '@/api/http'
 import ErrorState from '@/components/ErrorState.vue'
+
+import type { PracticeItem } from '@/types/api'
+
+const router = useRouter()
+
+/** 后端 size 上限 50。到期项在同一掌握档里一定排在最前，所以只有整页都到期才可能还有没看到的到期项。 */
+const WRONG_PAGE_SIZE = 50
 
 const tasks = ref<StudyTask[]>([])
 const error = ref('')
 const loading = ref(true)
 const createOpen = ref(false)
 const creating = ref(false)
+
+const wrongItems = ref<PracticeItem[]>([])
+const wrongQueueTotal = ref(0)
+const wrongTruncated = ref(false)
+const wrongLoading = ref(true)
+const wrongError = ref('')
 
 const draft = reactive({
   title: '',
@@ -186,6 +247,65 @@ function statusClass(status: StudyTaskStatus): string {
 function sourceLabel(source: StudyTask['sourceType']): string {
   const map = { MANUAL: '手工创建', REPORT: '面试报告', WORKBENCH: '工作台' } as const
   return map[source] ?? source
+}
+
+/** 用本地日期比较：复习日是 DATE，按 UTC 取今天会让晚上这一段差一天。 */
+function localToday(): string {
+  const now = new Date()
+  return [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0'),
+  ].join('-')
+}
+
+/** 距今天已过去多少天：0 是今天到期，正数是已逾期，没有复习日时为 null。 */
+function daysOverdue(item: PracticeItem): number | null {
+  if (!item.nextReviewDate) return null
+  const due = new Date(`${item.nextReviewDate}T00:00:00`).getTime()
+  const today = new Date(`${localToday()}T00:00:00`).getTime()
+  return Math.round((today - due) / 86400000)
+}
+
+function isDue(item: PracticeItem): boolean {
+  const overdue = daysOverdue(item)
+  return overdue !== null && overdue >= 0
+}
+
+function dueHint(item: PracticeItem): string {
+  const overdue = daysOverdue(item) ?? 0
+  return overdue > 0 ? `逾期 ${overdue} 天` : '今天到期'
+}
+
+const dueWrongItems = computed(() => wrongItems.value
+  .filter(isDue)
+  .sort((left, right) => (left.nextReviewDate ?? '').localeCompare(right.nextReviewDate ?? '')
+    || left.itemId - right.itemId))
+
+/** 掌握状态各取一页：接口只能按单一 mastery 过滤，MASTERED 不算待巩固所以不取。 */
+async function loadWrongAnswers(): Promise<void> {
+  wrongLoading.value = true
+  wrongError.value = ''
+  try {
+    const pages = await Promise.all([
+      listPracticeItems({ mastery: 'NEW', archived: 'false', size: WRONG_PAGE_SIZE }),
+      listPracticeItems({ mastery: 'LEARNING', archived: 'false', size: WRONG_PAGE_SIZE }),
+    ])
+    wrongItems.value = pages.flatMap((page) => page.items)
+    wrongQueueTotal.value = pages.reduce((sum, page) => sum + page.total, 0)
+    wrongTruncated.value = pages.some((page) => {
+      const last = page.items[page.items.length - 1]
+      return page.items.length >= WRONG_PAGE_SIZE && last !== undefined && isDue(last)
+    })
+  } catch (loadError) {
+    wrongError.value = problemMessage(loadError)
+  } finally {
+    wrongLoading.value = false
+  }
+}
+
+function goWrongAnswers(): void {
+  void router.push('/practice/wrong-answers')
 }
 
 async function load(): Promise<void> {
@@ -256,8 +376,13 @@ function replace(updated: StudyTask): void {
   if (index >= 0) tasks.value[index] = updated
 }
 
+/** 两个数据源各自独立成态：错题拉失败只让那张卡报错，不连带把复习任务整页换成错误态。 */
+async function loadAll(): Promise<void> {
+  await Promise.all([load(), loadWrongAnswers()])
+}
+
 onMounted(() => {
-  void load()
+  void loadAll()
 })
 </script>
 
@@ -281,6 +406,20 @@ onMounted(() => {
 
 .col4 { grid-column: span 4; }
 .col8 { grid-column: span 8; }
+.col12 { grid-column: span 12; }
+
+.wrong-actions {
+  margin-top: 12px;
+}
+
+/* 题干最长 4000 字，这张卡只做入口，超过两行截断。 */
+.q-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
 
 .grow {
   flex: 1;
