@@ -46,7 +46,7 @@
 
       <p class="auth-demo">
         登录需要本地后端服务 ·
-        <RouterLink to="/setup">首次使用？走一遍初始化向导 →</RouterLink>
+        <RouterLink to="/setup">还没有账号？走首次初始化，创建第一个账号 →</RouterLink>
       </p>
     </section>
   </main>
