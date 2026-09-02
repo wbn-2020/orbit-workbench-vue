@@ -11,6 +11,15 @@
       </template>
     </PageHeader>
 
+    <el-alert
+      v-if="focusNotice"
+      :title="focusNotice"
+      type="info"
+      show-icon
+      closable
+      @close="focusNotice = ''"
+    />
+
     <section class="ow-card">
       <div class="filters">
         <div class="filter-group">
@@ -82,7 +91,13 @@
         </section>
 
         <div v-else class="wrong-list">
-          <article v-for="item in items" :key="item.itemId" class="wrong-card">
+          <article
+            v-for="item in items"
+            :id="`practice-item-${item.itemId}`"
+            :key="item.itemId"
+            class="wrong-card"
+            :class="{ focused: item.itemId === focusId }"
+          >
             <div class="wrong-tags">
               <span class="ow-tag" :class="MASTERY_TAG_CLASS[item.masteryStatus]">
                 {{ MASTERY_LABELS[item.masteryStatus] }}
@@ -368,8 +383,8 @@
 
 <script setup lang="ts">
 import { CircleCheckBig, Download, Dumbbell, ExternalLink, FilterX, Plus, RefreshCw, Send, Target } from 'lucide-vue-next'
-import { computed, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import {
   MASTERY_LABELS,
@@ -408,6 +423,7 @@ import type {
   ReportListItem,
 } from '@/types/api'
 
+const route = useRoute()
 const router = useRouter()
 
 const SIZE = 10
@@ -440,6 +456,8 @@ const summaryLoading = ref(true)
 const summaryError = ref('')
 
 const expandedId = ref<number | null>(null)
+const focusId = ref<number | null>(null)
+const focusNotice = ref('')
 const detail = ref<PracticeDetailResponse | null>(null)
 const detailLoading = ref(false)
 const detailError = ref('')
@@ -826,7 +844,43 @@ async function reload(): Promise<void> {
   await Promise.all([loadList(), loadSummary()])
 }
 
-void reload()
+async function applyFocus(): Promise<void> {
+  const raw = Number(route.query.focus)
+  if (!Number.isInteger(raw) || raw <= 0) return
+
+  let target = items.value.find((item) => item.itemId === raw)
+  if (!target) {
+    const broad = await listPracticeItems({ archived: archived.value, size: 50 })
+    const index = broad.items.findIndex((item) => item.itemId === raw)
+    if (index >= 0) {
+      page.value = Math.floor(index / SIZE) + 1
+      await loadList()
+      target = items.value.find((item) => item.itemId === raw)
+    }
+  }
+
+  if (!target) {
+    focusNotice.value = '未找到这条错题，可能已归档或已不在当前练习队列。'
+    return
+  }
+
+  focusId.value = raw
+  focusNotice.value = `已定位到错题「${target.topic}」`
+  expandedId.value = raw
+  await loadDetail(raw)
+  await nextTick()
+  document.getElementById(`practice-item-${raw}`)?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+  })
+}
+
+async function initialize(): Promise<void> {
+  await reload()
+  await applyFocus()
+}
+
+void initialize()
 </script>
 
 <style scoped>
@@ -884,6 +938,11 @@ void reload()
   background: var(--glass-2);
   border: 1.5px solid var(--line);
   border-radius: 14px;
+}
+
+.wrong-card.focused {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-200), var(--shadow-md);
 }
 
 .wrong-tags {

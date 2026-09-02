@@ -122,6 +122,9 @@
                   </div>
                 </div>
                 <span class="ow-tag gray">只读</span>
+                <button class="ow-btn xs ghost" type="button" @click="openWrongAnswer(item)">
+                  查看错题
+                </button>
               </div>
             </div>
             <div v-if="wrongTruncated" class="ow-hint">
@@ -306,6 +309,13 @@ async function loadWrongAnswers(): Promise<void> {
 
 function goWrongAnswers(): void {
   void router.push('/practice/wrong-answers')
+}
+
+function openWrongAnswer(item: PracticeItem): void {
+  void router.push({
+    path: '/practice/wrong-answers',
+    query: { focus: String(item.itemId) },
+  })
 }
 
 async function load(): Promise<void> {
