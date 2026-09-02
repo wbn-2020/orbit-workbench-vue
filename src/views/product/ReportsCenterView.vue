@@ -44,6 +44,17 @@
           </el-select>
         </label>
         <label class="filter-group">
+          <span class="filter-label">面试官</span>
+          <el-select v-model="interviewerId" clearable filterable placeholder="全部面试官" @change="loadList()">
+            <el-option
+              v-for="person in interviewers"
+              :key="person.id"
+              :label="person.name"
+              :value="person.id"
+            />
+          </el-select>
+        </label>
+        <label class="filter-group">
           <span class="filter-label">录用建议</span>
           <el-select v-model="recommendation" clearable placeholder="全部建议" @change="loadList()">
             <el-option
@@ -158,7 +169,7 @@
             <input
               type="checkbox"
               :checked="selected.includes(report.reportId)"
-              :disabled="selected.length >= 2 && !selected.includes(report.reportId)"
+              :disabled="selected.length >= MAX_COMPARE && !selected.includes(report.reportId)"
               @change="toggleCompare(report, $event)"
             />
           </label>
@@ -173,7 +184,16 @@
             </div>
             <div v-if="report.reportStatus !== 'REPORT_READY'" class="status-line">
               <span class="ow-tag orange">{{ reportStatusText(report.reportStatus) }}</span>
-              <span class="muted">{{ report.failureReason || '报告尚未生成完成，可回到会话重试。' }}</span>
+              <span class="muted">{{ report.failureReason || '报告还没有生成，可以直接发起。' }}</span>
+              <el-button
+                size="small"
+                text
+                :icon="RefreshCw"
+                :loading="generatingId === report.reportId"
+                @click="generateNow(report)"
+              >
+                {{ report.reportStatus === 'REPORT_FAILED' ? '重试生成' : '立即生成' }}
+              </el-button>
             </div>
           </div>
           <div class="meta-col">
@@ -204,11 +224,11 @@
     <section v-if="reports.length > 0" class="surface">
       <div class="surface-head">
         <h2>并排比较</h2>
-        <span class="muted">勾选两份报告，只有评分规则版本相同才允许并列</span>
+        <span class="muted">勾选 2–3 份报告并排看维度分，只有评分规则版本相同才允许并列</span>
       </div>
       <div class="surface-body">
         <p v-if="compareBlocked" class="missing" role="note">{{ compareBlocked }}</p>
-        <div v-if="pair.length === 2" class="compare">
+        <div v-if="pair.length >= 2" class="compare">
           <div v-for="report in pair" :key="`cmp-${report.reportId}`" class="ow-card">
             <div class="ow-card-h">{{ report.sessionTitle }} · {{ report.totalScore ?? '—' }} 分</div>
             <div class="ow-card-b">
@@ -221,12 +241,26 @@
                 <div class="track"><i :style="{ width: `${valueFor(report.reportId, name)}%` }" /></div>
                 <div class="score">{{ valueFor(report.reportId, name) || '—' }}</div>
               </div>
+              <div class="compare-meta">
+                <span>面试官：{{ report.interviewerName || '未记录（会话快照里没有面试官）' }}</span>
+                <span>出题规则：{{ topicModeLabel(report.topicMode ?? '') }} · {{ formLabel(report.form) }}</span>
+              </div>
+              <div class="compare-sources">
+                <span class="muted small">回答来源构成：</span>
+                <span v-for="source in details[report.reportId]?.answerSources ?? []"
+                      :key="`${report.reportId}-${source.answerSource}`" class="ow-tag blue">
+                  {{ answerSourceLabel(source.answerSource) }} {{ source.count }}
+                </span>
+                <span v-if="!(details[report.reportId]?.answerSources ?? []).length" class="muted small">
+                  这场没有记录回答来源，无法判断答案是靠资料还是临场作答。
+                </span>
+              </div>
               <p v-if="detailLoading" class="muted small">维度分明细加载中…</p>
             </div>
           </div>
         </div>
         <p v-else class="missing">
-          {{ pair.length === 1 ? '再勾选一份规则版本相同的报告即可比较。' : '勾选 2 份报告后在此并列维度分。' }}
+          {{ pair.length === 1 ? '再勾选一份规则版本相同的报告即可比较。' : '勾选 2 到 3 份报告后在此并列维度分。' }}
         </p>
       </div>
     </section>
@@ -234,14 +268,15 @@
 </template>
 
 <script setup lang="ts">
+import { ElMessage } from 'element-plus'
 import { Eye, FileBarChart, FilterX, Plus, RefreshCw } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { TOPIC_MODES } from '@/api/interview'
+import { answerSourceLabel, generateReport, retryReport, TOPIC_MODES } from '@/api/interview'
 import { getReportDetail, getReportSummary, listReports } from '@/api/reports'
 import { problemMessage } from '@/api/http'
-import { topicModeLabel } from '@/api/interviewers'
+import { listInterviewers, topicModeLabel, type InterviewerProfile } from '@/api/interviewers'
 import EmptyState from '@/components/EmptyState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import PageHeader from '@/components/PageHeader.vue'
@@ -265,6 +300,10 @@ const RECOMMENDATIONS = [
 ]
 const SIZE = 10
 
+// 需求要的是 2–3 份并排，不是只许两份；上限仍然有限制，
+// 因为三张卡再往上就并列不下维度条了。
+const MAX_COMPARE = 3
+
 const reports = ref<ReportListItem[]>([])
 const total = ref(0)
 const page = ref(1)
@@ -280,6 +319,10 @@ const trendVersion = ref<string | undefined>()
 const summaryLoading = ref(true)
 const summaryError = ref('')
 
+const interviewerId = ref<number | undefined>()
+const interviewers = ref<InterviewerProfile[]>([])
+const generatingId = ref<number | null>(null)
+
 const selected = ref<number[]>([])
 const details = ref<Record<number, ReportDetail>>({})
 const detailLoading = ref(false)
@@ -287,7 +330,7 @@ const compareBlocked = ref('')
 
 const pageCount = computed(() => Math.max(1, Math.ceil(total.value / SIZE)))
 const filtersActive = computed(() => days.value !== null
-  || Boolean(topicMode.value || form.value || recommendation.value))
+  || Boolean(topicMode.value || form.value || recommendation.value || interviewerId.value))
 const pair = computed(() => reports.value.filter((report) => selected.value.includes(report.reportId)))
 
 const chart = computed(() => {
@@ -350,7 +393,8 @@ function recommendationClass(value: string | null | undefined): string {
 
 function reportStatusText(status: string): string {
   const map: Record<string, string> = {
-    REPORT_PENDING: '报告生成中', REPORT_FAILED: '报告生成失败', REPORT_READY: '已完成',
+    // PENDING 是「记录已建、还没生成」，写「生成中」会和旁边的「立即生成」自相矛盾。
+    REPORT_PENDING: '报告待生成', REPORT_FAILED: '报告生成失败', REPORT_READY: '已完成',
   }
   return map[status] ?? status
 }
@@ -379,6 +423,7 @@ async function loadList(): Promise<void> {
       topicMode: topicMode.value ?? null,
       form: form.value ?? null,
       recommendation: recommendation.value ?? null,
+      interviewerId: interviewerId.value ?? null,
       page: page.value,
       size: SIZE,
     })
@@ -419,6 +464,7 @@ function resetFilters(): void {
   topicMode.value = undefined
   form.value = undefined
   recommendation.value = undefined
+  interviewerId.value = undefined
   page.value = 1
   void loadList()
   void loadSummary()
@@ -439,7 +485,9 @@ async function toggleCompare(report: ReportListItem, event: Event): Promise<void
     if (reason) {
       compareBlocked.value = reason
     } else {
-      selected.value = selected.value.length >= 2 ? [report.reportId] : [...selected.value, report.reportId]
+      selected.value = selected.value.length >= MAX_COMPARE
+        ? [report.reportId]
+        : [...selected.value, report.reportId]
       await ensureDetail(report.reportId)
     }
   }
@@ -452,9 +500,10 @@ function compareBlockReason(report: ReportListItem): string {
   if (!report.scoringRuleVersion) {
     return `《${report.sessionTitle}》生成时还没有记录评分规则版本，无法判断它和别的报告是否按同一套规则打分，因此不参与比较。`
   }
-  const other = pair.value.find((item) => item.reportId !== report.reportId)
-  if (other && other.scoringRuleVersion !== report.scoringRuleVersion) {
-    return `评分规则不同不能并列比较：《${other.sessionTitle}》是 ${other.scoringRuleVersion}，《${report.sessionTitle}》是 ${report.scoringRuleVersion}。两张分数的打分口径不一样。`
+  const mismatch = pair.value.find((item) => item.reportId !== report.reportId
+    && item.scoringRuleVersion !== report.scoringRuleVersion)
+  if (mismatch) {
+    return `评分规则不同不能并列比较：《${mismatch.sessionTitle}》是 ${mismatch.scoringRuleVersion}，《${report.sessionTitle}》是 ${report.scoringRuleVersion}。两张分数的打分口径不一样。`
   }
   if (report.reportStatus !== 'REPORT_READY') {
     return `《${report.sessionTitle}》的报告状态是「${reportStatusText(report.reportStatus)}」，还没有可用分数。`
@@ -476,7 +525,38 @@ async function ensureDetail(reportId: number): Promise<void> {
 }
 
 async function reload(): Promise<void> {
-  await Promise.all([loadList(), loadSummary()])
+  await Promise.all([loadList(), loadSummary(), loadInterviewers()])
+}
+
+async function loadInterviewers(): Promise<void> {
+  try {
+    interviewers.value = await listInterviewers()
+  } catch {
+    // 筛选用不到面试官时不弹错误：列表本身照常，下拉只是空；主链的错误由 loadList 报。
+    interviewers.value = []
+  }
+}
+
+/** PENDING 走生成、FAILED 走重试：两个端点本来就分开，界面不自己猜。 */
+/**
+ * 准入判断交回服务端：它只看报告记录状态（`requireGeneratableReport`），
+ * 界面自己猜会话状态只会猜出不存在的枚举值，所以这里只负责把失败原因说成人话。
+ */
+async function generateNow(report: ReportListItem): Promise<void> {
+  generatingId.value = report.reportId
+  try {
+    if (report.reportStatus === 'REPORT_FAILED') {
+      await retryReport(report.sessionId)
+    } else {
+      await generateReport(report.sessionId)
+    }
+    ElMessage.success('已提交生成，报告出来后会出现在列表里。')
+    await Promise.all([loadList(), loadSummary()])
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
+  } finally {
+    generatingId.value = null
+  }
 }
 
 onMounted(reload)
@@ -667,8 +747,17 @@ onMounted(reload)
 
 .compare {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 18px;
+}
+
+.compare-meta,
+.compare-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 8px;
+  font-size: 12px;
 }
 
 .dim {

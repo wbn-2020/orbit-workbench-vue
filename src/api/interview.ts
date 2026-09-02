@@ -352,3 +352,20 @@ export function parseDims(value: string | null | undefined): Record<string, numb
     return {}
   }
 }
+
+/**
+ * 回答来源取值由 V23 的 `chk_interview_turn_source` 固定，标签统一放这里
+ * （错题本与报告中心共用一套说法，避免同一枚举在两处翻译成不同的词）。
+ */
+export const ANSWER_SOURCE_LABELS: Record<string, string> = {
+  INDEPENDENT: '独立作答',
+  PROMPTED: '提示后作答',
+  AI_ASSISTED: 'AI 辅助作答',
+  AI_GENERATED: 'AI 生成作答',
+  HISTORY_IMPORT: '历史导入',
+}
+
+export function answerSourceLabel(value: string | null | undefined): string {
+  if (!value) return '未记录来源'
+  return ANSWER_SOURCE_LABELS[value] ?? value
+}

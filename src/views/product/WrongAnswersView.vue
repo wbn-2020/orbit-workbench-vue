@@ -383,7 +383,7 @@ import {
 } from '@/api/practice'
 import { listReports } from '@/api/reports'
 import { problemMessage } from '@/api/http'
-import { listSessions } from '@/api/interview'
+import { answerSourceLabel, listSessions } from '@/api/interview'
 import { topicModeLabel } from '@/api/interviewers'
 import EmptyState from '@/components/EmptyState.vue'
 import ErrorState from '@/components/ErrorState.vue'
@@ -532,17 +532,6 @@ function resultTagClass(result: PracticeResult): string {
 function percentOf(entry: PracticeSummary['topics'][number]): number {
   if (entry.itemCount === 0) return 0
   return Math.round(((entry.itemCount - entry.notMasteredCount) / entry.itemCount) * 100)
-}
-
-function answerSourceLabel(value: string): string {
-  const map: Record<string, string> = {
-    INDEPENDENT: '独立作答',
-    PROMPTED: '提示后作答',
-    AI_ASSISTED: 'AI 辅助作答',
-    AI_GENERATED: 'AI 生成作答',
-    HISTORY_IMPORT: '历史导入',
-  }
-  return map[value] ?? value
 }
 
 function turnTypeLabel(value: string): string {
