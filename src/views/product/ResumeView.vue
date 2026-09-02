@@ -9,11 +9,11 @@
           <CircleAlert aria-hidden="true" />
           有未保存修改
         </span>
-        <el-button v-if="draftId" :icon="Save" :loading="saving" @click="saveDraft">
+        <el-button v-if="editing" :icon="Save" :loading="saving" @click="saveDraft">
           保存草稿
         </el-button>
         <el-button
-          v-if="draftId"
+          v-if="editing"
           :icon="Stamp"
           :loading="finalizing"
           :disabled="dirty"
@@ -23,7 +23,7 @@
           定稿
         </el-button>
         <el-button
-          v-if="draftId"
+          v-if="editing"
           type="primary"
           :icon="FileDown"
           :loading="exporting"
@@ -66,7 +66,21 @@
     <div v-else class="resume-grid">
       <div class="resume-main">
         <el-alert
-          v-if="preflight && !preflight.ready"
+          v-if="previewVersion"
+          class="state-alert"
+          type="info"
+          :closable="false"
+          show-icon
+          :title="`正在只读查看 v${previewVersion.versionNumber}（来自岗位对照的依据跳转）`"
+        >
+          <span class="muted">规则只读，不会改动任何内容；改动只在草稿上进行。</span>
+          <el-button class="inline-cta" size="small" @click="leavePreview">
+            回到当前编辑内容
+          </el-button>
+        </el-alert>
+
+        <el-alert
+          v-else-if="preflight && !preflight.ready"
           class="state-alert"
           type="warning"
           :closable="false"
@@ -109,12 +123,12 @@
             <div>
               <h2 class="surface-title">
                 {{ meta.heading }}
-                <em v-if="draftId && isSectionDirty(meta.key)" class="dirty-dot">未保存</em>
+                <em v-if="editing && isSectionDirty(meta.key)" class="dirty-dot">未保存</em>
               </h2>
               <span class="surface-subtitle">{{ meta.sourceHint }}</span>
             </div>
             <el-button
-              v-if="draftId"
+              v-if="editing"
               size="small"
               text
               :icon="Plus"
@@ -131,7 +145,7 @@
             <div v-for="(item, index) in sectionOf(meta.key).items" :key="item.id" class="item-row">
               <div class="item-head">
                 <el-input
-                  v-if="draftId"
+                  v-if="editing"
                   v-model="item.label"
                   class="item-label"
                   size="small"
@@ -143,7 +157,7 @@
                 <span class="item-source">
                   <component :is="sourceIcon(item)" aria-hidden="true" />
                   <router-link
-                    v-if="draftId && sourceRoute(item)"
+                    v-if="editing && sourceRoute(item)"
                     class="source-link"
                     :to="sourceRoute(item) as RouteLocationRaw"
                   >
@@ -153,7 +167,7 @@
                   <el-tag v-if="item.edited" size="small" type="warning" effect="plain">已修改</el-tag>
                 </span>
                 <el-button
-                  v-if="draftId"
+                  v-if="editing"
                   size="small"
                   text
                   :icon="Trash2"
@@ -162,7 +176,7 @@
                 />
               </div>
               <el-input
-                v-if="draftId"
+                v-if="editing"
                 v-model="item.text"
                 :type="meta.kind === 'FIELD' ? 'text' : 'textarea'"
                 :autosize="meta.kind === 'FIELD' ? undefined : { minRows: 2, maxRows: 8 }"
@@ -192,7 +206,7 @@
                 v-model="titleDraft"
                 size="small"
                 maxlength="128"
-                :disabled="!draftId"
+                :disabled="!editing"
                 aria-label="简历标题"
               />
             </div>
@@ -200,7 +214,7 @@
               <li
                 v-for="version in resume.versions"
                 :key="version.id"
-                :class="{ active: version.id === resume.activeVersionId }"
+                :class="{ active: version.id === resume.activeVersionId || version.id === deepLinkedVersionId }"
               >
                 <div class="version-line">
                   <b>v{{ version.versionNumber }}</b>
@@ -208,6 +222,7 @@
                     {{ version.status === 'FINAL' ? '已定稿' : '草稿' }}
                   </el-tag>
                   <span v-if="version.id === resume.activeVersionId" class="ow-tag blue">当前</span>
+                  <span v-if="version.id === deepLinkedVersionId" class="ow-tag orange">查看中</span>
                 </div>
                 <div class="version-meta muted">
                   {{ version.itemCount }} 条 · {{ version.totalChars }} 字 ·
@@ -294,7 +309,7 @@ import {
 } from 'lucide-vue-next'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { onBeforeRouteLeave } from 'vue-router'
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 
 import {
   bootstrapResume,
@@ -376,6 +391,9 @@ const sectionMeta: SectionMeta[] = [
   },
 ]
 
+const route = useRoute()
+const router = useRouter()
+
 const state = ref<ResumeState | null>(null)
 const sections = ref<ResumeSection[]>([])
 const snapshot = ref<Record<string, string>>({})
@@ -397,13 +415,25 @@ let itemSeq = 0
 
 const resume = computed(() => (state.value?.exists ? state.value : null))
 const draftId = computed(() => state.value?.draft?.id ?? null)
+/**
+ * ?version= 深链：从岗位对照的依据跳过来看某一版原文。
+ * 预览期间必须退出编辑模型——showReadonlyVersion() 会把 snapshot 清空，
+ * 这时若还允许保存，只读内容会被当成草稿写回，覆盖用户真正的草稿。
+ */
+const deepLinkedVersionId = ref<number | null>(null)
+const editing = computed(() => Boolean(draftId.value) && deepLinkedVersionId.value === null)
+const previewVersion = computed(
+  () => state.value?.versions.find((version) => version.id === deepLinkedVersionId.value) ?? null,
+)
 const dirty = computed(() =>
-  titleDraft.value !== titleSnapshot.value ||
-  sectionMeta.some((meta) => isSectionDirty(meta.key)),
+  editing.value && (
+    titleDraft.value !== titleSnapshot.value ||
+    sectionMeta.some((meta) => isSectionDirty(meta.key))
+  ),
 )
 const exportBlocked = computed(() => !draftId.value || Boolean(preflight.value && !preflight.value.ready))
 const displayedVersionLabel = computed(() => {
-  const id = draftId.value ?? state.value?.activeVersionId ?? null
+  const id = deepLinkedVersionId.value ?? draftId.value ?? state.value?.activeVersionId ?? null
   const version = state.value?.versions.find((item) => item.id === id)
   return version ? `v${version.versionNumber}` : '当前版本'
 })
@@ -426,6 +456,7 @@ function isSectionDirty(key: ResumeSectionKey): boolean {
 }
 
 function capture(detail: ResumeVersionDetail): void {
+  deepLinkedVersionId.value = null
   sections.value = sectionMeta.map((meta) => {
     const source = detail.sections.find((section) => section.key === meta.key)
     return {
@@ -463,11 +494,28 @@ async function load(): Promise<void> {
     } else if (state.value.activeVersionId) {
       await showReadonlyVersion(state.value.activeVersionId)
     }
+    await applyVersionQuery()
   } catch (error) {
     loadError.value = problemMessage(error)
   } finally {
     loading.value = false
   }
+}
+
+/** 深链只接受真实存在的版本 id；对不上就安静地留在默认视图，不编造只读内容。 */
+async function applyVersionQuery(): Promise<void> {
+  const raw = Number(route.query.version)
+  if (!Number.isInteger(raw) || raw <= 0 || !state.value?.exists) return
+  const target = state.value.versions.find((version) => version.id === raw)
+  if (!target || target.id === draftId.value) return
+  await showReadonlyVersion(target.id)
+  deepLinkedVersionId.value = target.id
+}
+
+async function leavePreview(): Promise<void> {
+  deepLinkedVersionId.value = null
+  await router.replace({ query: { ...route.query, version: undefined } })
+  await load()
 }
 
 /** 无草稿时展示已定稿版本的只读内容，不进编辑模型也不参与脏判定。 */
@@ -534,7 +582,7 @@ function buildPayload(): ResumeSectionPayload[] | null {
 }
 
 async function saveDraft(): Promise<ResumeVersionDetail | null> {
-  if (!draftId.value) {
+  if (!editing.value) {
     ElMessage.warning('当前没有草稿，请先复制一个版本为草稿')
     return null
   }

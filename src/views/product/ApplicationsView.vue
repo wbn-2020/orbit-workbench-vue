@@ -51,6 +51,16 @@
           </div>
         </div>
 
+        <el-alert
+          v-if="focusNotice"
+          class="focus-notice"
+          type="info"
+          closable
+          show-icon
+          :title="focusNotice"
+          @close="focusNotice = ''"
+        />
+
         <div v-if="loading" class="page-feedback"><el-skeleton :rows="6" animated /></div>
         <EmptyState
           v-else-if="!filtered.length"
@@ -61,7 +71,13 @@
           <el-button type="primary" @click="createOpen = true">新增投递</el-button>
         </EmptyState>
         <div v-else class="app-list">
-          <article v-for="item in filtered" :key="item.id" class="app-row">
+          <article
+            v-for="item in filtered"
+            :id="`app-row-${item.id}`"
+            :key="item.id"
+            class="app-row"
+            :class="{ focused: item.id === focusId }"
+          >
             <span class="company-mark">{{ item.company.slice(0, 1) }}</span>
             <div class="app-copy">
               <div class="app-title">
@@ -154,7 +170,8 @@
 <script setup lang="ts">
 import { BriefcaseBusiness, Map, Plus, Search } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 
 import {
   APPLICATION_STAGES,
@@ -172,7 +189,11 @@ import { problemMessage } from '@/api/http'
 import EmptyState from '@/components/EmptyState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 
+const route = useRoute()
+
 const items = ref<JobApplication[]>([])
+const focusId = ref<number | null>(null)
+const focusNotice = ref('')
 const archivedCount = ref(0)
 const error = ref('')
 const loading = ref(true)
@@ -235,10 +256,26 @@ async function load(): Promise<void> {
     archivedCount.value = active.stages.closed >= 0 && archived
       ? archived.items.filter((item) => item.archived).length
       : countArchivedEstimate(active)
+    await applyFocus()
   } catch (loadError) {
     error.value = problemMessage(loadError)
   } finally {
     loading.value = false
+  }
+}
+
+/** ?focus= 深链：岗位与 JD 匹配页关联了某条投递后跳过来要能真的定位到它，不能只跳列表。 */
+async function applyFocus(): Promise<void> {
+  const raw = Number(route.query.focus)
+  if (!Number.isInteger(raw) || raw <= 0) return
+  focusId.value = raw
+  const hit = items.value.some((item) => item.id === raw)
+  focusNotice.value = hit
+    ? '已定位到岗位对照里关联的这条投递记录。'
+    : '关联的投递记录不在当前列表里（可能已归档或删除）。可打开右上「含归档」再找。'
+  if (hit) {
+    await nextTick()
+    document.getElementById(`app-row-${raw}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 }
 
@@ -407,6 +444,14 @@ onMounted(() => {
 
 .app-row:last-child {
   border-bottom: 0;
+}
+
+.app-row.focused {
+  background: var(--brand-50);
+}
+
+.focus-notice {
+  margin-bottom: 8px;
 }
 
 .company-mark {

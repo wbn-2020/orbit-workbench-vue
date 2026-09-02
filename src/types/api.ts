@@ -1639,3 +1639,195 @@ export interface CapabilityEvidence {
   sampleCount: number
   items: CapabilityEvidenceItem[]
 }
+
+/* ---------------------------------------------------------------------------
+ * 岗位与 JD 匹配（C-05，契约见 17_岗位与JD匹配设计.md §8）
+ * 后端全局 non_null 序列化 ⇒ 可空字段是「键缺失」，因此这里一律声明为可选。
+ * 四个匹配分数键在响应里根本不存在（本期不评分），所以不写进类型：写了就是暗示将来会有。
+ * ------------------------------------------------------------------------- */
+
+export type JobRequirementCategory = 'SKILL' | 'EXPERIENCE' | 'PROJECT' | 'OTHER'
+export type JobMatchVerdict = 'MATCHED' | 'GAP' | 'NEED_CONFIRMATION'
+export type JobMatchConfirmation = 'PENDING' | 'CONFIRMED' | 'REJECTED'
+
+/** 关联的投递记录摘要；投递被删后外键置 NULL，该字段整体缺失（ADR-0011）。 */
+export interface JobApplicationRef {
+  id: number
+  company?: string | null
+  role?: string | null
+  stage?: string | null
+}
+
+export interface JobRequirement {
+  id: string
+  category: JobRequirementCategory
+  categoryLabel: string
+  text: string
+}
+
+export interface JobRequirementPayload {
+  id: string
+  category: JobRequirementCategory
+  text: string
+}
+
+export interface JobPostingVersion {
+  id: number
+  versionNumber: number
+  ruleVersion: string
+  requirementCount: number
+  jdChars: number
+  active: boolean
+  createdAt: string
+}
+
+export interface JobPostingSummary {
+  id: number
+  company: string
+  title: string
+  city?: string | null
+  salaryNote?: string | null
+  source?: string | null
+  archived: boolean
+  updatedAt: string
+  activeVersionId?: number | null
+  activeVersionNumber?: number | null
+  requirementCount: number
+  application?: JobApplicationRef | null
+  lastMatchedAt?: string | null
+  lastMatchConfirmationStatus?: JobMatchConfirmation | null
+}
+
+export interface JobPostingListResponse {
+  items: JobPostingSummary[]
+  total: number
+  page: number
+  size: number
+  /** 上限由后端下发，界面不写死数字（与 minTrendSamples/masteredStreak 同一条约定）。 */
+  maxRequirementCount: number
+  maxJdChars: number
+}
+
+export interface JobScoring {
+  enabled: boolean
+  reason?: string | null
+}
+
+export interface JobPostingDetail {
+  id: number
+  company: string
+  title: string
+  city?: string | null
+  salaryNote?: string | null
+  source?: string | null
+  archived: boolean
+  createdAt: string
+  updatedAt: string
+  application?: JobApplicationRef | null
+  activeVersionId?: number | null
+  jdText?: string | null
+  requirements: JobRequirement[]
+  ruleVersion?: string | null
+  versions: JobPostingVersion[]
+  scoring: JobScoring
+  scoringNote?: string | null
+}
+
+export interface JobMatchEvidence {
+  sectionKey: string
+  sectionLabel: string
+  itemId?: string | null
+  itemLabel?: string | null
+  snippet?: string | null
+}
+
+export interface JobMatchItem {
+  requirementId: string
+  category: JobRequirementCategory
+  categoryLabel: string
+  text: string
+  verdict: JobMatchVerdict
+  verdictLabel: string
+  reason?: string | null
+  /** 最多返回 3 条；总数在 evidenceCount，界面要按「共 N 处，这里显示前 M 处」表述。 */
+  evidences: JobMatchEvidence[]
+  evidenceCount: number
+}
+
+export interface JobMatchCounts {
+  total: number
+  matched: number
+  gaps: number
+  needConfirmation: number
+}
+
+export interface JobMatchResumeRef {
+  versionId?: number | null
+  versionNumber?: number | null
+  status?: string | null
+}
+
+export interface JobMatchView {
+  /** 实时对照时缺失；保存后为持久化行的主键。 */
+  matchId?: number | null
+  jobId: number
+  company: string
+  title: string
+  jdVersionId: number
+  jdVersionNumber: number
+  ruleVersion: string
+  resume?: JobMatchResumeRef | null
+  /** REQUESTED / ACTIVE / DRAFT / SAVED；缺失表示没有可比对的简历。 */
+  resumeSource?: string | null
+  profileSnapshotAt?: string | null
+  counts: JobMatchCounts
+  scoring: JobScoring
+  confirmationStatus?: JobMatchConfirmation | null
+  confirmedAt?: string | null
+  savedAt?: string | null
+  items: JobMatchItem[]
+}
+
+export interface JobMatchHistoryItem {
+  matchId: number
+  jdVersionNumber: number
+  resume?: JobMatchResumeRef | null
+  ruleVersion: string
+  counts: JobMatchCounts
+  confirmationStatus?: JobMatchConfirmation | null
+  confirmedAt?: string | null
+  createdAt: string
+}
+
+export interface JobMatchListResponse {
+  items: JobMatchHistoryItem[]
+  total: number
+  page: number
+  size: number
+}
+
+export interface JobPostingCreatePayload {
+  company: string
+  title: string
+  city?: string | null
+  salaryNote?: string | null
+  source?: string | null
+  applicationId?: number | null
+  jdText: string
+  requirements: JobRequirementPayload[]
+}
+
+export interface JobJdVersionPayload {
+  jdText: string
+  requirements: JobRequirementPayload[]
+}
+
+export interface JobMetaPayload {
+  company: string
+  title: string
+  city?: string | null
+  salaryNote?: string | null
+  source?: string | null
+  applicationId?: number | null
+  expectedUpdatedAt: string
+}
