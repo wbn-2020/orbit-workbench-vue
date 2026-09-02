@@ -1839,3 +1839,16 @@ export interface JobMetaPayload {
   applicationId?: number | null
   expectedUpdatedAt: string
 }
+
+export interface UserPreferences {
+  userId: number
+  notifyReportReady: boolean
+  notifyStudyDue: boolean
+  notifyInterview: boolean
+  notifyImportFailure: boolean
+  notifyAiFailure: boolean
+  timezoneId: string
+  version: number
+  createdAt: string
+  updatedAt: string
+}
