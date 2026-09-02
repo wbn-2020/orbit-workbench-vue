@@ -202,6 +202,8 @@
                   <p class="muted">
                     自评与结果都由你判定；界面按 {{ masteryRuleBrief }} 复算掌握，没有「直接标记已掌握」的入口。
                   </p>
+                  <p v-if="reviewRuleText" class="muted">{{ reviewRuleText }}</p>
+                  <p v-if="reviewSchedulingNote" class="ok-line">{{ reviewSchedulingNote }}</p>
                   <p v-if="attemptError" class="error-line">{{ attemptError }}</p>
                 </div>
 
@@ -217,6 +219,10 @@
                     />
                     <el-button :loading="classifySubmitting" @click="saveClassification">保存归类</el-button>
                   </div>
+                  <p class="muted">
+                    这里手改的复习日只保留到下一次提交重练：提交后系统会按上面的阶梯重算一个覆盖它。
+                    条目上没有额外的列来区分「你自己设的」和「规则算出来的」，所以规则无法绕过手工值。
+                  </p>
                   <el-input
                     v-model="classifyForm.referenceAnswer"
                     type="textarea"
@@ -498,6 +504,15 @@ const masteryRuleBrief = computed(() => {
   return `连续 ${data.masteredStreak} 次答通且自评 ≥ ${data.masteredSelfScore}`
 })
 
+// 阶梯天数同样取接口下发的值：界面写死 1/3/7/14 的话，后端改档位就会留下一句过时的宣传语。
+const reviewRuleText = computed(() => {
+  const ladder = summary.value?.reviewLadderDays ?? []
+  if (ladder.length === 0) return ''
+  return `复习日阶梯：连续答通依次排到 ${ladder.join(' / ')} 天后（继续答通也保持 ${ladder[ladder.length - 1]} 天），`
+    + `没答通回到 ${ladder[0]} 天。`
+})
+const reviewSchedulingNote = ref('')
+
 /** 只展示与后端规则一致的掌握依据；掌握判定仍以服务端重算结果为准。 */
 const basisIds = computed(() => {
   const attempts = detail.value?.attempts ?? []
@@ -648,6 +663,7 @@ function resetForms(data: PracticeDetailResponse): void {
   classifyForm.nextReviewDate = data.item.nextReviewDate ?? null
   classifyError.value = ''
   actionError.value = ''
+  reviewSchedulingNote.value = ''
 }
 
 async function loadDetail(itemId: number): Promise<void> {
@@ -694,6 +710,9 @@ async function submitAttempt(): Promise<void> {
     })
     detail.value = data
     resetForms(data)
+    reviewSchedulingNote.value = data.item.nextReviewDate
+      ? `这次重练已按规则把复习日排到 ${data.item.nextReviewDate}。`
+      : ''
     await Promise.all([loadList(), loadSummary()])
   } catch (error) {
     attemptError.value = problemMessage(error)

@@ -1554,6 +1554,8 @@ export interface PracticeSummary {
   /** 掌握判定阈值由后端下发，界面只复述不自己写死。 */
   masteredStreak: number
   masteredSelfScore: number
+  /** 复习日阶梯（天）：连续答通第 n 次取第 n 档，没答通回落到第一档。同样由后端下发。 */
+  reviewLadderDays: number[]
 }
 
 export interface PracticeImportResponse {
