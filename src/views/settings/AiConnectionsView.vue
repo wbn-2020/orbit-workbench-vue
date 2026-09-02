@@ -41,6 +41,14 @@
               <span class="mono">{{ row.modelName }}</span>
             </template>
           </el-table-column>
+          <el-table-column label="联网" width="140">
+            <template #default="{ row }">
+              <el-tag v-if="row.webSearchSupported" size="small" :type="row.forcedSearchSupported ? 'success' : 'warning'" effect="plain">
+                {{ row.forcedSearchSupported ? '可强制检索' : '模型自决检索' }}
+              </el-tag>
+              <span v-else class="muted">不联网</span>
+            </template>
+          </el-table-column>
           <el-table-column label="启用" width="90">
             <template #default="{ row }">
               <el-switch
@@ -293,6 +301,17 @@
           <el-form-item label="超时（毫秒）" prop="timeoutMs">
             <el-input-number v-model="form.timeoutMs" :min="1000" :max="120000" :step="1000" />
           </el-form-item>
+          <el-form-item label="联网形状">
+            <el-select v-model="form.webSearchDialect" style="width: 100%">
+              <el-option
+                v-for="option in webSearchDialectOptions(form.protocol)"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              />
+            </el-select>
+            <small class="muted dialect-hint">{{ webSearchDialectHint(form.webSearchDialect) }}</small>
+          </el-form-item>
           <el-form-item label="启用">
             <el-switch v-model="form.enabled" />
           </el-form-item>
@@ -396,6 +415,8 @@ import {
   testDraftAiConnection,
   testSavedAiConnection,
   updateAiConnection,
+  webSearchDialectHint,
+  webSearchDialectOptions,
 } from '@/api/aiConnections'
 import {
   AI_SCENARIO_HINTS,
@@ -473,6 +494,13 @@ const form = reactive({
   apiKey: '',
   timeoutMs: 30_000,
   enabled: true,
+  webSearchDialect: 'NONE',
+})
+
+// 协议换了，原形状可能根本不属于这个协议；退回不联网比留着发错参数安全。
+watch(() => form.protocol, (protocol) => {
+  const offered = webSearchDialectOptions(protocol).map((option) => option.value)
+  if (!offered.includes(form.webSearchDialect)) form.webSearchDialect = 'NONE'
 })
 
 const shouldTestDraft = computed(() =>
@@ -651,6 +679,7 @@ function openEdit(connection: AiConnection): void {
   form.apiKey = ''
   form.timeoutMs = connection.timeoutMs || 30_000
   form.enabled = connection.enabled
+  form.webSearchDialect = connection.webSearchDialect || 'NONE'
   testResult.value = undefined
   saveConflict.value = ''
   modelProfiles.value = []
@@ -673,6 +702,7 @@ function resetForm(): void {
   form.apiKey = ''
   form.timeoutMs = 30_000
   form.enabled = true
+  form.webSearchDialect = 'NONE'
   testStreaming.value = true
   testPrompt.value = 'Reply with OK only.'
   testResult.value = undefined
@@ -719,6 +749,7 @@ function buildPayload(): AiConnectionPayload {
     modelName: form.modelName,
     timeoutMs: form.timeoutMs,
     enabled: form.enabled,
+    webSearchDialect: form.webSearchDialect,
   }
   if (form.apiKey) payload.apiKey = form.apiKey
   return payload
@@ -1006,6 +1037,12 @@ watch([testStreaming, testPrompt], () => {
     flex-direction: column;
     align-items: stretch;
   }
+}
+
+.dialect-hint {
+  display: block;
+  margin-top: 4px;
+  line-height: 1.6;
 }
 
 .test-block {

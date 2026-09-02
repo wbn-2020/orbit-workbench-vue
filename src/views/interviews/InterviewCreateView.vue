@@ -72,10 +72,16 @@
             <div class="ow-field">
               <label>联网策略</label>
               <select v-model="form.webSearchPolicy" class="ow-input">
-                <option value="DISABLED">禁止</option>
-                <option value="ON_DEMAND">按需</option>
-                <option value="AUTO">自动</option>
+                <option
+                  v-for="choice in webSearchChoices"
+                  :key="choice.value"
+                  :value="choice.value"
+                  :disabled="choice.disabled"
+                >
+                  {{ choice.label }}
+                </option>
               </select>
+              <p v-if="webSearchNote" class="web-note">{{ webSearchNote }}</p>
             </div>
             <div class="ow-field">
               <label>主问题数（1-50）</label>
@@ -190,6 +196,7 @@ import {
   TOPIC_MODES,
   type CreateSessionPayload,
 } from '@/api/interview'
+import { webSearchPolicyChoices } from '@/api/aiConnections'
 import { listInterviewers, type InterviewerProfile } from '@/api/interviewers'
 import { getProject, listProjects } from '@/api/projects'
 import { http, problemMessage } from '@/api/http'
@@ -200,6 +207,19 @@ interface ConnectionOption {
   id: number
   name: string
   modelName: string
+  webSearchSupported?: boolean
+  forcedSearchSupported?: boolean
+}
+
+/** 未指定账户时由场景路由挑连接，界面无从预知，只能提示而不是假装知道。 */
+const ROUTED_HINT = '未指定账户时由场景路由挑选连接，联网能力以那次挑选的结果为准；做不到的一档会被服务端拒绝而不是静默不搜。'
+
+interface AiConnectionSummary {
+  id: number
+  name: string
+  modelName: string
+  webSearchSupported?: boolean
+  forcedSearchSupported?: boolean
 }
 
 interface BindingRow {
@@ -242,8 +262,18 @@ const topicLabel = computed(
 const roundLabel = computed(
   () => ({ FIRST: '一面', SECOND: '二面', THIRD: '三面', CUSTOM: '指定轮次' })[form.round] ?? form.round,
 )
+const selectedConnection = computed(
+  () => connections.value.find((item) => item.id === form.aiConnectionId) ?? null,
+)
+const webSearchChoices = computed(() => webSearchPolicyChoices(selectedConnection.value))
+/** 只说当前这一档的后果，三条原因一起摊开就成了噪声。 */
+const webSearchNote = computed(() => {
+  if (!selectedConnection.value) return ROUTED_HINT
+  return webSearchChoices.value.find((choice) => choice.value === form.webSearchPolicy)?.note ?? ''
+})
 const webLabel = computed(
-  () => ({ DISABLED: '禁止', ON_DEMAND: '按需', AUTO: '自动' })[form.webSearchPolicy] ?? form.webSearchPolicy,
+  () => webSearchChoices.value.find((choice) => choice.value === form.webSearchPolicy)?.label
+    ?? form.webSearchPolicy,
 )
 const bindingSummary = computed(() => {
   const selected = bindings.value.filter((binding) => binding.projectId && binding.versionId)
@@ -320,7 +350,7 @@ async function onBindingProjectChange(binding: BindingRow): Promise<void> {
 async function loadConnections(): Promise<void> {
   loadError.value = ''
   try {
-    const { data } = await http.get<{ items: { id: number; name: string; modelName: string }[] }>(
+    const { data } = await http.get<{ items: AiConnectionSummary[] }>(
       '/ai-connections',
       { params: { enabled: true, page: 1, size: 20 } },
     )
@@ -328,6 +358,8 @@ async function loadConnections(): Promise<void> {
       id: item.id,
       name: item.name,
       modelName: item.modelName,
+      webSearchSupported: item.webSearchSupported,
+      forcedSearchSupported: item.forcedSearchSupported,
     }))
   } catch (error) {
     loadError.value = problemMessage(error)
@@ -415,6 +447,13 @@ if (route.query.mode === '模拟面试') {
   .col8 {
     grid-column: span 12;
   }
+}
+
+.web-note {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .bindings {

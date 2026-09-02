@@ -329,6 +329,10 @@ export interface AiConnection {
   lastErrorSummary?: string | null
   createdAt?: string
   updatedAt?: string
+  /** 联网形状由人在连接上声明；两个 supported 标志是后端从形状派生出来的只读结论。 */
+  webSearchDialect?: string
+  webSearchSupported?: boolean
+  forcedSearchSupported?: boolean
 }
 
 export interface AiConnectionPayload {
@@ -341,6 +345,8 @@ export interface AiConnectionPayload {
   apiKey?: string
   timeoutMs: number
   enabled: boolean
+  /** 省略即 NONE：未声明联网形状的请求永远不带检索参数。 */
+  webSearchDialect?: string
 }
 
 export interface AiConnectionUpdatePayload extends AiConnectionPayload {
