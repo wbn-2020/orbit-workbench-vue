@@ -14,6 +14,24 @@ export interface ProjectBindingSnapshot {
   factCount: number
 }
 
+export interface WebSearchOutcome {
+  requested: string | null
+  dialect: string | null
+  applied: string | null
+  note: string | null
+}
+
+export const WEB_SEARCH_APPLIED_LABELS: Record<string, string> = {
+  APPLIED: '本场出题带了联网检索',
+  DEGRADED: '本场按不联网出题',
+  NOT_REQUESTED: '本场未请求联网',
+}
+
+export function webSearchAppliedLabel(applied?: string | null): string {
+  if (!applied) return '联网结论未定（还没出过题）'
+  return WEB_SEARCH_APPLIED_LABELS[applied] ?? `联网结论 ${applied}`
+}
+
 export interface InterviewSession {
   id: number
   title: string
@@ -25,6 +43,8 @@ export interface InterviewSession {
   aiConnectionId: number | null
   aiModel: string | null
   webSearchPolicy: string | null
+  /** 出题时固化的联网结论（V32）：当次形状、实际是否联网、降级原因。 */
+  webSearchOutcome?: WebSearchOutcome | null
   targetRole: string | null
   targetExperienceBand: string | null
   questionLimit: number

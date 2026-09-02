@@ -153,6 +153,14 @@
             <div style="margin-top: 10px;">
               <span class="tag">模型 {{ session.aiModel ?? '自动' }}</span>
               <span class="tag">真实 AI 出题</span>
+              <span class="tag" :class="{ warn: session.webSearchOutcome?.applied === 'DEGRADED' }">
+                {{ webSearchAppliedLabel(session.webSearchOutcome?.applied) }}<template
+                  v-if="session.webSearchOutcome?.dialect &amp;&amp; session.webSearchOutcome.dialect !== 'NONE'">
+                  · 形状 {{ session.webSearchOutcome.dialect }}</template>
+              </span>
+              <p v-if="session.webSearchOutcome?.note" class="web-outcome-note">
+                {{ session.webSearchOutcome.note }}
+              </p>
               <span
                 v-for="binding in session.projectBindings"
                 :key="`${binding.projectId}-${binding.versionId}`"
@@ -207,6 +215,7 @@ import {
   resumeSession,
   submitAnswer,
   TOPIC_MODES,
+  webSearchAppliedLabel,
   type InterviewSession,
   type InterviewTurn,
 } from '@/api/interview'
@@ -465,4 +474,16 @@ onBeforeUnmount(() => {
     border-bottom: 1px solid var(--line);
   }
 }
+.web-outcome-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.tag.warn {
+  color: var(--gold-600);
+  background: var(--gold-50);
+}
+
 </style>
