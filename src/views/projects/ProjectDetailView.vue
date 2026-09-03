@@ -159,7 +159,13 @@
           description="当前版本还没有画像事实"
         />
         <div v-else class="fact-list">
-          <article v-for="fact in visibleFacts" :key="fact.id" class="fact-row">
+          <article
+            v-for="fact in visibleFacts"
+            :id="`project-fact-${fact.id}`"
+            :key="fact.id"
+            class="fact-row"
+            :class="{ focused: fact.id === focusedFactId }"
+          >
             <div class="fact-status">
               <el-tag size="small" :type="factTagType(fact.confirmationStatus)">
                 {{ factStatusLabel(fact.confirmationStatus) }}
@@ -302,7 +308,7 @@
 <script setup lang="ts">
 import { Archive, Check, FileCode2, Pencil, Paperclip, RefreshCw, Sparkles } from 'lucide-vue-next'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { listAiConnections } from '@/api/aiConnections'
@@ -344,6 +350,7 @@ const githubRepositoryUrl = ref('')
 const facts = ref<ProjectFact[]>([])
 const factsLoading = ref(false)
 const factsError = ref('')
+const focusedFactId = ref<number | null>(null)
 const generatingFacts = ref(false)
 const showArchivedFacts = ref(false)
 const connections = ref<AiConnection[]>([])
@@ -383,7 +390,12 @@ async function load(): Promise<void> {
   error.value = ''
   try {
     project.value = await getProject(projectId)
-    selectedVersionId.value = project.value.versions[0]?.id
+    const requestedVersionId = positiveQueryId(route.query.version)
+    selectedVersionId.value = project.value.versions.some(
+      (version) => version.id === requestedVersionId,
+    )
+      ? requestedVersionId ?? undefined
+      : project.value.versions[0]?.id
   } catch (loadError) {
     error.value = problemMessage(loadError)
   } finally {
@@ -400,11 +412,35 @@ async function loadFacts(): Promise<void> {
   factsError.value = ''
   try {
     facts.value = await listFacts(projectId, selectedVersion.value.id)
+    await focusFactFromQuery()
   } catch (loadError) {
     factsError.value = problemMessage(loadError)
   } finally {
     factsLoading.value = false
   }
+}
+
+function positiveQueryId(value: unknown): number | null {
+  const raw = Array.isArray(value) ? value[0] : value
+  const parsed = Number(raw)
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null
+}
+
+async function focusFactFromQuery(): Promise<void> {
+  const factId = positiveQueryId(route.query.fact)
+  focusedFactId.value = null
+  if (factId === null) return
+  const target = facts.value.find((fact) => fact.id === factId)
+  if (!target) return
+  if (target.confirmationStatus === 'ARCHIVED') {
+    showArchivedFacts.value = true
+  }
+  focusedFactId.value = factId
+  await nextTick()
+  document.getElementById(`project-fact-${factId}`)?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+  })
 }
 
 async function loadConnections(): Promise<void> {
@@ -661,6 +697,22 @@ watch(selectedVersionId, () => {
   void loadFacts()
 })
 
+watch(
+  [() => route.query.version, () => route.query.fact],
+  async () => {
+    const requestedVersionId = positiveQueryId(route.query.version)
+    if (
+      requestedVersionId !== null
+      && project.value?.versions.some((version) => version.id === requestedVersionId)
+      && selectedVersionId.value !== requestedVersionId
+    ) {
+      selectedVersionId.value = requestedVersionId
+      return
+    }
+    await focusFactFromQuery()
+  },
+)
+
 onMounted(() => {
   void load()
   void loadConnections()
@@ -693,6 +745,12 @@ onUnmounted(() => {
 
 .overview-item:last-child {
   border-right: 0;
+}
+
+.fact-row.focused {
+  border-color: var(--ow-primary);
+  box-shadow: 0 0 0 3px var(--ow-primary-soft);
+  scroll-margin-block: 96px;
 }
 
 .overview-item span,

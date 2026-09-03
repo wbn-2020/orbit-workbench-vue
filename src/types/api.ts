@@ -1291,9 +1291,11 @@ export interface ResumeItemSource {
   type: ResumeSourceType
   refId: number | null
   label: string | null
+  projectId?: number | null
+  projectVersionId?: number | null
 }
 
-/** 响应侧 `ItemResponse` 把来源摊平成三个字段，只有请求体才用嵌套 `source`。 */
+/** 响应侧 `ItemResponse` 把来源字段摊平，只有请求体才用嵌套 `source`。 */
 export interface ResumeItem {
   id: string
   order: number
@@ -1303,6 +1305,8 @@ export interface ResumeItem {
   sourceType: ResumeSourceType
   sourceRefId: number | null
   sourceLabel: string | null
+  sourceProjectId?: number | null
+  sourceProjectVersionId?: number | null
   edited: boolean
 }
 

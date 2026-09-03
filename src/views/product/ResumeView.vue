@@ -157,9 +157,9 @@
                 <span class="item-source">
                   <component :is="sourceIcon(item)" aria-hidden="true" />
                   <router-link
-                    v-if="editing && sourceRoute(item)"
+                    v-if="resumeSourceRoute(item)"
                     class="source-link"
-                    :to="sourceRoute(item) as RouteLocationRaw"
+                    :to="resumeSourceRoute(item) as RouteLocationRaw"
                   >
                     {{ sourceName(item) }}
                   </router-link>
@@ -394,6 +394,7 @@ import {
 } from '@/api/resume'
 import { getProblem, problemMessage } from '@/api/http'
 import { DIFF_CHANGE_LABELS, diffVersions, type VersionDiff } from '@/utils/resumeDiff'
+import { resumeSourceRoute } from '@/utils/resumeSource'
 import EmptyState from '@/components/EmptyState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import PageHeader from '@/components/PageHeader.vue'
@@ -692,6 +693,8 @@ function buildPayload(): ResumeSectionPayload[] | null {
           type: item.sourceType,
           refId: manual ? null : item.sourceRefId,
           label: manual ? null : item.sourceLabel,
+          projectId: manual ? null : item.sourceProjectId,
+          projectVersionId: manual ? null : item.sourceProjectVersionId,
         },
         edited: item.edited,
       })
@@ -874,6 +877,8 @@ function addItem(key: ResumeSectionKey, kind: ResumeItemKind): void {
     sourceType: 'MANUAL',
     sourceRefId: null,
     sourceLabel: null,
+    sourceProjectId: null,
+    sourceProjectVersionId: null,
     edited: false,
   })
 }
@@ -897,15 +902,6 @@ function humanType(type: ResumeSourceType): string {
   if (type === 'PROJECT_FACT') return '已确认项目事实'
   if (type === 'PROJECT_VERSION') return '项目版本'
   return '手动填写'
-}
-
-function sourceRoute(item: ResumeItem): RouteLocationRaw | undefined {
-  if (item.sourceType === 'JOB_PROFILE') return { name: 'job-profile' }
-  // 来源只带事实主键，反查不到项目路由；跳项目资料列表而不是伪造深链。
-  if (item.sourceType === 'PROJECT_FACT' || item.sourceType === 'PROJECT_VERSION') {
-    return { name: 'projects' }
-  }
-  return undefined
 }
 
 function sourceIcon(item: ResumeItem) {
