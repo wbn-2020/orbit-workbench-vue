@@ -85,7 +85,7 @@
           <input
             v-model="searchKeyword"
             class="search-input"
-            placeholder="搜索项目、知识块、面试、报告、投递…"
+            placeholder="搜索项目、画像事实、知识块、面试、面试官、报告、复习任务、投递…"
             aria-label="全局搜索"
             @focus="openSearchPanel"
             @blur="hideSearchPanel"
@@ -99,10 +99,17 @@
             <div v-else-if="searchError" class="recents-title">
               {{ searchError }}
             </div>
-            <template v-else-if="searchResult && searchResult.total > 0">
-              <div v-for="group in searchResult.groups" :key="group.type" class="search-group">
-                <div class="recents-title">
-                  {{ group.label }} · {{ group.total }}
+            <template v-else-if="visibleSearchGroups.length > 0">
+              <div v-for="group in visibleSearchGroups" :key="group.type" class="search-group">
+                <div class="recents-title search-group-title">
+                  <span
+                    class="search-group-icon"
+                    :class="`search-tone-${searchGroupMeta(group.type).tone}`"
+                    aria-hidden="true"
+                  >
+                    <component :is="searchIcon(group.type)" />
+                  </span>
+                  <span>{{ searchGroupMeta(group.type).label }} · {{ group.total }}</span>
                 </div>
                 <button
                   v-for="hit in group.items"
@@ -175,10 +182,12 @@
 <script setup lang="ts">
 import {
   Bell,
+  BadgeCheck,
   BookOpen,
   Bot,
   BriefcaseBusiness,
   CalendarDays,
+  ClipboardCheck,
   ChevronDown,
   FileBarChart,
   FileText,
@@ -206,7 +215,14 @@ import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
 import DreamyBackground from '@/components/DreamyBackground.vue'
 import { getProblem } from '@/api/http'
 import { getUnreadCount } from '@/api/notifications'
-import { searchAll, type SearchHit, type SearchResponse } from '@/api/search'
+import {
+  SEARCH_DOMAIN_META,
+  searchAll,
+  type SearchDomain,
+  type SearchDomainIcon,
+  type SearchHit,
+  type SearchResponse,
+} from '@/api/search'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 
@@ -221,6 +237,9 @@ const searchPanelOpen = ref(false)
 const searchLoading = ref(false)
 const searchError = ref('')
 const searchResult = ref<SearchResponse | null>(null)
+const visibleSearchGroups = computed(() =>
+  searchResult.value?.groups.filter((group) => group.items.length > 0) ?? [],
+)
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 let searchRequestId = 0
 
@@ -296,6 +315,25 @@ const avatarText = computed(() => auth.user?.username.slice(0, 2).toUpperCase() 
 const authName = computed(() => auth.user?.username || '阿岛')
 const isDarkTheme = computed(() => ui.theme !== 'light' && ['dark', 'abyss', 'cosmos', 'aurora'].includes(ui.theme))
 
+const searchIcons: Record<SearchDomainIcon, typeof FolderKanban> = {
+  'folder-kanban': FolderKanban,
+  'book-open': BookOpen,
+  'notebook-pen': NotebookPen,
+  'file-bar-chart': FileBarChart,
+  'briefcase-business': BriefcaseBusiness,
+  'badge-check': BadgeCheck,
+  'users-round': UsersRound,
+  'clipboard-check': ClipboardCheck,
+}
+
+function searchGroupMeta(type: SearchDomain) {
+  return SEARCH_DOMAIN_META[type]
+}
+
+function searchIcon(type: SearchDomain) {
+  return searchIcons[searchGroupMeta(type).icon]
+}
+
 const BrandBlock = defineComponent({
   setup() {
     return () =>
@@ -328,6 +366,7 @@ function hideSearchPanel(): void {
 }
 
 function onSearchInput(): void {
+  searchRequestId += 1
   searchError.value = ''
   if (searchTimer) clearTimeout(searchTimer)
   const query = searchKeyword.value.trim()
@@ -337,13 +376,14 @@ function onSearchInput(): void {
     return
   }
   searchLoading.value = true
+  const requestId = searchRequestId
   searchTimer = setTimeout(() => {
-    void runSearch(query)
+    void runSearch(query, requestId)
   }, 300)
 }
 
-async function runSearch(query: string): Promise<void> {
-  const requestId = ++searchRequestId
+async function runSearch(query: string, requestId = ++searchRequestId): Promise<void> {
+  searchLoading.value = true
   try {
     const result = await searchAll(query)
     if (requestId !== searchRequestId) return
@@ -359,6 +399,7 @@ async function runSearch(query: string): Promise<void> {
 }
 
 function firstHit(): SearchHit | null {
+  if (searchResult.value?.query !== searchKeyword.value.trim()) return null
   for (const group of searchResult.value?.groups ?? []) {
     const hit = group.items[0]
     if (hit) return hit
@@ -372,12 +413,16 @@ function goToHit(hit: SearchHit): void {
 }
 
 function onSearchEnter(): void {
+  const query = searchKeyword.value.trim()
+  if (searchResult.value?.query !== query) {
+    if (query.length >= 2) void runSearch(query)
+    return
+  }
   const hit = firstHit()
   if (hit) {
     goToHit(hit)
     return
   }
-  const query = searchKeyword.value.trim()
   if (query.length >= 2) void runSearch(query)
 }
 
@@ -833,6 +878,49 @@ async function handleLogout(): Promise<void> {
   margin-top: 4px;
   border-top: 1px solid var(--glass-border);
   padding-top: 2px;
+}
+
+.search-group-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.search-group-icon {
+  display: inline-grid;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  place-items: center;
+  color: var(--muted);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 7px;
+}
+
+.search-group-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.search-tone-brand {
+  color: var(--brand);
+}
+
+.search-tone-purple {
+  color: var(--purple);
+}
+
+.search-tone-green {
+  color: var(--green);
+}
+
+.search-tone-orange {
+  color: var(--orange);
+}
+
+.search-tone-gold {
+  color: var(--gold);
 }
 
 .search-hit {

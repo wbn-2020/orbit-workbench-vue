@@ -11,6 +11,15 @@
       </div>
     </header>
 
+    <el-alert
+      v-if="focusNotice"
+      :title="focusNotice"
+      type="info"
+      show-icon
+      closable
+      @close="focusNotice = ''"
+    />
+
     <ErrorState v-if="error" :message="error" :retry="loadAll" />
 
     <div v-else class="study-grid">
@@ -32,9 +41,13 @@
           <div v-else class="ow-tlist">
             <div
               v-for="task in tasks"
+              :id="`study-task-${task.id}`"
               :key="task.id"
               class="ow-titem"
-              :class="{ done: task.status === 'COMPLETED' }"
+              :class="{
+                done: task.status === 'COMPLETED',
+                focused: task.id === focusId,
+              }"
             >
               <span class="ow-status" :class="statusClass(task.status)">{{ statusLabel(task.status) }}</span>
               <div class="grow">
@@ -175,8 +188,8 @@
 <script setup lang="ts">
 import { CircleCheckBig, Dumbbell, ListChecks, Plus, Target } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import {
   completeTask,
@@ -198,12 +211,15 @@ import ErrorState from '@/components/ErrorState.vue'
 
 import type { PracticeItem } from '@/types/api'
 
+const route = useRoute()
 const router = useRouter()
 
 /** 后端 size 上限 50。到期项在同一掌握档里一定排在最前，所以只有整页都到期才可能还有没看到的到期项。 */
 const WRONG_PAGE_SIZE = 50
 
 const tasks = ref<StudyTask[]>([])
+const focusId = ref<number | null>(null)
+const focusNotice = ref('')
 const error = ref('')
 const loading = ref(true)
 const createOpen = ref(false)
@@ -334,11 +350,32 @@ async function load(): Promise<void> {
   error.value = ''
   try {
     tasks.value = await listStudyTasks()
+    await applyFocus()
   } catch (loadError) {
     error.value = problemMessage(loadError)
   } finally {
     loading.value = false
   }
+}
+
+async function applyFocus(): Promise<void> {
+  const raw = Number(route.query.focus)
+  if (!Number.isInteger(raw) || raw <= 0) return
+
+  const target = tasks.value.find((task) => task.id === raw)
+  if (!target) {
+    focusId.value = null
+    focusNotice.value = '未找到这条复习任务，可能已被删除或不在当前任务列表中。'
+    return
+  }
+
+  focusId.value = raw
+  focusNotice.value = `已定位到复习任务「${target.title}」`
+  await nextTick()
+  document.getElementById(`study-task-${raw}`)?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+  })
 }
 
 async function complete(task: StudyTask): Promise<void> {
@@ -456,6 +493,11 @@ onMounted(() => {
 .ow-titem.done .tt {
   color: var(--muted);
   text-decoration: line-through;
+}
+
+.ow-titem.focused {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-200), var(--shadow-md);
 }
 
 .mastery-total {
