@@ -34,7 +34,19 @@ const router = createRouter({
           path: 'workbench',
           name: 'workbench',
           component: () => import('@/views/workbench/WorkbenchView.vue'),
-          meta: { title: '今日学习与面试' },
+          meta: { title: '今日工作台' },
+        },
+        {
+          path: 'work-sedimentation',
+          name: 'work-sedimentation',
+          component: () => import('@/views/work/WorkSedimentationView.vue'),
+          meta: { title: '工作沉淀' },
+        },
+        {
+          path: 'learning-update',
+          name: 'learning-update',
+          component: () => import('@/views/learn/LearningUpdateView.vue'),
+          meta: { title: '学习更新' },
         },
         {
           path: 'schedule',
@@ -215,7 +227,7 @@ router.beforeEach(async (to) => {
 })
 
 router.afterEach((to) => {
-  document.title = to.meta.title ? `${to.meta.title} · 求职成长工作台` : '求职成长工作台'
+  document.title = to.meta.title ? `${to.meta.title} · 个人职业成长工作台` : '个人职业成长工作台'
 })
 
 export default router
