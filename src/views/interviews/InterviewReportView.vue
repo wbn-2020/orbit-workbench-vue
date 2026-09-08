@@ -171,6 +171,17 @@
           <div class="ow-card-h">
             <div class="ic b3"><Activity aria-hidden="true" /></div>
             薄弱点（项目 / 技术）
+            <div class="right">
+              <el-button
+                size="small"
+                :icon="Target"
+                :loading="creatingGoals"
+                :disabled="!goalGaps.length"
+                @click="createGoalsFromGaps"
+              >
+                生成学习目标{{ goalGaps.length ? `（${goalGaps.length}）` : '' }}
+              </el-button>
+            </div>
           </div>
           <div class="ow-card-b">
             <div class="weak-group">
@@ -226,6 +237,7 @@ import {
   Layers,
   Lock,
   Star,
+  Target,
 } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { computed, ref } from 'vue'
@@ -243,6 +255,7 @@ import {
   type InterviewReport,
   type InterviewSession,
 } from '@/api/interview'
+import { createLearningGoal, listLearningGoals } from '@/api/learning'
 import { problemMessage } from '@/api/http'
 import ErrorState from '@/components/ErrorState.vue'
 
@@ -257,6 +270,8 @@ const loading = ref(true)
 const loadError = ref('')
 const generating = ref(false)
 const creatingTasks = ref(false)
+const creatingGoals = ref(false)
+const createdGoalKeys = ref<string[]>([])
 
 const radarRings = [0.25, 0.5, 0.75, 1]
 const radarCenter = 160
@@ -381,6 +396,52 @@ async function retry(): Promise<void> {
     await load()
   } finally {
     generating.value = false
+  }
+}
+
+/** 缺口项：技术知识缺口 + 总体薄弱点合并去重（项目薄弱点偏项目事实，不重复建目标）。 */
+const goalGaps = computed(() => {
+  const seen = new Set<string>()
+  const items: string[] = []
+  for (const gap of [...knowledgeGaps.value, ...weaknesses.value]) {
+    const key = gap.trim()
+    if (key && !seen.has(key)) {
+      seen.add(key)
+      items.push(key)
+    }
+  }
+  return items.filter((item) => !createdGoalKeys.value.includes(item))
+})
+
+const goalSourceTag = `面试缺口 #${sessionId}`
+
+/** 报告缺口 → 学习目标：linkedSkill 携带来源标注；已存在同来源+同标题的目标时跳过。 */
+async function createGoalsFromGaps(): Promise<void> {
+  if (creatingGoals.value || !goalGaps.value.length) return
+  creatingGoals.value = true
+  try {
+    const existing = await listLearningGoals()
+    const existingKeys = new Set(
+      existing
+        .filter((goal) => (goal.linkedSkill ?? '').endsWith(goalSourceTag))
+        .map((goal) => goal.title),
+    )
+    let created = 0
+    for (const gap of goalGaps.value) {
+      if (existingKeys.has(gap)) continue
+      await createLearningGoal({
+        title: gap,
+        reason: `来自面试报告的薄弱点（会话 #${sessionId}）`,
+        linkedSkill: `${gap} · ${goalSourceTag}`,
+      })
+      created += 1
+    }
+    createdGoalKeys.value.push(...goalGaps.value)
+    ElMessage.success(created > 0 ? `已创建 ${created} 条学习目标，可前往学习更新查看` : '这些缺口已有对应的学习目标')
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
+  } finally {
+    creatingGoals.value = false
   }
 }
 
