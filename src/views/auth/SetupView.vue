@@ -4,7 +4,7 @@
       <div class="auth-brand">
         <span class="brand-mark">O</span>
         <div>
-          <strong>求职成长工作台</strong>
+          <strong>Orbit 工作台</strong>
           <span>首次初始化</span>
         </div>
       </div>

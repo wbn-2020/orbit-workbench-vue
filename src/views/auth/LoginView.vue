@@ -9,8 +9,8 @@
           <path d="M16 15v11M11 21l5 5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" />
         </svg>
       </div>
-      <h1>求职成长岛</h1>
-      <p class="auth-sub">Java + AI 求职成长工作台</p>
+      <h1>Orbit 工作台</h1>
+      <p class="auth-sub">个人职业成长工作台</p>
 
       <ErrorState v-if="error" :message="error" />
 

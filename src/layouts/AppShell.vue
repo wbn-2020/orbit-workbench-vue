@@ -1,23 +1,53 @@
 <template>
-  <div class="app-shell">
+  <div
+    class="app-shell"
+    :class="{ 'search-open': mobileSearchOpen, 'sidebar-collapsed': sidebarCollapsed }"
+  >
     <DreamyBackground />
 
     <aside class="sidebar">
-      <BrandBlock />
+      <div class="sidebar-top">
+        <BrandBlock />
+        <button
+          class="sidebar-toggle"
+          type="button"
+          :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
+          :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
+          @click="toggleSidebar"
+        >
+          <ChevronsLeft v-if="!sidebarCollapsed" aria-hidden="true" />
+          <ChevronsRight v-else aria-hidden="true" />
+        </button>
+      </div>
       <nav class="nav-list" aria-label="主导航">
-        <div v-for="group in navGroups" :key="group.label" class="nav-group">
-          <div class="nav-group-title">{{ group.label }}</div>
-          <RouterLink
-            v-for="item in group.items"
-            :key="item.to"
-            :to="item.to"
-            class="nav-item"
+        <div
+          v-for="group in navGroups"
+          :key="group.label"
+          class="nav-group"
+          :class="{ 'is-collapsed': !isGroupOpen(group.label) }"
+        >
+          <button
+            class="nav-group-title"
+            type="button"
+            :aria-expanded="isGroupOpen(group.label)"
+            @click="toggleGroup(group.label)"
           >
-            <component :is="item.icon" aria-hidden="true" />
-            <span>{{ item.label }}</span>
-            <span v-if="item.badge" class="nav-badge">{{ item.badge }}</span>
-            <span v-if="item.new" class="nav-new">新</span>
-          </RouterLink>
+            <span class="nav-group-bar" aria-hidden="true" />
+            <span class="nav-group-label">{{ group.label }}</span>
+            <ChevronDown class="nav-group-chevron" aria-hidden="true" />
+          </button>
+          <div class="nav-group-items">
+            <RouterLink
+              v-for="item in group.items"
+              :key="item.to"
+              :to="item.to"
+              class="nav-item"
+              :title="item.label"
+            >
+              <component :is="item.icon" aria-hidden="true" />
+              <span class="nav-item-text">{{ item.label }}</span>
+            </RouterLink>
+          </div>
         </div>
       </nav>
       <div class="sidebar-footer">
@@ -25,13 +55,8 @@
           <div class="user-summary-top">
             <span class="user-avatar"><UserRound aria-hidden="true" /></span>
             <span class="user-summary-name">
-              <strong>求职者·{{ authName }}</strong>
-              <small>Lv.7 在职勇士 · 演示</small>
-              <i class="mini-bar"><b style="width: 46%"></b></i>
-            </span>
-            <span class="user-gold">
-              <small>金币</small>
-              <strong>120</strong>
+              <strong>工程师·{{ authName }}</strong>
+              <small>本地账户</small>
             </span>
           </div>
         </div>
@@ -47,20 +72,34 @@
     >
       <BrandBlock />
       <nav class="nav-list" aria-label="移动端主导航">
-        <div v-for="group in navGroups" :key="group.label" class="nav-group">
-          <div class="nav-group-title">{{ group.label }}</div>
-          <RouterLink
-            v-for="item in group.items"
-            :key="item.to"
-            :to="item.to"
-            class="nav-item"
-            @click="mobileNavOpen = false"
+        <div
+          v-for="group in navGroups"
+          :key="group.label"
+          class="nav-group"
+          :class="{ 'is-collapsed': !isGroupOpen(group.label) }"
+        >
+          <button
+            class="nav-group-title"
+            type="button"
+            :aria-expanded="isGroupOpen(group.label)"
+            @click="toggleGroup(group.label)"
           >
-            <component :is="item.icon" aria-hidden="true" />
-            <span>{{ item.label }}</span>
-            <span v-if="item.badge" class="nav-badge">{{ item.badge }}</span>
-            <span v-if="item.new" class="nav-new">新</span>
-          </RouterLink>
+            <span class="nav-group-bar" aria-hidden="true" />
+            <span class="nav-group-label">{{ group.label }}</span>
+            <ChevronDown class="nav-group-chevron" aria-hidden="true" />
+          </button>
+          <div class="nav-group-items">
+            <RouterLink
+              v-for="item in group.items"
+              :key="item.to"
+              :to="item.to"
+              class="nav-item"
+              @click="mobileNavOpen = false"
+            >
+              <component :is="item.icon" aria-hidden="true" />
+              <span class="nav-item-text">{{ item.label }}</span>
+            </RouterLink>
+          </div>
         </div>
       </nav>
     </el-drawer>
@@ -76,7 +115,7 @@
             @click="mobileNavOpen = true"
           />
           <div class="breadcrumb">
-            <span class="crumb-root">求职成长岛 /&nbsp;</span>
+            <span class="crumb-root">Orbit 工作台 /&nbsp;</span>
             <strong>{{ route.meta.title }}</strong>
           </div>
         </div>
@@ -85,6 +124,7 @@
           <input
             v-model="searchKeyword"
             class="search-input"
+            ref="searchInput"
             placeholder="搜索项目、画像事实、知识块、面试、面试官、报告、复习任务、投递…"
             aria-label="全局搜索"
             @focus="openSearchPanel"
@@ -116,7 +156,8 @@
                   :key="`${hit.type}-${hit.id}`"
                   type="button"
                   class="rec search-hit"
-                  @mousedown.prevent="goToHit(hit)"
+                  @mousedown.prevent
+                  @click="goToHit(hit)"
                 >
                   <span class="hit-line">
                     <span class="hit-title">{{ hit.title }}</span>
@@ -136,6 +177,9 @@
         </div>
         <div class="spacer" />
         <div class="topbar-actions">
+          <button class="search-toggle" type="button" aria-label="搜索" @click="toggleMobileSearch">
+            <Search aria-hidden="true" />
+          </button>
           <button class="bell" type="button" aria-label="通知中心" @click="router.push('/notifications')">
             <Bell aria-hidden="true" />
             <span v-if="unreadCount" class="bell-dot">{{ unreadCount }}</span>
@@ -146,7 +190,7 @@
           <el-dropdown trigger="click">
             <button class="user-menu" type="button">
               <span class="avatar">{{ avatarText }}</span>
-              <span class="user-name">{{ auth.user?.username || '求职者' }}</span>
+              <span class="user-name">{{ auth.user?.username || '工程师' }}</span>
               <ChevronDown aria-hidden="true" />
             </button>
             <template #dropdown>
@@ -187,14 +231,18 @@ import {
   Bot,
   BriefcaseBusiness,
   CalendarDays,
-  ClipboardCheck,
   ChevronDown,
+  ChevronsLeft,
+  ChevronsRight,
+  ClipboardCheck,
   FileBarChart,
   FileText,
   FolderKanban,
   HelpCircle,
   KeyRound,
+  Layers,
   LayoutDashboard,
+  Sparkles,
   LogOut,
   Menu,
   MoonStar,
@@ -206,9 +254,8 @@ import {
   Target,
   UserRound,
   UsersRound,
-  Zap,
 } from 'lucide-vue-next'
-import { computed, defineComponent, h, onMounted, ref, watch } from 'vue'
+import { computed, defineComponent, h, nextTick, onMounted, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
@@ -243,6 +290,63 @@ const visibleSearchGroups = computed(() =>
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 let searchRequestId = 0
 
+const mobileSearchOpen = ref(false)
+const searchInput = ref<HTMLInputElement | null>(null)
+function toggleMobileSearch(): void {
+  mobileSearchOpen.value = !mobileSearchOpen.value
+  if (mobileSearchOpen.value) {
+    nextTick(() => searchInput.value?.focus())
+  }
+}
+
+// 侧边栏整体折叠状态（默认展开，按 F-07 侧栏分组任务流保持展开）
+const SIDEBAR_COLLAPSED_KEY = 'ow_sidebar_collapsed'
+const GROUP_OPEN_KEY = 'ow_sidebar_group_open'
+const sidebarCollapsed = ref(loadCollapsed())
+const groupOpen = ref<Record<string, boolean>>(loadGroupOpen())
+
+function loadCollapsed(): boolean {
+  try {
+    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function loadGroupOpen(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(GROUP_OPEN_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw) as Record<string, boolean>
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+function isGroupOpen(label: string): boolean {
+  // 默认展开；只要用户显式记为 false 才折叠；其他都视为展开
+  return groupOpen.value[label] !== false
+}
+
+function toggleSidebar(): void {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+  try {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed.value ? '1' : '0')
+  } catch {
+    /* noop */
+  }
+}
+
+function toggleGroup(label: string): void {
+  groupOpen.value = { ...groupOpen.value, [label]: !isGroupOpen(label) }
+  try {
+    localStorage.setItem(GROUP_OPEN_KEY, JSON.stringify(groupOpen.value))
+  } catch {
+    /* noop */
+  }
+}
+
 const navGroups = [
   {
     label: '工作台',
@@ -252,43 +356,44 @@ const navGroups = [
     ],
   },
   {
-    label: '成长',
+    label: '市场感知',
     items: [
-      { label: '复习计划', to: '/study-plan', icon: Zap },
-      { label: '面试记录', to: '/interviews', icon: NotebookPen, badge: '4' },
-      { label: '错题本', to: '/practice/wrong-answers', icon: Target, new: true },
-    ],
-  },
-  {
-    label: '求职',
-    items: [
-      { label: '求职档案', to: '/profile/job', icon: UserRound },
-      { label: '项目资料', to: '/projects', icon: FolderKanban },
-      { label: '简历工作台', to: '/resume', icon: FileText, new: true },
-      { label: '岗位与 JD 匹配', to: '/jobs', icon: BriefcaseBusiness, new: true },
-    ],
-  },
-  {
-    label: '数据',
-    items: [
-      { label: '我的报告中心', to: '/reports', icon: FileBarChart, new: true },
-      { label: '技能图谱', to: '/skill-map', icon: Network, new: true },
+      { label: '面试记录', to: '/interviews', icon: NotebookPen },
+      { label: '面试官', to: '/interviewers', icon: UsersRound },
+      { label: '报告中心', to: '/reports', icon: FileBarChart },
+      { label: '简历工作台', to: '/resume', icon: FileText },
       { label: '求职进度', to: '/applications', icon: CalendarDays },
     ],
   },
   {
-    label: '智能',
+    label: '工作沉淀',
     items: [
+      { label: '工作记录', to: '/work-sedimentation', icon: Layers },
+    ],
+  },
+  {
+    label: '学习更新',
+    items: [
+      { label: '学习目标', to: '/learning-update', icon: Sparkles },
+      { label: '错题本', to: '/practice/wrong-answers', icon: Target },
+      { label: '复习计划', to: '/study-plan', icon: NotebookPen },
+      { label: '技能图谱', to: '/skill-map', icon: Network },
+    ],
+  },
+  {
+    label: '资料库',
+    items: [
+      { label: '求职档案', to: '/profile/job', icon: UserRound },
+      { label: '项目资料', to: '/projects', icon: FolderKanban },
       { label: '知识库问答', to: '/knowledge/ask', icon: BookOpen },
-      { label: '面试官', to: '/interviewers', icon: UsersRound },
-      { label: 'AI 账户', to: '/settings/ai-connections', icon: Bot },
     ],
   },
   {
     label: '系统',
     items: [
       { label: '通知中心', to: '/notifications', icon: Bell },
-      { label: '帮助与引导', to: '/help', icon: HelpCircle, new: true },
+      { label: 'AI 连接', to: '/settings/ai-connections', icon: Bot },
+      { label: '帮助与引导', to: '/help', icon: HelpCircle },
       { label: '设置', to: '/settings', icon: Settings },
     ],
   },
@@ -309,11 +414,14 @@ async function refreshUnreadCount(): Promise<void> {
 }
 
 onMounted(refreshUnreadCount)
-watch(() => route.path, refreshUnreadCount)
+watch(() => route.path, () => {
+  refreshUnreadCount()
+  mobileSearchOpen.value = false
+})
 
-const avatarText = computed(() => auth.user?.username.slice(0, 2).toUpperCase() || '求职')
-const authName = computed(() => auth.user?.username || '阿岛')
-const isDarkTheme = computed(() => ui.theme !== 'light' && ['dark', 'abyss', 'cosmos', 'aurora'].includes(ui.theme))
+const avatarText = computed(() => auth.user?.username.slice(0, 2).toUpperCase() || '工程师')
+const authName = computed(() => auth.user?.username || '工程师')
+const isDarkTheme = computed(() => ui.theme === 'dark')
 
 const searchIcons: Record<SearchDomainIcon, typeof FolderKanban> = {
   'folder-kanban': FolderKanban,
@@ -350,8 +458,8 @@ const BrandBlock = defineComponent({
           ),
         ]),
         h('span', { class: 'brand-copy' }, [
-          h('strong', '求职成长岛'),
-          h('small', 'JOB QUEST'),
+        h('strong', 'Orbit 工作台'),
+        h('small', '本地版'),
         ]),
       ])
   },
@@ -363,6 +471,7 @@ function openSearchPanel(): void {
 
 function hideSearchPanel(): void {
   searchPanelOpen.value = false
+  mobileSearchOpen.value = false
 }
 
 function onSearchInput(): void {
@@ -452,11 +561,59 @@ async function handleLogout(): Promise<void> {
   display: flex;
   height: 100vh;
   flex-direction: column;
-  padding: 0 12px 14px;
+  padding: 0 8px 14px;
   overflow-y: auto;
+  overflow-x: hidden;
   color: #d7deec;
   background: linear-gradient(180deg, var(--nav-1) 0%, var(--nav-2) 55%, var(--nav-3) 100%);
   box-shadow: 4px 0 30px rgb(10 40 30 / 28%);
+  transition: padding 200ms ease;
+}
+
+.sidebar-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+  margin: 0 4px;
+  border-bottom: 1px solid var(--nav-line);
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar-top :deep(.brand-block) {
+  flex: 1;
+  min-width: 0;
+  min-height: 60px;
+  padding: 14px 2px 12px;
+  margin: 0;
+  border-bottom: 0;
+}
+
+.sidebar-toggle {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  place-items: center;
+  color: rgb(255 255 255 / 70%);
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 9px;
+  cursor: pointer;
+  flex: none;
+  transition: color 140ms ease, background 140ms ease, transform 140ms ease;
+}
+
+.sidebar-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sidebar-toggle:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 14%);
+  transform: translateX(0);
 }
 
 .sidebar::after {
@@ -523,8 +680,8 @@ async function handleLogout(): Promise<void> {
 
 .nav-list {
   display: grid;
-  gap: 14px;
-  padding: 16px 0 12px;
+  gap: 12px;
+  padding: 14px 0 10px;
   position: relative;
   z-index: 1;
   flex: 1;
@@ -539,21 +696,64 @@ async function handleLogout(): Promise<void> {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 12px 8px;
+  width: 100%;
+  padding: 6px 10px 6px 9px;
   color: rgb(255 255 255 / 55%);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 2px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: color 140ms ease, background 140ms ease;
 }
 
-.nav-group-title::before {
+.nav-group-title:hover {
+  color: rgb(255 255 255 / 85%);
+  background: rgb(255 255 255 / 4%);
+}
+
+.nav-group-bar {
   display: inline-block;
   width: 3px;
   height: 11px;
   border-radius: 3px;
-  content: '';
   background: linear-gradient(180deg, var(--gold), rgb(246 183 60 / 25%));
   box-shadow: 0 0 8px rgb(246 183 60 / 45%);
+  flex: none;
+}
+
+.nav-group-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-group-chevron {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  opacity: 0.6;
+  transition: transform 180ms ease;
+}
+
+.nav-group.is-collapsed .nav-group-chevron {
+  transform: rotate(-90deg);
+}
+
+.nav-group-items {
+  display: grid;
+  gap: 3px;
+  overflow: hidden;
+  transition: max-height 220ms ease, opacity 180ms ease;
+}
+
+.nav-group.is-collapsed .nav-group-items {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .nav-item {
@@ -659,6 +859,87 @@ async function handleLogout(): Promise<void> {
   gap: 10px;
 }
 
+/* 侧边栏整体折叠（仅图标） */
+.app-shell.sidebar-collapsed {
+  --ow-sidebar-width: 82px;
+}
+
+.app-shell.sidebar-collapsed .sidebar {
+  padding: 0 6px 12px;
+}
+
+.app-shell.sidebar-collapsed .sidebar-top :deep(.brand-block) {
+  justify-content: center;
+  padding: 12px 0 10px;
+  min-height: 56px;
+}
+
+.app-shell.sidebar-collapsed .sidebar-top :deep(.brand-mark) {
+  width: 32px;
+  height: 32px;
+}
+
+.app-shell.sidebar-collapsed .sidebar-top :deep(.brand-mark svg) {
+  width: 21px;
+  height: 21px;
+}
+
+.app-shell.sidebar-collapsed .sidebar-top :deep(.brand-copy) {
+  display: none;
+}
+
+.app-shell.sidebar-collapsed .sidebar-toggle {
+  margin: 0 auto;
+}
+
+.app-shell.sidebar-collapsed .nav-group-title {
+  justify-content: center;
+  padding: 6px 4px;
+}
+
+.app-shell.sidebar-collapsed .nav-group-label,
+.app-shell.sidebar-collapsed .nav-group-chevron {
+  display: none;
+}
+
+/* 折叠态下保留分组指示条，避免分组标题变成空的不可见行 */
+.app-shell.sidebar-collapsed .nav-group-bar {
+  margin: 2px auto;
+}
+
+.app-shell.sidebar-collapsed .nav-item {
+  justify-content: center;
+  padding: 10px 6px;
+}
+
+.app-shell.sidebar-collapsed .nav-item-text,
+.app-shell.sidebar-collapsed .nav-badge,
+.app-shell.sidebar-collapsed .nav-new {
+  display: none;
+}
+
+.app-shell.sidebar-collapsed .nav-item.router-link-active {
+  box-shadow:
+    inset 0 0 0 1px rgb(246 183 60 / 55%),
+    0 6px 18px rgb(0 0 0 / 22%);
+}
+
+.app-shell.sidebar-collapsed .sidebar-footer {
+  padding: 5px 2px 0;
+}
+
+.app-shell.sidebar-collapsed .user-summary {
+  padding: 8px 6px;
+}
+
+.app-shell.sidebar-collapsed .user-summary-name {
+  display: none;
+}
+
+.app-shell.sidebar-collapsed .user-summary-top {
+  justify-content: center;
+}
+
 .user-avatar {
   display: grid;
   width: 36px;
@@ -696,38 +977,7 @@ async function handleLogout(): Promise<void> {
   font-size: 10px;
 }
 
-.mini-bar {
-  display: block;
-  height: 5px;
-  overflow: hidden;
-  background: rgb(255 255 255 / 14%);
-  border-radius: 3px;
-}
-
-.mini-bar b {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, #f6b43a, #e79412);
-  border-radius: 3px;
-}
-
-.user-gold {
-  text-align: right;
-  flex: none;
-}
-
-.user-gold small {
-  display: block;
-  color: rgb(255 255 255 / 60%);
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.user-gold strong {
-  color: var(--gold);
-  font-size: 14px;
-  font-weight: 800;
-}
+/* 本地账户样式已简化：移除等级进度条与金币装饰（F-07） */
 
 .shell-main {
   min-width: 0;
@@ -970,6 +1220,31 @@ async function handleLogout(): Promise<void> {
   gap: 10px;
 }
 
+.search-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  color: var(--ink-2);
+  background: var(--glass);
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: 0.15s;
+}
+
+.search-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.search-toggle:hover {
+  border-color: var(--brand);
+  box-shadow: 0 6px 16px var(--card-glow);
+  transform: translateY(-1px);
+}
+
 .bell {
   position: relative;
   display: grid;
@@ -1111,8 +1386,30 @@ async function handleLogout(): Promise<void> {
     padding: 10px 18px;
   }
 
+  .search-toggle {
+    display: grid;
+  }
+
   .search {
     display: none;
+  }
+
+  .app-shell.search-open .search {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-width: none;
+    padding: 10px 14px;
+    background: var(--topbar-1);
+    border-bottom: 1px solid var(--topbar-border);
+    box-shadow: 0 10px 24px rgb(22 82 60 / 10%);
+    z-index: 41;
+  }
+
+  .app-shell.search-open .search .search-input {
+    max-width: none;
   }
 
   .content {

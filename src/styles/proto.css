@@ -2,7 +2,7 @@
  求职成长岛 · 增强版原型视觉系统（Vue 复刻）
  来源基线：项目文档/求职成长工作台/原型图/原型_今日工作台_增强版.html（交互原型 v3.0）
  说明：本文件移植原型的设计令牌、8 套主题、玻璃材质、梦幻背景与共享原子样式。
- 主题切换通过 html[data-theme] 属性驱动，默认绿茵广场（浅色）。
+ 主题切换通过 html[data-theme] 属性驱动，仅保留晨野（浅色，默认）与夜航（深色）。
 */
 
 /* ============ 设计令牌 · 默认主题：绿茵广场（浅色） ============ */
@@ -10,7 +10,7 @@
   --bg:#eefaf3;
   --nav-1:#15604a; --nav-2:#1a7a5c; --nav-3:#1f8f76; --nav-glow:rgba(120,232,176,.40); --nav-line:rgba(255,255,255,.12);
   --surface:#ffffff; --surface-2:#f2faf6; --surface-3:#e9f5ef;
-  --ink:#21332c; --ink-2:#3f574c; --muted:#6d857a; --faint:#9bb1a6;
+  --ink:#21332c; --ink-2:#3f574c; --muted:#5c7268; --faint:#8aa398;
   --line:#dceee6; --line-2:#c6ddd1;
   --brand:#27b389; --brand-600:#1c9e77; --brand-700:#15815f; --brand-50:#e6f8f0; --brand-200:#bfeede; --brand-100:#dcf5ec;
   --green:#33c98a; --green-50:#e9faf1; --green-600:#1fb87f; --green-700:#139a68;
@@ -27,7 +27,7 @@
   --glass:rgba(255,255,255,.74); --glass-2:rgba(255,255,255,.62); --glass-soft:rgba(255,255,255,.5);
   --glass-border:rgba(255,255,255,.75); --glass-blur:14px; --glass-2-blur:9px;
   --topbar-1:rgba(255,255,255,.80); --topbar-2:rgba(255,255,255,.58); --topbar-border:rgba(255,255,255,.7);
-  --recents:rgba(255,255,255,.92); --modal-bg:rgba(255,255,255,.86);
+  --recents:#ffffff; --modal-bg:rgba(255,255,255,.86);
   --card-glow:rgba(39,179,137,.16); --card-ring:var(--brand-200);
   --hero-grad:linear-gradient(120deg,#27b389 0%, #2aa6c8 52%, #6f8df0 100%); --hero-glow:0 0 44px rgba(39,179,137,.25);
   --btn-1:#34c98a; --btn-2:#1f9e74; --btn-1h:#3ad496; --btn-2h:#25a87c; --btn-shadow:rgba(31,158,116,.32);
@@ -38,6 +38,12 @@
   --spark:#fff7e0; --spark-glow:rgba(255,224,150,.7);
   --aurora-1:rgba(110,220,170,.25); --aurora-2:rgba(130,180,255,.20); --aurora-3:rgba(200,160,255,.18);
   --texture-opacity:.022; --texture-blend:overlay;
+  --ow-status-success-bg:#e9f8ef; --ow-status-success-text:#0f7a40; --ow-status-success-border:#bfe6cd;
+  --ow-status-warning-bg:#fdf3df; --ow-status-warning-text:#9a6a00; --ow-status-warning-border:#f3dca0;
+  --ow-status-danger-bg:#fdecec; --ow-status-danger-text:#b93b3b; --ow-status-danger-border:#f6c9cb;
+  --ow-status-info-bg:#e3f7fa; --ow-status-info-text:#0a7a85; --ow-status-info-border:#b6e7ee;
+  --ow-status-highlight-bg:#efeafe; --ow-status-highlight-text:#5a3a96; --ow-status-highlight-border:#d4c6fb;
+  --ow-status-neutral-bg:var(--surface-2); --ow-status-neutral-text:var(--muted); --ow-status-neutral-border:var(--line);
 }
 
 /* ============ 主题：夜之精灵森林（深色） ============ */
@@ -61,7 +67,7 @@
   --glass:rgba(255,255,255,.05); --glass-2:rgba(255,255,255,.045); --glass-soft:rgba(255,255,255,.04);
   --glass-border:rgba(255,255,255,.09); --glass-blur:14px; --glass-2-blur:9px;
   --topbar-1:rgba(12,26,22,.66); --topbar-2:rgba(12,26,22,.5); --topbar-border:rgba(255,255,255,.08);
-  --recents:rgba(18,38,31,.92); --modal-bg:rgba(18,38,31,.92);
+  --recents:#12261f; --modal-bg:rgba(18,38,31,.92);
   --card-glow:rgba(70,214,163,.16); --card-ring:rgba(70,214,163,.4);
   --hero-grad:linear-gradient(120deg,#1f8f6e 0%, #2a86c0 52%, #5566d0 100%); --hero-glow:0 0 44px rgba(70,214,163,.22);
   --btn-1:#3ad6a6; --btn-2:#1f9e74; --btn-1h:#48e0b2; --btn-2h:#25a87c; --btn-shadow:rgba(31,158,116,.32);
@@ -71,205 +77,12 @@
   --orb-1:rgba(70,214,163,.32); --orb-2:rgba(90,150,255,.30); --orb-3:rgba(150,120,255,.30); --orb-4:rgba(255,220,150,.28);
   --spark:#dff7ea; --spark-glow:rgba(120,230,180,.6);
   --aurora-1:rgba(70,214,163,.14); --aurora-2:rgba(90,150,255,.12); --aurora-3:rgba(150,120,255,.12);
-}
-
-/* ============ 主题：樱云之境（浅色温暖） ============ */
-:root[data-theme="sakura"]{
-  --bg:#fdeef5;
-  --nav-1:#5b2a4a; --nav-2:#7a3a63; --nav-3:#9a4a7c; --nav-glow:rgba(255,180,210,.40); --nav-line:rgba(255,255,255,.12);
-  --surface:#fffafd; --surface-2:#fdf0f7; --surface-3:#fbe6f1;
-  --ink:#3a2533; --ink-2:#5a4252; --muted:#907888; --faint:#b59bb0;
-  --line:#f3d9e6; --line-2:#e9c4da;
-  --brand:#e96aa8; --brand-600:#d65395; --brand-700:#b8407a; --brand-50:#fde9f3; --brand-200:#f9c8e0; --brand-100:#f7d6ea;
-  --green:#41c98a; --green-50:#eafaf1; --green-600:#1fb87f; --green-700:#139a68;
-  --gold:#f0a83c; --gold-50:#fdf3e3; --gold-600:#d98a1e;
-  --red:#ee6b8b; --red-50:#fdeaef; --red-600:#df4f70;
-  --orange:#f59a45; --orange-50:#fdf0e2; --orange-600:#db8030;
-  --purple:#9b7bf0; --purple-50:#f6effe;
-  --cyan:#33bcc9; --cyan-50:#e4f7f9;
-  --shadow-sm:0 1px 2px rgba(91,42,74,.07);
-  --shadow:0 10px 26px rgba(91,42,74,.10);
-  --shadow-md:0 18px 42px rgba(91,42,74,.14);
-  --shadow-lg:0 30px 70px rgba(91,42,74,.20);
-  --glass:rgba(255,250,253,.78); --glass-2:rgba(255,244,250,.64); --glass-soft:rgba(255,248,252,.54);
-  --glass-border:rgba(255,255,255,.80); --glass-blur:14px; --glass-2-blur:9px;
-  --topbar-1:rgba(255,248,252,.82); --topbar-2:rgba(255,240,248,.60); --topbar-border:rgba(255,255,255,.70);
-  --recents:rgba(255,250,253,.92); --modal-bg:rgba(255,250,253,.88);
-  --card-glow:rgba(233,106,168,.16); --card-ring:var(--brand-200);
-  --hero-grad:linear-gradient(120deg,#e96aa8 0%, #c77dce 52%, #9b8bf0 100%); --hero-glow:0 0 44px rgba(233,106,168,.25);
-  --btn-1:#f07cb0; --btn-2:#d65395; --btn-1h:#f48cbb; --btn-2h:#dd5e9e; --btn-shadow:rgba(200,80,140,.32);
-  --av-1:#f0a0c8; --av-2:#d65395;
-  --login-bg:radial-gradient(1200px 700px at 70% -10%, rgba(255,180,210,.40), transparent 55%), radial-gradient(900px 600px at 10% 20%, rgba(220,180,255,.30), transparent 55%), linear-gradient(150deg,#fdeef5,#fbeefb 55%,#f1ecfb);
-  --login-panel:rgba(255,250,253,.85);
-  --orb-1:rgba(255,180,210,.55); --orb-2:rgba(220,180,255,.55); --orb-3:rgba(255,210,160,.55); --orb-4:rgba(255,150,190,.55);
-  --spark:#fff0f6; --spark-glow:rgba(255,170,210,.70);
-  --aurora-1:rgba(255,160,200,.24); --aurora-2:rgba(210,170,255,.18); --aurora-3:rgba(255,200,170,.18);
-}
-
-/* ============ 主题：深海秘境（深色沉浸） ============ */
-:root[data-theme="abyss"]{
-  --bg:#06141f;
-  --nav-1:#06222f; --nav-2:#0a3247; --nav-3:#0d4059; --nav-glow:rgba(60,200,210,.30); --nav-line:rgba(255,255,255,.08);
-  --surface:#0c2230; --surface-2:#10303f; --surface-3:#143a4d;
-  --ink:#e3f5fb; --ink-2:#bfe0ec; --muted:#7fa6b8; --faint:#5d8294;
-  --line:#16384a; --line-2:#1d4a60;
-  --brand:#3fd0c8; --brand-600:#2bb8b0; --brand-700:#7fe9e0; --brand-50:#0a2630; --brand-200:#134a4a; --brand-100:#0f323a;
-  --green:#41d89a; --green-50:#0e2a2a; --green-600:#2cbf80; --green-700:#5fe0a8;
-  --gold:#f7c152; --gold-50:#2a2410; --gold-600:#e0a52a;
-  --red:#f5809a; --red-50:#2c171c; --red-600:#e86a78;
-  --orange:#f7a657; --orange-50:#2c2013; --orange-600:#df9050;
-  --purple:#7fb0f5; --purple-50:#101d33;
-  --cyan:#3fc9d6; --cyan-50:#0f2a2c;
-  --shadow-sm:0 1px 2px rgba(0,0,0,.32);
-  --shadow:0 10px 26px rgba(0,0,0,.48);
-  --shadow-md:0 18px 42px rgba(0,0,0,.58);
-  --shadow-lg:0 30px 70px rgba(0,0,0,.64);
-  --glass:rgba(255,255,255,.05); --glass-2:rgba(255,255,255,.04); --glass-soft:rgba(255,255,255,.035);
-  --glass-border:rgba(255,255,255,.09); --glass-blur:14px; --glass-2-blur:9px;
-  --topbar-1:rgba(8,28,40,.66); --topbar-2:rgba(8,28,40,.50); --topbar-border:rgba(255,255,255,.08);
-  --recents:rgba(12,34,48,.92); --modal-bg:rgba(12,34,48,.92);
-  --card-glow:rgba(60,200,210,.16); --card-ring:rgba(60,200,210,.40);
-  --hero-grad:linear-gradient(120deg,#1fb8c8 0%, #2f7fd0 52%, #5566d0 100%); --hero-glow:0 0 44px rgba(40,180,210,.25);
-  --btn-1:#3fd6cf; --btn-2:#1f9eb0; --btn-1h:#4fe0d9; --btn-2h:#25a8ba; --btn-shadow:rgba(31,158,176,.32);
-  --av-1:#3fd0c8; --av-2:#1f9eb0;
-  --login-bg:radial-gradient(1200px 700px at 70% -10%, rgba(40,180,210,.18), transparent 55%), radial-gradient(900px 600px at 10% 20%, rgba(60,120,210,.14), transparent 55%), linear-gradient(150deg,#06141f,#071a2b 55%,#0a1530);
-  --login-panel:rgba(12,34,48,.92);
-  --orb-1:rgba(60,200,210,.32); --orb-2:rgba(90,150,255,.30); --orb-3:rgba(40,220,180,.30); --orb-4:rgba(140,240,232,.28);
-  --spark:#dff7fb; --spark-glow:rgba(120,230,240,.60);
-  --aurora-1:rgba(40,180,210,.14); --aurora-2:rgba(60,120,210,.12); --aurora-3:rgba(40,200,180,.12);
-}
-
-/* ============ 主题：落日余晖（浅色治愈） ============ */
-:root[data-theme="sunset"]{
-  --bg:#fff3e6;
-  --nav-1:#5a2e3a; --nav-2:#7a3a44; --nav-3:#9a4a52; --nav-glow:rgba(255,170,120,.40); --nav-line:rgba(255,255,255,.12);
-  --surface:#fffdfa; --surface-2:#fff4ea; --surface-3:#fdeede;
-  --ink:#3a2a26; --ink-2:#5a443c; --muted:#8a7066; --faint:#b89c90;
-  --line:#f3ddd0; --line-2:#e9c8b6;
-  --brand:#f08a3c; --brand-600:#e07420; --brand-700:#c25a10; --brand-50:#fdeede; --brand-200:#fbd2b0; --brand-100:#f9dcbf;
-  --green:#3fbf7a; --green-50:#eefaf1; --green-600:#1fb87f; --green-700:#139a68;
-  --gold:#f0a83c; --gold-50:#fdf3e3; --gold-600:#d98a1e;
-  --red:#ee6b6b; --red-50:#fdeaea; --red-600:#df4f4f;
-  --orange:#f59a45; --orange-50:#fdf0e2; --orange-600:#db8030;
-  --purple:#b07ad0; --purple-50:#f6edfb;
-  --cyan:#33bcc9; --cyan-50:#e4f7f9;
-  --shadow-sm:0 1px 2px rgba(90,46,58,.07);
-  --shadow:0 10px 26px rgba(90,46,58,.10);
-  --shadow-md:0 18px 42px rgba(90,46,58,.14);
-  --shadow-lg:0 30px 70px rgba(90,46,58,.20);
-  --glass:rgba(255,252,248,.78); --glass-2:rgba(255,248,240,.64); --glass-soft:rgba(255,250,245,.55);
-  --glass-border:rgba(255,255,255,.80); --glass-blur:14px; --glass-2-blur:9px;
-  --topbar-1:rgba(255,250,244,.82); --topbar-2:rgba(255,242,232,.60); --topbar-border:rgba(255,255,255,.70);
-  --recents:rgba(255,252,248,.92); --modal-bg:rgba(255,252,248,.88);
-  --card-glow:rgba(240,138,60,.16); --card-ring:var(--brand-200);
-  --hero-grad:linear-gradient(120deg,#f59042 0%, #f0607a 52%, #b06ad0 100%); --hero-glow:0 0 44px rgba(245,140,70,.25);
-  --btn-1:#ff9a52; --btn-2:#e07420; --btn-1h:#ffa761; --btn-2h:#e87e2b; --btn-shadow:rgba(200,110,30,.32);
-  --av-1:#ffa060; --av-2:#e07420;
-  --login-bg:radial-gradient(1200px 700px at 70% -10%, rgba(255,180,120,.40), transparent 55%), radial-gradient(900px 600px at 10% 20%, rgba(255,150,160,.30), transparent 55%), linear-gradient(150deg,#fff3e6,#ffe9e8 55%,#f3e8fb);
-  --login-panel:rgba(255,252,248,.85);
-  --orb-1:rgba(255,170,110,.55); --orb-2:rgba(255,140,160,.55); --orb-3:rgba(255,210,140,.55); --orb-4:rgba(200,150,255,.50);
-  --spark:#fff3e0; --spark-glow:rgba(255,170,110,.70);
-  --aurora-1:rgba(255,170,110,.22); --aurora-2:rgba(255,140,160,.18); --aurora-3:rgba(200,150,255,.18);
-}
-
-/* ============ 主题：宇宙星空（深色星云） ============ */
-:root[data-theme="cosmos"]{
-  --bg:#080818;
-  --nav-1:#0a0a22; --nav-2:#121236; --nav-3:#1b1b4e; --nav-glow:rgba(139,92,246,.38); --nav-line:rgba(255,255,255,.09);
-  --surface:#0e0e2a; --surface-2:#131336; --surface-3:#1a1a46;
-  --ink:#eef0ff; --ink-2:#c4c8ec; --muted:#8b91c7; --faint:#6268a3;
-  --line:#1e1e4d; --line-2:#2a2a64;
-  --brand:#8b5cf6; --brand-600:#7c3aed; --brand-700:#c4b5fd; --brand-50:#1a1530; --brand-200:#4c3d8a; --brand-100:#2a224d;
-  --green:#34d399; --green-50:#0f2a22; --green-600:#10b981; --green-700:#6ee7b7;
-  --gold:#fbbf24; --gold-50:#2a2110; --gold-600:#d97706;
-  --red:#f87171; --red-50:#2c1518; --red-600:#ef4444;
-  --orange:#fb923c; --orange-50:#2c2013; --orange-600:#ea580c;
-  --purple:#a78bfa; --purple-50:#1f1830;
-  --cyan:#22d3ee; --cyan-50:#0f2a2c;
-  --shadow-sm:0 1px 2px rgba(0,0,0,.35);
-  --shadow:0 10px 26px rgba(0,0,0,.55);
-  --shadow-md:0 18px 42px rgba(0,0,0,.65);
-  --shadow-lg:0 30px 70px rgba(0,0,0,.72);
-  --glass:rgba(255,255,255,.045); --glass-2:rgba(255,255,255,.04); --glass-soft:rgba(255,255,255,.035);
-  --glass-border:rgba(255,255,255,.10); --glass-blur:16px; --glass-2-blur:10px;
-  --topbar-1:rgba(10,10,34,.72); --topbar-2:rgba(10,10,34,.55); --topbar-border:rgba(255,255,255,.08);
-  --recents:rgba(14,14,42,.94); --modal-bg:rgba(14,14,42,.94);
-  --card-glow:rgba(139,92,246,.20); --card-ring:rgba(139,92,246,.45);
-  --hero-grad:linear-gradient(120deg,#6d28d9 0%, #2563eb 52%, #06b6d4 100%); --hero-glow:0 0 54px rgba(139,92,246,.32);
-  --btn-1:#a78bfa; --btn-2:#7c3aed; --btn-1h:#b8a0fb; --btn-2h:#8b5cf6; --btn-shadow:rgba(124,58,237,.38);
-  --av-1:#a78bfa; --av-2:#2563eb;
-  --login-bg:radial-gradient(1200px 700px at 70% -10%, rgba(139,92,246,.20), transparent 55%), radial-gradient(900px 600px at 10% 20%, rgba(37,99,235,.16), transparent 55%), linear-gradient(150deg,#080818,#0a0a2e 55%,#101040);
-  --login-panel:rgba(14,14,42,.92);
-  --orb-1:rgba(139,92,246,.32); --orb-2:rgba(34,211,238,.28); --orb-3:rgba(167,139,250,.30); --orb-4:rgba(251,191,36,.22);
-  --spark:#e0e7ff; --spark-glow:rgba(139,92,246,.65);
-  --aurora-1:rgba(139,92,246,.16); --aurora-2:rgba(37,99,235,.13); --aurora-3:rgba(6,182,212,.13);
-}
-
-/* ============ 主题：晨雾极简（浅色克制） ============ */
-:root[data-theme="frost"]{
-  --bg:#f5f7fa;
-  --nav-1:#2a3142; --nav-2:#3a4356; --nav-3:#4a5468; --nav-glow:rgba(148,163,184,.30); --nav-line:rgba(255,255,255,.08);
-  --surface:#ffffff; --surface-2:#f4f6fa; --surface-3:#e9edf3;
-  --ink:#161b26; --ink-2:#3d4557; --muted:#6b7484; --faint:#9aa2b1;
-  --line:#e2e7ee; --line-2:#d0d7e2;
-  --brand:#475569; --brand-600:#3a4759; --brand-700:#2f3a49; --brand-50:#f1f5f9; --brand-200:#c3cbd8; --brand-100:#dde3ec;
-  --green:#2f9e6e; --green-50:#e9f7f1; --green-600:#24855c; --green-700:#1c6a49;
-  --gold:#b9902a; --gold-50:#fbf5e6; --gold-600:#9c7620;
-  --red:#cf535a; --red-50:#fbeeee; --red-600:#bd454c;
-  --orange:#c98340; --orange-50:#fbf2e8; --orange-600:#b06f33;
-  --purple:#7769a3; --purple-50:#f2f0f8;
-  --cyan:#2f8fa3; --cyan-50:#e8f4f7;
-  --shadow-sm:0 1px 2px rgba(28,35,48,.05);
-  --shadow:0 10px 26px rgba(28,35,48,.08);
-  --shadow-md:0 18px 42px rgba(28,35,48,.12);
-  --shadow-lg:0 30px 70px rgba(28,35,48,.18);
-  --glass:rgba(255,255,255,.80); --glass-2:rgba(255,255,255,.68); --glass-soft:rgba(255,255,255,.58);
-  --glass-border:rgba(255,255,255,.85); --glass-blur:20px; --glass-2-blur:12px;
-  --topbar-1:rgba(255,255,255,.86); --topbar-2:rgba(255,255,255,.66); --topbar-border:rgba(255,255,255,.80);
-  --recents:rgba(255,255,255,.94); --modal-bg:rgba(255,255,255,.90);
-  --card-glow:rgba(71,85,105,.12); --card-ring:var(--brand-200);
-  --hero-grad:linear-gradient(120deg,#8391a6 0%, #5b6b7f 52%, #3f4a5c 100%); --hero-glow:0 0 44px rgba(71,85,105,.18);
-  --btn-1:#5b6b7f; --btn-2:#3f4a5c; --btn-1h:#67788d; --btn-2h:#485465; --btn-shadow:rgba(63,74,92,.30);
-  --av-1:#6b7b8f; --av-2:#475569;
-  --login-bg:radial-gradient(1200px 700px at 70% -10%, rgba(148,163,184,.32), transparent 55%), radial-gradient(900px 600px at 10% 20%, rgba(203,213,225,.30), transparent 55%), linear-gradient(150deg,#f7f9fc,#eef2f7 55%,#e9edf3);
-  --login-panel:rgba(255,255,255,.88);
-  --orb-1:rgba(203,213,225,.50); --orb-2:rgba(186,200,216,.45); --orb-3:rgba(220,228,238,.55); --orb-4:rgba(190,202,216,.42);
-  --spark:#ffffff; --spark-glow:rgba(200,210,225,.55);
-  --aurora-1:rgba(148,163,184,.14); --aurora-2:rgba(186,200,216,.12); --aurora-3:rgba(203,213,225,.12);
-  --texture-opacity:.030; --texture-blend:multiply;
-}
-
-/* ============ 主题：极光幻境（深色梦幻） ============ */
-:root[data-theme="aurora"]{
-  --bg:#05121a;
-  --nav-1:#07202e; --nav-2:#0a2b3e; --nav-3:#0d364e; --nav-glow:rgba(45,212,191,.32); --nav-line:rgba(255,255,255,.09);
-  --surface:#0a2231; --surface-2:#0f2f42; --surface-3:#143a50;
-  --ink:#e8faff; --ink-2:#b9e5f2; --muted:#7fb0c4; --faint:#5a8ba1;
-  --line:#12405a; --line-2:#185272;
-  --brand:#2dd4bf; --brand-600:#14b8a6; --brand-700:#7ceadb; --brand-50:#0a2b30; --brand-200:#0f4a4a; --brand-100:#0d3638;
-  --green:#34d399; --green-50:#0c2a24; --green-600:#10b981; --green-700:#6ee7b7;
-  --gold:#fbbf24; --gold-50:#2a230f; --gold-600:#d97706;
-  --red:#fb7185; --red-50:#2c1418; --red-600:#f43f5e;
-  --orange:#fb923c; --orange-50:#2c2013; --orange-600:#ea580c;
-  --purple:#a78bfa; --purple-50:#1a1533;
-  --cyan:#22d3ee; --cyan-50:#0b2a30;
-  --shadow-sm:0 1px 2px rgba(0,0,0,.32);
-  --shadow:0 10px 26px rgba(0,0,0,.50);
-  --shadow-md:0 18px 42px rgba(0,0,0,.60);
-  --shadow-lg:0 30px 70px rgba(0,0,0,.68);
-  --glass:rgba(255,255,255,.05); --glass-2:rgba(255,255,255,.042); --glass-soft:rgba(255,255,255,.036);
-  --glass-border:rgba(255,255,255,.10); --glass-blur:16px; --glass-2-blur:10px;
-  --topbar-1:rgba(7,32,46,.70); --topbar-2:rgba(7,32,46,.54); --topbar-border:rgba(255,255,255,.08);
-  --recents:rgba(10,34,49,.94); --modal-bg:rgba(10,34,49,.94);
-  --card-glow:rgba(45,212,191,.18); --card-ring:rgba(45,212,191,.42);
-  --hero-grad:linear-gradient(120deg,#0d9488 0%, #0891b2 52%, #7c3aed 100%); --hero-glow:0 0 54px rgba(45,212,191,.30);
-  --btn-1:#2dd4bf; --btn-2:#0e9488; --btn-1h:#3ee0cb; --btn-2h:#12a396; --btn-shadow:rgba(14,148,136,.34);
-  --av-1:#2dd4bf; --av-2:#0891b2;
-  --login-bg:radial-gradient(1200px 700px at 70% -10%, rgba(45,212,191,.20), transparent 55%), radial-gradient(900px 600px at 10% 20%, rgba(124,58,237,.16), transparent 55%), linear-gradient(150deg,#05121a,#071e2e 55%,#0a1533);
-  --login-panel:rgba(10,34,49,.92);
-  --orb-1:rgba(45,212,191,.30); --orb-2:rgba(56,189,248,.26); --orb-3:rgba(167,139,250,.26); --orb-4:rgba(52,211,153,.24);
-  --spark:#dffcff; --spark-glow:rgba(45,212,191,.60);
-  --aurora-1:rgba(45,212,191,.18); --aurora-2:rgba(56,189,248,.15); --aurora-3:rgba(167,139,250,.15);
+  --ow-status-success-bg:#0e2a20; --ow-status-success-text:#8ff2bd; --ow-status-success-border:#2cbf80;
+  --ow-status-warning-bg:#2a2113; --ow-status-warning-text:#ffd47a; --ow-status-warning-border:#e0a52a;
+  --ow-status-danger-bg:#2c1718; --ow-status-danger-text:#ffadb0; --ow-status-danger-border:#e86a6e;
+  --ow-status-info-bg:#0f2a2c; --ow-status-info-text:#82eaf2; --ow-status-info-border:#3fc9d6;
+  --ow-status-highlight-bg:#1d1830; --ow-status-highlight-text:#d1c4ff; --ow-status-highlight-border:#b29bf5;
+  --ow-status-neutral-bg:#1b332b; --ow-status-neutral-text:#c6ded3; --ow-status-neutral-border:#2f5044;
 }
 
 /* ============ 旧 --ow-* 令牌别名（保持既有页面兼容并跟随主题） ============ */
@@ -278,7 +91,7 @@
   --ow-sidebar:var(--nav-1); --ow-sidebar-mid:var(--nav-2); --ow-sidebar-end:var(--nav-3); --ow-sidebar-text:#d7deec;
   --ow-surface:var(--surface); --ow-surface-raised:var(--surface-2); --ow-surface-hover:var(--surface-3);
   --ow-line:var(--line-2); --ow-line-soft:var(--line);
-  --ow-ink:var(--ink); --ow-ink-secondary:var(--ink-2); --ow-muted:var(--muted); --ow-faint:var(--faint);
+  --ow-ink:var(--ink); --ow-ink-secondary:var(--ink-2); --ow-muted:var(--muted); --ow-text-muted:var(--muted); --ow-faint:var(--faint);
   --ow-primary:var(--brand); --ow-primary-strong:var(--brand-700); --ow-primary-soft:var(--brand-50); --ow-primary-ink:#ffffff;
   --ow-accent:var(--gold); --ow-accent-strong:var(--gold-600); --ow-accent-soft:var(--gold-50);
   --ow-info:var(--cyan); --ow-info-soft:var(--cyan-50);
@@ -286,11 +99,12 @@
   --ow-danger:var(--red-600); --ow-danger-soft:var(--red-50);
   --ow-radius:var(--r); --ow-radius-sm:var(--r-sm); --ow-radius-lg:var(--r-lg);
   --ow-shadow-sm:var(--shadow-sm); --ow-shadow:var(--shadow); --ow-shadow-md:var(--shadow-md);
+  --ow-mask:rgba(15,23,42,.46);
 }
 
 /* ============ 全局基底 ============ */
 html[data-theme], :root{ color-scheme: light; }
-:root[data-theme="dark"], :root[data-theme="abyss"], :root[data-theme="cosmos"], :root[data-theme="aurora"]{ color-scheme: dark; }
+:root[data-theme="dark"]{ color-scheme: dark; }
 
 body.ow-proto{
   font-family:"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei","Segoe UI",system-ui,-apple-system,sans-serif;
@@ -310,57 +124,12 @@ body.ow-proto{
     radial-gradient(800px 600px at 60% 120%, rgba(150,120,255,.12), transparent 55%),
     linear-gradient(165deg,#0c1a16 0%, #0b1622 50%, #111328 100%);
 }
-:root[data-theme="sakura"] body.ow-proto{
-  background:
-    radial-gradient(1100px 640px at 86% -12%, rgba(255,180,210,.34), transparent 55%),
-    radial-gradient(920px 600px at -8% 6%, rgba(220,180,255,.24), transparent 52%),
-    radial-gradient(820px 620px at 58% 118%, rgba(255,210,170,.22), transparent 55%),
-    linear-gradient(165deg,#fdeef5 0%, #fbeefb 48%, #f1ecfb 100%);
-}
-:root[data-theme="abyss"] body.ow-proto{
-  background:
-    radial-gradient(1100px 640px at 85% -10%, rgba(40,180,210,.18), transparent 55%),
-    radial-gradient(900px 560px at -8% 8%, rgba(60,120,210,.16), transparent 52%),
-    radial-gradient(800px 600px at 60% 120%, rgba(40,200,180,.14), transparent 55%),
-    linear-gradient(165deg,#06141f 0%, #071a2b 50%, #0a1530 100%);
-}
-:root[data-theme="sunset"] body.ow-proto{
-  background:
-    radial-gradient(1100px 640px at 86% -12%, rgba(255,180,120,.34), transparent 55%),
-    radial-gradient(920px 600px at -8% 6%, rgba(255,150,160,.24), transparent 52%),
-    radial-gradient(820px 620px at 58% 118%, rgba(200,150,255,.22), transparent 55%),
-    linear-gradient(165deg,#fff3e6 0%, #ffe9e8 48%, #f3e8fb 100%);
-}
-:root[data-theme="cosmos"] body.ow-proto{
-  background:
-    radial-gradient(1200px 700px at 80% -12%, rgba(139,92,246,.20), transparent 55%),
-    radial-gradient(950px 600px at -6% 10%, rgba(37,99,235,.14), transparent 52%),
-    radial-gradient(850px 620px at 55% 120%, rgba(6,182,212,.12), transparent 55%),
-    linear-gradient(165deg,#080818 0%, #0a0a2e 50%, #101040 100%);
-}
-:root[data-theme="frost"] body.ow-proto{
-  background:
-    radial-gradient(1100px 640px at 84% -12%, rgba(148,163,184,.22), transparent 55%),
-    radial-gradient(920px 600px at -8% 6%, rgba(186,200,216,.18), transparent 52%),
-    radial-gradient(820px 620px at 58% 118%, rgba(203,213,225,.16), transparent 55%),
-    linear-gradient(165deg,#f8fafc 0%, #f1f4f9 48%, #ecf0f5 100%);
-}
-:root[data-theme="aurora"] body.ow-proto{
-  background:
-    radial-gradient(1200px 700px at 78% -12%, rgba(45,212,191,.18), transparent 55%),
-    radial-gradient(950px 620px at -6% 8%, rgba(56,189,248,.14), transparent 52%),
-    radial-gradient(880px 640px at 52% 118%, rgba(167,139,250,.14), transparent 55%),
-    linear-gradient(165deg,#05121a 0%, #071e2e 50%, #0a1533 100%);
-}
 
 ::-webkit-scrollbar{width:11px;height:11px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:#c4d0e2; border-radius:10px; border:3px solid transparent; background-clip:content-box;}
 ::-webkit-scrollbar-thumb:hover{background:#a9b8d2; background-clip:content-box;}
 :root[data-theme="dark"] ::-webkit-scrollbar-thumb{background:#2c3a59; background-clip:content-box;}
-:root[data-theme="abyss"] ::-webkit-scrollbar-thumb{background:#13384a; background-clip:content-box;}
-:root[data-theme="cosmos"] ::-webkit-scrollbar-thumb{background:#2a2a64; background-clip:content-box;}
-:root[data-theme="aurora"] ::-webkit-scrollbar-thumb{background:#12405a; background-clip:content-box;}
 ::selection{background:var(--brand-50); color:var(--brand-700);}
 :focus-visible{outline:2px solid var(--brand); outline-offset:2px; border-radius:6px;}
 
@@ -423,14 +192,12 @@ body.ow-proto::after{
 
 /* ============ 共享原子：标签 / 徽章 / 胶囊 ============ */
 .ow-tag{display:inline-flex; align-items:center; gap:4px; border-radius:20px; padding:2px 10px; font-size:12px; font-weight:700; white-space:nowrap; letter-spacing:.2px; box-shadow:inset 0 1px 0 rgba(255,255,255,.42);}
-.ow-tag.red{background:linear-gradient(180deg,#fdecec,#fbdada); color:#b93b3b; border:1px solid #f6c9cb;}
-.ow-tag.yel{background:linear-gradient(180deg,#fdf3df,#fbebc6); color:#9a6a00; border:1px solid #f3dca0;}
-.ow-tag.blue{background:linear-gradient(180deg,#eaf1fd,#dce9fb); color:#274a96; border:1px solid #c2d8f6;}
-.ow-tag.gray{background:var(--surface-2); color:var(--muted); border:1px solid var(--line);}
-.ow-tag.green{background:linear-gradient(180deg,#e9f8ef,#d8f3e2); color:#0f7a40; border:1px solid #bfe6cd;}
-.ow-tag.purple{background:linear-gradient(180deg,#efeafe,#e4dbfb); color:#5a3a96; border:1px solid #d4c6fb;}
-.ow-tag.cyan{background:linear-gradient(180deg,#e3f7fa,#d2f0f4); color:#0a7a85; border:1px solid #b6e7ee;}
-.ow-tag.orange{background:linear-gradient(180deg,#fdeede,#fbd9b3); color:#9a6a00; border:1px solid #f6d3a8;}
+.ow-tag.red{background:var(--ow-status-danger-bg); color:var(--ow-status-danger-text); border:1px solid var(--ow-status-danger-border);}
+.ow-tag.yel,.ow-tag.orange{background:var(--ow-status-warning-bg); color:var(--ow-status-warning-text); border:1px solid var(--ow-status-warning-border);}
+.ow-tag.blue,.ow-tag.cyan{background:var(--ow-status-info-bg); color:var(--ow-status-info-text); border:1px solid var(--ow-status-info-border);}
+.ow-tag.gray{background:var(--ow-status-neutral-bg); color:var(--ow-status-neutral-text); border:1px solid var(--ow-status-neutral-border);}
+.ow-tag.green{background:var(--ow-status-success-bg); color:var(--ow-status-success-text); border:1px solid var(--ow-status-success-border);}
+.ow-tag.purple{background:var(--ow-status-highlight-bg); color:var(--ow-status-highlight-text); border:1px solid var(--ow-status-highlight-border);}
 .ow-pill-new{font-size:10px; font-weight:800; background:var(--brand); color:#fff; padding:1px 7px; border-radius:10px; margin-left:6px; letter-spacing:.5px; box-shadow:0 2px 6px rgba(39,179,137,.3); white-space:nowrap;}
 .ow-badge-count{margin-left:auto; background:linear-gradient(180deg,#f6b841,#e89412); color:#5a3a00; font-size:11px; font-weight:800; padding:1px 8px; border-radius:11px; box-shadow:0 2px 5px rgba(0,0,0,.25);}
 .ow-chip{display:inline-flex; align-items:center; gap:6px; background:linear-gradient(180deg,var(--brand-50),var(--brand-100)); color:var(--brand-700); border:1px solid var(--brand-200); border-radius:20px; padding:4px 11px; font-size:13px; font-weight:600; box-shadow:inset 0 1px 0 rgba(255,255,255,.42);}
@@ -523,11 +290,11 @@ textarea.ow-input{resize:vertical; min-height:74px; line-height:1.55;}
 
 /* ============ 共享原子：状态 / 进度 ============ */
 .ow-status{font-size:11px; font-weight:700; padding:3px 9px; border-radius:12px; white-space:nowrap; flex:0 0 auto; box-shadow:inset 0 1px 0 rgba(255,255,255,.42);}
-.ow-status.ok{background:linear-gradient(180deg,#e9f8ef,#d8f3e2);color:#0f7a40;}
-.ow-status.wait{background:linear-gradient(180deg,#fdf3df,#fbebc6);color:#9a6a00;}
-.ow-status.run{background:linear-gradient(180deg,var(--brand-50),var(--brand-100));color:var(--brand-700);}
-.ow-status.fail{background:linear-gradient(180deg,#fdecec,#fbdada);color:#b93b3b;}
-.ow-status.off{background:var(--surface-2);color:var(--faint);border:1px solid var(--line);}
+.ow-status.ok{background:var(--ow-status-success-bg); color:var(--ow-status-success-text); border:1px solid var(--ow-status-success-border);}
+.ow-status.wait{background:var(--ow-status-warning-bg); color:var(--ow-status-warning-text); border:1px solid var(--ow-status-warning-border);}
+.ow-status.run{background:var(--ow-status-info-bg); color:var(--ow-status-info-text); border:1px solid var(--ow-status-info-border);}
+.ow-status.fail{background:var(--ow-status-danger-bg); color:var(--ow-status-danger-text); border:1px solid var(--ow-status-danger-border);}
+.ow-status.off{background:var(--ow-status-neutral-bg); color:var(--ow-status-neutral-text); border:1px solid var(--ow-status-neutral-border);}
 .ow-prog{height:9px; background:var(--line-2); border-radius:7px; overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,.07);}
 .ow-prog i{display:block; height:100%; border-radius:7px; background:linear-gradient(90deg,var(--brand),#6aa6ff); position:relative; overflow:hidden; box-shadow:inset 0 1px 0 rgba(255,255,255,.42);}
 .ow-prog.green i{background:linear-gradient(90deg,var(--green),#4cc585);}
@@ -680,4 +447,10 @@ textarea.ow-input{resize:vertical; min-height:74px; line-height:1.55;}
   .dreamy-bg::before,.orb,.spark{animation:none !important;}
   .ow-card::before{transition:none;}
   .ow-rise > *{animation:none !important;}
+}
+
+/* ===== 验收修复：深色模式下工作台内容卡片加实，避免梦幻背景星点穿透（V-02） ===== */
+:root[data-theme="dark"] .wb :is(.wb-hero, .mode-card, .asset-card, .agenda li) {
+  background: var(--surface);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .06), inset 0 -1px 0 rgba(0, 0, 0, .25);
 }

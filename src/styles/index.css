@@ -1,7 +1,8 @@
 :root {
   color-scheme: light;
+  /* 与 body.ow-proto 保持同一套字体栈，避免两套声明在 Inter 被加载后产生不一致 */
   font-family:
-    Inter, "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Segoe UI", system-ui, -apple-system, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 
@@ -23,17 +24,36 @@
   --el-bg-color-overlay: var(--ow-surface);
   --el-fill-color-blank: var(--ow-surface);
   --el-fill-color-light: var(--ow-surface-raised);
-  --el-fill-color-lighter: #fbfcfe;
-  --el-fill-color-dark: #e9eef5;
+  --el-fill-color-lighter: var(--ow-surface-raised);
+  --el-fill-color-dark: var(--ow-surface-hover);
   --el-border-color: var(--ow-line);
   --el-border-color-light: var(--ow-line-soft);
   --el-border-color-lighter: var(--ow-line-soft);
   --el-text-color-primary: var(--ow-ink);
   --el-text-color-regular: var(--ow-ink-secondary);
   --el-text-color-secondary: var(--ow-muted);
-  --el-mask-color: rgb(21 30 44 / 42%);
+  --el-mask-color: var(--ow-mask);
   --el-border-radius-base: var(--ow-radius-sm);
-  --el-box-shadow-light: 0 4px 8px rgb(21 35 56 / 10%);
+  --el-box-shadow-light: var(--ow-shadow-sm);
+}
+
+:root.dark {
+  color-scheme: dark;
+  --el-bg-color: var(--ow-surface);
+  --el-bg-color-page: var(--ow-bg);
+  --el-bg-color-overlay: var(--ow-surface);
+  --el-fill-color-blank: var(--ow-surface);
+  --el-fill-color-light: var(--ow-surface-raised);
+  --el-fill-color-lighter: var(--ow-surface-raised);
+  --el-fill-color-dark: var(--ow-surface-hover);
+  --el-border-color: var(--ow-line);
+  --el-border-color-light: var(--ow-line-soft);
+  --el-border-color-lighter: var(--ow-line-soft);
+  --el-text-color-primary: var(--ow-ink);
+  --el-text-color-regular: var(--ow-ink-secondary);
+  --el-text-color-secondary: var(--ow-muted);
+  --el-mask-color: var(--ow-mask);
+  --el-box-shadow-light: var(--ow-shadow-sm);
 }
 
 * {
@@ -111,8 +131,8 @@ p {
 }
 
 .surface {
-  background: rgb(255 255 255 / 80%);
-  border: 1px solid rgb(255 255 255 / 82%);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
   border-radius: var(--ow-radius);
   box-shadow: var(--ow-shadow);
   backdrop-filter: blur(14px) saturate(125%);
@@ -209,15 +229,15 @@ p {
 
 .el-button--primary {
   color: var(--ow-primary-ink);
-  background: linear-gradient(180deg, #34c98a, #1f9e74);
-  border-color: #1f9e74;
-  box-shadow: 0 6px 16px rgb(31 158 116 / 32%), inset 0 1px 0 rgb(255 255 255 / 28%);
+  background: linear-gradient(180deg, var(--btn-1), var(--btn-2));
+  border-color: var(--btn-2);
+  box-shadow: 0 4px 8px var(--btn-shadow), inset 0 1px 0 rgb(255 255 255 / 28%);
 }
 
 .el-button--primary:hover,
 .el-button--primary:focus-visible {
-  background: linear-gradient(180deg, #3ad496, #25a87c);
-  border-color: #25a87c;
+  background: linear-gradient(180deg, var(--btn-1h), var(--btn-2h));
+  border-color: var(--btn-2h);
 }
 
 .el-button:focus-visible,
