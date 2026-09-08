@@ -12,6 +12,23 @@
       </template>
     </PageHeader>
 
+    <!-- 空库折叠：有效样本为 0 时只渲染引导卡，避免 5 屏空态说明（22 号诊断 B5） -->
+    <section v-if="data && data.sampleCount === 0" class="ow-card empty-guide">
+      <div class="empty-guide-body">
+        <h2>还没有可统计的面试样本</h2>
+        <p>
+          能力雷达的每个维度分都来自一份已完成面试报告的评分。完成第一场模拟面试并生成报告后，
+          这里会出现 11 个维度的真实观测——在那之前不画任何图形，避免看起来像结论的噪声。
+        </p>
+        <p v-if="data.sources.unversionedReports > 0" class="empty-guide-note">
+          检测到 {{ data.sources.unversionedReports }} 份历史报告未记录评分规则版本，无法参与统计。
+        </p>
+      </div>
+      <el-button type="primary" :icon="Plus" @click="router.push('/interviews/new')">
+        去完成第一场面试
+      </el-button>
+    </section>
+
     <section class="ow-card">
       <div class="filters">
         <div class="filter-group">
@@ -50,8 +67,7 @@
       <div class="ow-card-b"><el-skeleton :rows="6" animated /></div>
     </div>
     <ErrorState v-else-if="loadError" :message="loadError" :retry="load" />
-
-    <template v-else-if="data">
+    <template v-else-if="data && data.sampleCount > 0">
       <div class="meta-strip">
         <span class="ow-tag blue">
           规则版本 {{ data.ruleVersion ?? '未记录' }}
@@ -810,6 +826,40 @@ onMounted(load)
 
   .dim-track {
     grid-column: 1 / -1;
+  }
+}
+
+.empty-guide {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 26px 30px;
+}
+
+.empty-guide-body h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ow-ink);
+}
+
+.empty-guide-body p {
+  margin: 8px 0 0;
+  max-width: 64ch;
+  color: var(--ow-muted);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+
+.empty-guide-note {
+  color: var(--ow-ink-secondary) !important;
+}
+
+@media (max-width: 760px) {
+  .empty-guide {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>

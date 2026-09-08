@@ -10,7 +10,17 @@
 
     <ErrorState v-if="loadError" :message="loadError" :retry="loadConnections" />
 
-    <div v-else class="create-grid">
+    <section v-else class="ow-card quick-start">
+      <div class="quick-start-body">
+        <h2>快速开始</h2>
+        <p>不填任何配置：通用资深面试官、5 道主问题、45 分钟专项训练。想调整细节再展开下方高级配置。</p>
+      </div>
+      <button class="ow-btn" type="button" :disabled="creating" @click="quickStart">
+        {{ creating ? '创建中…' : '一键开始面试 ▶' }}
+      </button>
+    </section>
+
+    <div v-if="!loadError" class="create-grid" :class="{ collapsed: !advancedOpen }">
       <div class="ow-card col8">
         <div class="ow-card-h">
           <div class="ic b1"><UsersRound aria-hidden="true" /></div>
@@ -255,6 +265,7 @@ const projects = ref<ProjectSummary[]>([])
 const bindings = ref<BindingRow[]>([])
 const loadError = ref('')
 const creating = ref(false)
+const advancedOpen = ref(false)
 
 const topicLabel = computed(
   () => TOPIC_MODES.find((topic) => topic.value === form.topicMode)?.label ?? form.topicMode,
@@ -363,6 +374,34 @@ async function loadConnections(): Promise<void> {
     }))
   } catch (error) {
     loadError.value = problemMessage(error)
+  }
+}
+
+/** 快速开始：完全用表单默认值创建（通用面试官 + 5 题训练），不要求填标题。 */
+async function quickStart(): Promise<void> {
+  if (creating.value) return
+  creating.value = true
+  try {
+    const session = await createSession({
+      title: `快速面试 ${new Date().toLocaleDateString('zh-CN')}`,
+      topicMode: 'ROTE',
+      form: 'TRAINING',
+      round: 'FIRST',
+      targetExperienceBand: 'THREE_TO_FIVE_YEARS',
+      questionLimit: 5,
+      followUpLimit: 3,
+      turnLimit: 12,
+      durationLimitMinutes: 45,
+      scheduledAt: null,
+      webSearchPolicy: 'DISABLED',
+    })
+    await startSession(session.id)
+    ElMessage.success('面试已开始')
+    void router.push(`/interviews/${session.id}`)
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
+  } finally {
+    creating.value = false
   }
 }
 
@@ -489,6 +528,79 @@ if (route.query.mode === '模拟面试') {
 @media (max-width: 720px) {
   .binding-row {
     grid-template-columns: 1fr;
+  }
+}
+
+.quick-start {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 24px;
+}
+
+.quick-start-body h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ow-ink);
+}
+
+.quick-start-body p {
+  margin: 6px 0 0;
+  color: var(--ow-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.advanced-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  padding: inherit;
+  text-align: left;
+}
+
+.advanced-head-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.advanced-hint {
+  color: var(--ow-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.advanced-chevron {
+  width: 16px;
+  height: 16px;
+  transition: transform .15s ease;
+}
+
+.advanced-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* 折叠时隐藏表单与绑定区，仅保留摘要卡（摘要随默认值仍成立） */
+.create-grid.collapsed .col8 .ow-formgrid,
+.create-grid.collapsed .col8 .bindings,
+.create-grid.collapsed .col8 .ow-note {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .quick-start {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>

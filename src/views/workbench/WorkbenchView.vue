@@ -523,4 +523,17 @@ onUnmounted(() => {
     padding: 24px 20px;
   }
 }
+
+/* 数字排版统一（22 号诊断 B6）：等宽数字位，多卡并排纵向对齐 */
+.mode-metric strong,
+.asset-count,
+.wb-focus-chip span {
+  font-variant-numeric: tabular-nums;
+}
+
+.mode-metric strong,
+.asset-count {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
 </style>
