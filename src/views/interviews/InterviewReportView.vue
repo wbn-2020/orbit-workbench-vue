@@ -409,6 +409,7 @@ load()
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 18px;
+  align-items: start;
 }
 
 .col4 { grid-column: span 4; }

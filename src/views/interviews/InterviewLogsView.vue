@@ -4,7 +4,7 @@
       <div>
         <div class="ow-crumb">成长 / 面试记录</div>
         <h1><NotebookPen aria-hidden="true" /> 面试记录</h1>
-        <div class="sub">真实面试会话列表 · 来自 InterviewSession（连接后端）</div>
+        <div class="sub">你的全部模拟面试会话</div>
       </div>
       <div class="acts">
         <button class="ow-btn gold" type="button" @click="router.push('/interviews/new')">＋ 新建面试</button>

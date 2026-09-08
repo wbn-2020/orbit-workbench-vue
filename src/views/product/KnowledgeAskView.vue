@@ -5,7 +5,7 @@
         <div class="ow-crumb">资料 / 知识库问答</div>
         <h1><BookOpen aria-hidden="true" /> 知识库问答</h1>
         <div class="sub">
-          基于已构建知识块检索并由 AI 生成答案 · 答案标注文件来源（连接后端，检索不到会明确提示资料不足）
+          基于你的项目知识块检索并由 AI 生成答案 · 答案标注文件来源，检索不到会明确提示
         </div>
       </div>
       <div class="acts">

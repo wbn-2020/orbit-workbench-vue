@@ -4,7 +4,7 @@
       <div>
         <div class="ow-crumb">管理 / 求职进度</div>
         <h1><Map aria-hidden="true" /> 求职进度</h1>
-        <div class="sub">站内投递记录与阶段推进 · 不连招聘网站 · 阶段变化有流水（连接后端）</div>
+        <div class="sub">站内投递记录与阶段推进 · 不连接招聘网站 · 阶段变化留有流水</div>
       </div>
       <div class="acts">
         <el-button :icon="Plus" @click="createOpen = true">新增投递</el-button>
@@ -248,14 +248,14 @@ async function load(): Promise<void> {
   loading.value = true
   error.value = ''
   try {
-    const [active, archived] = await Promise.all([
+    const [active, all] = await Promise.all([
       listApplications(false),
-      showArchived.value ? listApplications(true) : Promise.resolve(null),
+      listApplications(true),
     ])
-    items.value = showArchived.value && archived ? archived.items : active.items
-    archivedCount.value = active.stages.closed >= 0 && archived
-      ? archived.items.filter((item) => item.archived).length
-      : countArchivedEstimate(active)
+    items.value = showArchived.value
+      ? all.items
+      : active.items
+    archivedCount.value = all.items.filter((item) => item.archived).length
     await applyFocus()
   } catch (loadError) {
     error.value = problemMessage(loadError)
@@ -277,11 +277,6 @@ async function applyFocus(): Promise<void> {
     await nextTick()
     document.getElementById(`app-row-${raw}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
-}
-
-function countArchivedEstimate(active: { items: JobApplication[] }): number {
-  void active
-  return archivedCount.value
 }
 
 async function advance(item: JobApplication, stage: ApplicationStage): Promise<void> {

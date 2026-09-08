@@ -4,7 +4,7 @@
       <div>
         <div class="ow-crumb">成长 / 复习计划</div>
         <h1><CircleCheckBig aria-hidden="true" /> 复习计划</h1>
-        <div class="sub">来自报告自动生成与手工创建 · 连接后端真实任务</div>
+        <div class="sub">来自报告自动生成与手工创建的真实任务</div>
       </div>
       <div class="acts">
         <el-button :icon="Plus" @click="createOpen = true">新建任务</el-button>
@@ -207,7 +207,9 @@ import {
   listPracticeItems,
 } from '@/api/practice'
 import { problemMessage } from '@/api/http'
+import { getPreferences } from '@/api/preferences'
 import ErrorState from '@/components/ErrorState.vue'
+import { timezoneDateKey } from '@/utils/timezone'
 
 import type { PracticeItem } from '@/types/api'
 
@@ -230,6 +232,7 @@ const wrongQueueTotal = ref(0)
 const wrongTruncated = ref(false)
 const wrongLoading = ref(true)
 const wrongError = ref('')
+const timezone = ref('Asia/Shanghai')
 
 const draft = reactive({
   title: '',
@@ -274,21 +277,16 @@ function sourceLabel(source: StudyTask['sourceType']): string {
   return map[source] ?? source
 }
 
-/** 用本地日期比较：复习日是 DATE，按 UTC 取今天会让晚上这一段差一天。 */
-function localToday(): string {
-  const now = new Date()
-  return [
-    now.getFullYear(),
-    String(now.getMonth() + 1).padStart(2, '0'),
-    String(now.getDate()).padStart(2, '0'),
-  ].join('-')
+/** 复习日是用户时区下的 DATE，不能使用浏览器本地日期替代。 */
+function userToday(): string {
+  return timezoneDateKey(new Date(), timezone.value)
 }
 
 /** 距今天已过去多少天：0 是今天到期，正数是已逾期，没有复习日时为 null。 */
 function daysOverdue(item: PracticeItem): number | null {
   if (!item.nextReviewDate) return null
   const due = new Date(`${item.nextReviewDate}T00:00:00`).getTime()
-  const today = new Date(`${localToday()}T00:00:00`).getTime()
+  const today = new Date(`${userToday()}T00:00:00`).getTime()
   return Math.round((today - due) / 86400000)
 }
 
@@ -436,6 +434,12 @@ function replace(updated: StudyTask): void {
 
 /** 两个数据源各自独立成态：错题拉失败只让那张卡报错，不连带把复习任务整页换成错误态。 */
 async function loadAll(): Promise<void> {
+  try {
+    const preference = await getPreferences()
+    if (preference.timezoneId) timezone.value = preference.timezoneId
+  } catch {
+    // 用户偏好不可用时使用产品默认时区，仍保持复习计划可用。
+  }
   await Promise.all([load(), loadWrongAnswers()])
 }
 
@@ -488,6 +492,9 @@ onMounted(() => {
   color: var(--ink);
   font-size: 14px;
   font-weight: 600;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
 }
 
 .ow-titem.done .tt {

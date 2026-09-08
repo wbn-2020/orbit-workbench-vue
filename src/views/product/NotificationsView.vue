@@ -48,14 +48,19 @@
             :class="{ unread: !item.read }"
           >
             <div class="ni">{{ notificationIcon(item.eventType) }}</div>
-            <div class="nb" @click="open(item)">
+            <button
+              class="nb"
+              type="button"
+              :aria-label="`${item.title}，打开通知详情`"
+              @click="open(item)"
+            >
               <div class="nt">
                 {{ item.title }}
                 <span v-if="!item.read" class="un">未读</span>
               </div>
               <div class="nd">{{ item.content }}</div>
               <div class="ntime">{{ relTime(item.createdAt) }}</div>
-            </div>
+            </button>
             <div class="acts">
               <button
                 v-if="item.resourceRoute"
@@ -256,7 +261,19 @@ onMounted(load)
 .nb {
   flex: 1;
   min-width: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
   cursor: pointer;
+}
+
+.nb:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
 .nt {

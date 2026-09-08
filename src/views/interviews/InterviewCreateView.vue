@@ -108,7 +108,7 @@
               <select v-model="form.aiConnectionId" class="ow-input">
                 <option :value="null">自动（第一个启用账户）</option>
                 <option v-for="conn in connections" :key="conn.id" :value="conn.id">
-                  {{ conn.name }} · {{ conn.modelName }}（演示快照）
+                  {{ conn.name }} · {{ conn.modelName }}
                 </option>
               </select>
             </div>
@@ -437,6 +437,7 @@ if (route.query.mode === '模拟面试') {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 18px;
+  align-items: start;
 }
 
 .col4 { grid-column: span 4; }

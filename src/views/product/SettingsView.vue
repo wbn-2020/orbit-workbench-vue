@@ -16,11 +16,11 @@
             当前产品数据保存在后端 MySQL；本页的导入导出、清空等危险操作尚未开放，不会伪造成功结果。
           </p>
           <div class="ow-row">
-            <button class="ow-btn" type="button" @click="notifyPending('导出 JSON 存档')">导出 JSON 存档</button>
-            <button class="ow-btn ghost" type="button" @click="notifyPending('导入 JSON 存档')">导入 JSON 存档</button>
+            <button class="ow-btn" type="button" disabled title="敬请期待">导出 JSON 存档</button>
+            <button class="ow-btn ghost" type="button" disabled title="敬请期待">导入 JSON 存档</button>
           </div>
           <div class="data-danger">
-            <button class="ow-btn danger" type="button" @click="confirmClear">清空全部数据（二次确认）</button>
+            <button class="ow-btn danger" type="button" disabled title="敬请期待">清空全部数据（二次确认）</button>
           </div>
         </div>
       </section>
@@ -34,7 +34,7 @@
           <div class="theme-head">
             <div>
               <div class="theme-title">外观主题</div>
-              <div class="ow-hint theme-hint">八套主题 · 只保存在当前浏览器 · 实时切换</div>
+              <div class="ow-hint theme-hint">浅色 / 深色 · 只保存在当前浏览器 · 实时切换</div>
             </div>
             <button class="ow-btn ghost xs" type="button" @click="ui.toggleNext()">切换下一主题</button>
           </div>
@@ -157,7 +157,7 @@
         </div>
         <div class="ow-card-b">
           <p class="about-text">
-            求职成长工作台 · Java + AI 本地 Web 应用。登录、档案、项目资料、知识库、面试、报告、复习计划及扩展页均已接入当前产品主链；
+            Orbit 工作台 · 个人职业成长工作台（本地 Web 应用）。市场感知（面试）、工作沉淀、学习更新三种模式与项目资料、知识库、报告均已接入产品主链；
             主题偏好保存在浏览器，通知偏好保存在后端用户偏好记录。数据清空、JSON 导入导出、语音面试和外部招聘集成尚未开放。
           </p>
         </div>
@@ -170,7 +170,7 @@
 
 <script setup lang="ts">
 import { Bell, Download, Info, Sun, UserRound } from 'lucide-vue-next'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -324,23 +324,6 @@ async function savePreferences(): Promise<void> {
   }
 }
 
-function notifyPending(action: string): void {
-  ElMessage.info(`「${action}」尚未开放，当前不会执行任何数据操作。`)
-}
-
-async function confirmClear(): Promise<void> {
-  try {
-    await ElMessageBox.confirm(
-      '当前版本不会真正删除数据。清空全部数据尚未开放，本次不会执行删除。',
-      '清空全部数据',
-      { confirmButtonText: '我已了解', cancelButtonText: '取消', type: 'warning' },
-    )
-    ElMessage.info('当前版本未执行任何删除。')
-  } catch {
-    /* 用户取消 */
-  }
-}
-
 async function handleLogout(): Promise<void> {
   await auth.logout().catch(() => undefined)
   await router.replace('/login')
@@ -359,6 +342,7 @@ onMounted(loadPreferences)
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 18px;
+  align-items: start;
 }
 
 .col6 { grid-column: span 6; }
@@ -370,6 +354,11 @@ onMounted(loadPreferences)
 
 .data-danger {
   margin-top: 14px;
+}
+
+.ow-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .theme-head {
@@ -447,7 +436,7 @@ onMounted(loadPreferences)
 }
 
 .preference-body {
-  min-height: 360px;
+  min-height: 0;
 }
 
 .loading-block {

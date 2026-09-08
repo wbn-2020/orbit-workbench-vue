@@ -85,6 +85,7 @@
             <div class="section-heading">
               <h3>当前自评</h3>
               <p>用于生成初始训练建议，后续会由训练与面试记录修正。</p>
+              <p class="skill-summary">{{ skillSummary }}</p>
             </div>
             <div class="form-grid">
               <el-form-item label="Java 技术栈" prop="javaSkillLevel">
@@ -135,7 +136,7 @@
 <script setup lang="ts">
 import { Save } from 'lucide-vue-next'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 
 import { getJobProfile, saveJobProfile } from '@/api/jobProfile'
 import { problemMessage } from '@/api/http'
@@ -179,6 +180,11 @@ const skillOptions = [
   { label: '实践过', value: 'PRACTICAL' },
   { label: '熟练', value: 'ADVANCED' },
 ]
+
+const skillSummary = computed(() => {
+  const labelOf = (value: string) => skillOptions.find((option) => option.value === value)?.label ?? value
+  return `目前自评：Java ${labelOf(form.javaSkillLevel)} · AI ${labelOf(form.aiSkillLevel)}`
+})
 
 const rules: FormRules<JobProfilePayload> = {
   targetRole: [{ required: true, message: '请填写目标岗位', trigger: 'blur' }],
@@ -277,6 +283,13 @@ onMounted(() => {
   margin: 4px 0 0;
   color: var(--ow-muted);
   font-size: 12px;
+}
+
+.skill-summary {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ow-ink-secondary);
 }
 
 .level-group {
