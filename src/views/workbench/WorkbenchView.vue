@@ -48,6 +48,36 @@
         </div>
       </section>
 
+      <section v-if="!isEmptyState" class="wb-section">
+        <h2 class="wb-section-title">能力趋势</h2>
+        <div class="wb-trend-card">
+          <template v-if="trend && trend.renderable && trend.series.length >= 2">
+            <div class="wb-trend-summary">
+              <span class="wb-trend-num">{{ trend.series[trend.series.length - 1]?.totalScore }}</span>
+              <span class="wb-trend-label">
+                最近一次总分（{{ trend.series.length }} 场同规则报告）
+                <template v-if="trendDelta !== null">
+                  · 较前一次 <b :class="trendDelta >= 0 ? 'up' : 'down'">{{ trendDelta >= 0 ? '+' : '' }}{{ trendDelta }}</b>
+                </template>
+              </span>
+            </div>
+            <svg class="wb-trend-spark" viewBox="0 0 320 64" role="img" aria-label="总分变化趋势">
+              <polyline :points="sparkPoints" fill="none" stroke="var(--ow-primary, #1fa879)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+              <circle v-for="(pt, i) in sparkDots" :key="i" :cx="pt.x" :cy="pt.y" r="3" fill="var(--ow-primary, #1fa879)" />
+            </svg>
+            <RouterLink to="/skill-map" class="wb-trend-link">看完整能力图谱 →</RouterLink>
+          </template>
+          <template v-else-if="trend">
+            <p class="wb-trend-empty">
+              {{ trend.series.length >= 2
+                ? '报告尚未使用同一评分规则版本，暂无法比较。'
+                : `还差 ${Math.max(0, trend.minTrendSamples - trend.series.length)} 场同规则报告即可看趋势。` }}
+              <RouterLink to="/interviews/new">去面试 →</RouterLink>
+            </p>
+          </template>
+        </div>
+      </section>
+
       <section v-else class="wb-section">
         <h2 class="wb-section-title">工作模式</h2>
         <div class="mode-grid">
@@ -114,11 +144,14 @@ import {
   Timer,
 } from 'lucide-vue-next'
 import { getWorkbenchSummary } from '@/api/workbench'
+import { getCapabilityOverview } from '@/api/capabilities'
 import { problemMessage } from '@/api/http'
 import type { WorkMode, WorkbenchSummary } from '@/api/types'
+import type { CapabilityOverview } from '@/types/api'
 import ErrorState from '@/components/ErrorState.vue'
 
 const summary = ref<WorkbenchSummary | null>(null)
+const trend = ref<CapabilityOverview | null>(null)
 const loading = ref(false)
 const loadError = ref('')
 let reloadRequested = false
@@ -129,6 +162,36 @@ function modeIcon(key: WorkMode) {
   if (key === 'work-sedimentation') return Layers
   return Sparkles
 }
+
+const trendDelta = computed(() => {
+  const series = trend.value?.series ?? []
+  if (!trend.value?.renderable || series.length < 2) return null
+  const last = series[series.length - 1]
+  const prev = series[series.length - 2]
+  if (!last || !prev) return null
+  return last.totalScore - prev.totalScore
+})
+
+const sparkGeometry = computed(() => {
+  const series = trend.value?.series ?? []
+  if (!trend.value?.renderable || series.length < 2) return { points: '', dots: [] as { x: number; y: number }[] }
+  const scores = series.map((point) => point.totalScore)
+  const min = Math.min(...scores)
+  const max = Math.max(...scores)
+  const span = Math.max(1, max - min)
+  const width = 320
+  const height = 64
+  const pad = 6
+  const stepX = series.length > 1 ? (width - pad * 2) / (series.length - 1) : 0
+  const dots = series.map((point, index) => ({
+    x: pad + index * stepX,
+    y: height - pad - ((point.totalScore - min) / span) * (height - pad * 2),
+  }))
+  return { points: dots.map((dot) => `${dot.x},${dot.y}`).join(' '), dots }
+})
+
+const sparkPoints = computed(() => sparkGeometry.value.points)
+const sparkDots = computed(() => sparkGeometry.value.dots)
 
 /** 工作记录/知识卡片/学习目标全为零且从未有过面试评估时，首屏引导优先于指标展示。 */
 const isEmptyState = computed(() => {
@@ -151,6 +214,9 @@ async function load(): Promise<void> {
   loadError.value = ''
   try {
     summary.value = await getWorkbenchSummary()
+    getCapabilityOverview(null, null)
+      .then((overview) => { trend.value = overview })
+      .catch(() => { trend.value = null })
   } catch (error) {
     loadError.value = problemMessage(error)
   } finally {
@@ -536,5 +602,63 @@ onUnmounted(() => {
 .asset-count {
   font-weight: 800;
   letter-spacing: -0.01em;
+}
+
+.wb-trend-card {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 18px 22px;
+  border: 1px solid var(--ow-line-soft, rgb(31 111 92 / 14%));
+  border-radius: 14px;
+  background: var(--ow-surface, #fff);
+  flex-wrap: wrap;
+}
+
+.wb-trend-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+}
+
+.wb-trend-num {
+  color: var(--ow-ink);
+  font-size: 32px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.wb-trend-label {
+  color: var(--ow-muted, #52685e);
+  font-size: 13px;
+}
+
+.wb-trend-label .up { color: var(--ow-status-success-text, #0f7a40); }
+.wb-trend-label .down { color: var(--ow-status-danger-text, #b93b3b); }
+
+.wb-trend-spark {
+  width: 320px;
+  height: 64px;
+  flex: 1 1 220px;
+}
+
+.wb-trend-link {
+  color: #16634f;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.wb-trend-empty {
+  margin: 0;
+  color: var(--ow-muted, #52685e);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.wb-trend-empty a {
+  color: #16634f;
+  font-weight: 700;
 }
 </style>
