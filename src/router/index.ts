@@ -139,6 +139,12 @@ const router = createRouter({
           meta: { title: '求职进度' },
         },
         {
+          path: 'knowledge',
+          name: 'knowledge-overview',
+          component: () => import('@/views/product/KnowledgeOverviewView.vue'),
+          meta: { title: '知识总览' },
+        },
+        {
           path: 'knowledge/ask',
           name: 'knowledge-ask',
           component: () => import('@/views/product/KnowledgeAskView.vue'),

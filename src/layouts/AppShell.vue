@@ -383,6 +383,7 @@ const navGroups = [
   {
     label: '资料库',
     items: [
+      { label: '知识总览', to: '/knowledge', icon: BookOpen },
       { label: '求职档案', to: '/profile/job', icon: UserRound },
       { label: '项目资料', to: '/projects', icon: FolderKanban },
       { label: '知识库问答', to: '/knowledge/ask', icon: BookOpen },
