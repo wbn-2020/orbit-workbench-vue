@@ -105,3 +105,78 @@ export async function archiveFact(
   )
   return data
 }
+
+export interface AskStreamHandlers {
+  onDelta?: (text: string) => void
+  onDone?: (finalAnswer: string, insufficient: boolean) => void
+  onError?: (message: string) => void
+}
+
+/**
+ * SSE 流式问答（fetch ReadableStream）。事件序 delta* -> done；
+ * done 携带最终答案（insufficient=true 表示资料不足）。
+ */
+export async function streamAskKnowledge(
+  question: string,
+  projectVersionId: number | null | undefined,
+  handlers: AskStreamHandlers,
+): Promise<void> {
+  const csrf = document.cookie
+    .split('; ')
+    .find((item) => item.startsWith('XSRF-TOKEN='))
+    ?.split('=')[1]
+  const response = await fetch('/api/v1/knowledge/ask/stream', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+      ...(csrf ? { 'X-XSRF-TOKEN': decodeURIComponent(csrf) } : {}),
+    },
+    body: JSON.stringify({ question, projectVersionId: projectVersionId ?? undefined }),
+  })
+  if (!response.ok || !response.body) {
+    let detail = `HTTP ${response.status}`
+    try {
+      const problem = await response.json()
+      detail = problem.detail || problem.title || detail
+    } catch {
+      /* 保留状态码信息 */
+    }
+    throw new Error(detail)
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const events = buffer.split('\n\n')
+    buffer = events.pop() ?? ''
+    for (const raw of events) {
+      let event = 'message'
+      const dataLines: string[] = []
+      raw.split('\n').forEach((line) => {
+        if (line.startsWith('event:')) event = line.slice(6).trim()
+        else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim())
+      })
+      if (!dataLines.length) continue
+      const data = dataLines.join('\n')
+      if (event === 'delta') {
+        handlers.onDelta?.(data)
+      } else if (event === 'done') {
+        try {
+          const payload = JSON.parse(data) as { insufficient: boolean; answer: string }
+          handlers.onDone?.(payload.answer, payload.insufficient)
+        } catch {
+          handlers.onDone?.(data, false)
+        }
+      } else if (event === 'error') {
+        handlers.onError?.(data)
+        return
+      }
+    }
+  }
+}

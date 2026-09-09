@@ -93,7 +93,7 @@ import { BookOpen, History, RefreshCw, Search } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { computed, ref } from 'vue'
 
-import { askKnowledge, buildKnowledge } from '@/api/knowledge'
+import { askKnowledge, buildKnowledge, streamAskKnowledge } from '@/api/knowledge'
 import { listProjects } from '@/api/projects'
 import type { AskResult } from '@/api/knowledge'
 import { problemMessage } from '@/api/http'
@@ -165,10 +165,31 @@ async function ask(): Promise<void> {
   if (!text) return
   asking.value = true
   askedQuestion.value = text
+  // 流式优先：先给一个空答案骨架，delta 逐字追加；SSE 不可用/失败时回退阻塞接口。
+  result.value = { answer: '', insufficient: false, sources: [] }
+  let streamed = false
   try {
-    result.value = await askKnowledge(text, scope.value)
-  } catch (error) {
-    ElMessage.error(problemMessage(error))
+    await streamAskKnowledge(text, scope.value, {
+      onDelta: (delta: string) => {
+        streamed = true
+        if (result.value) result.value.answer += delta
+      },
+      onDone: (answer: string, insufficient: boolean) => {
+        result.value = { answer, insufficient, sources: result.value?.sources ?? [] }
+      },
+      onError: (message: string) => {
+        // 流中途失败：后端未写入任何数据，保留空态让用户重试
+        if (streamed && result.value && !result.value.answer) result.value = null
+        ElMessage.error(message)
+      },
+    })
+  } catch {
+    try {
+      result.value = await askKnowledge(text, scope.value)
+    } catch (error) {
+      result.value = null
+      ElMessage.error(problemMessage(error))
+    }
   } finally {
     asking.value = false
   }
