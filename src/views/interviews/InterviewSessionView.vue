@@ -168,6 +168,9 @@
               >
                 项目快照 {{ binding.projectName }} · V{{ binding.versionNumber }} · 事实 {{ binding.factCount }}
               </span>
+              <span v-if="session.knowledgeBindingCount > 0" class="tag">
+                工作心得 {{ session.knowledgeBindingCount }} 条
+              </span>
             </div>
           </div>
           <div class="ow-iv-pqtimer">⏱ 已用时 <b>{{ fmtElapsed(elapsed) }}</b></div>

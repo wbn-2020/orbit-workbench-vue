@@ -53,6 +53,7 @@ export interface InterviewSession {
   durationLimitMinutes: number
   scheduledAt: string | null
   projectBindings: ProjectBindingSnapshot[]
+  knowledgeBindingCount: number
   status: InterviewSessionStatus
   startedAt: string | null
   endedAt: string | null
@@ -125,6 +126,29 @@ export interface CreateSessionPayload {
   aiConnectionId?: number | null
   webSearchPolicy?: string
   projectBindings?: { projectId: number; versionId: number }[]
+  /** 不传=默认注入最近蒸馏的 5 条；空数组=显式不注入（后端据此区分）。 */
+  knowledgeCardIds?: number[]
+}
+
+export interface KnowledgeCardOption {
+  id: string
+  title: string
+  summary: string
+  tags: string[]
+  createdAt: string
+}
+
+export async function listKnowledgeCardOptions(): Promise<KnowledgeCardOption[]> {
+  const { data } = await http.get<
+    { id: string; title: string; summary: string; sourceLogId: string | null; tags: string[]; createdAt: string }[]
+  >('/knowledge-cards')
+  return data.map((card) => ({
+    id: card.id,
+    title: card.title,
+    summary: card.summary,
+    tags: card.tags ?? [],
+    createdAt: card.createdAt,
+  }))
 }
 
 export const TOPIC_MODES = [

@@ -124,6 +124,37 @@
             </div>
           </div>
 
+          <div class="bindings knowledge-bind">
+            <div class="bindings-header">
+              <label>注入工作心得（来自你的工作记录蒸馏，AI 可围绕这些真实经验追问；最多 10 条，不选则默认带最近 5 条）</label>
+            </div>
+            <p v-if="!knowledgeCards.length" class="ow-note">
+              还没有知识卡片。可先到「工作记录」蒸馏几条，再回来让面试官追问你的真实经验。
+            </p>
+            <el-select
+              v-else
+              v-model="form.knowledgeCardIds"
+              multiple
+              filterable
+              collapse-tags
+              collapse-tags-tooltip
+              :multiple-limit="10"
+              placeholder="默认带最近 5 条"
+              class="ow-input knowledge-select"
+              aria-label="注入工作心得"
+            >
+              <el-option
+                v-for="card in knowledgeCards"
+                :key="card.id"
+                :value="Number(card.id)"
+                :label="card.title"
+              >
+                <span class="kc-opt">{{ card.title }}</span>
+                <span class="kc-opt-tags">{{ card.tags.slice(0, 3).join(' · ') }}</span>
+              </el-option>
+            </el-select>
+          </div>
+
           <div class="bindings">
             <div class="bindings-header">
               <label>绑定项目资料（创建时快照项目版本与已确认画像事实，之后不受项目修改影响）</label>
@@ -183,6 +214,7 @@
             <div class="r"><span class="k">题量</span><span class="v">主问题 {{ form.questionLimit }} · 追问 ≤{{ form.followUpLimit }} · 总问答 ≤{{ form.turnLimit }}</span></div>
             <div class="r"><span class="k">时长上限</span><span class="v">{{ form.durationLimitMinutes }} 分钟</span></div>
             <div class="r"><span class="k">联网</span><span class="v">{{ webLabel }}</span></div>
+            <div class="r"><span class="k">工作心得</span><span class="v">{{ knowledgeSummary }}</span></div>
             <div class="r"><span class="k">项目绑定</span><span class="v">{{ bindingSummary }}</span></div>
           </div>
           <button class="ow-btn block" style="margin-top: 14px;" type="button" :disabled="creating" @click="launch">
@@ -202,9 +234,11 @@ import { useRoute, useRouter } from 'vue-router'
 
 import {
   createSession,
+  listKnowledgeCardOptions,
   startSession,
   TOPIC_MODES,
   type CreateSessionPayload,
+  type KnowledgeCardOption,
 } from '@/api/interview'
 import { webSearchPolicyChoices } from '@/api/aiConnections'
 import { listInterviewers, type InterviewerProfile } from '@/api/interviewers'
@@ -257,12 +291,14 @@ const form = reactive({
   durationLimitMinutes: 45,
   scheduledAt: '',
   aiConnectionId: null as number | null,
+  knowledgeCardIds: [] as number[],
 })
 
 const connections = ref<ConnectionOption[]>([])
 const interviewers = ref<InterviewerProfile[]>([])
 const projects = ref<ProjectSummary[]>([])
 const bindings = ref<BindingRow[]>([])
+const knowledgeCards = ref<KnowledgeCardOption[]>([])
 const loadError = ref('')
 const creating = ref(false)
 const advancedOpen = ref(false)
@@ -286,6 +322,12 @@ const webLabel = computed(
   () => webSearchChoices.value.find((choice) => choice.value === form.webSearchPolicy)?.label
     ?? form.webSearchPolicy,
 )
+const knowledgeSummary = computed(() => {
+  const picked = form.knowledgeCardIds.length
+  if (picked > 0) return `已选 ${picked} 条`
+  return knowledgeCards.value.length > 0 ? '默认最近 5 条' : '无（暂无知识卡片）'
+})
+
 const bindingSummary = computed(() => {
   const selected = bindings.value.filter((binding) => binding.projectId && binding.versionId)
   if (selected.length === 0) return '未绑定'
@@ -297,6 +339,14 @@ const bindingSummary = computed(() => {
     })
     .join('、')
 })
+
+async function loadKnowledgeCards(): Promise<void> {
+  try {
+    knowledgeCards.value = await listKnowledgeCardOptions()
+  } catch {
+    knowledgeCards.value = []
+  }
+}
 
 async function loadProjects(): Promise<void> {
   try {
@@ -438,6 +488,7 @@ async function launch(): Promise<void> {
       aiConnectionId: form.aiConnectionId ?? undefined,
       webSearchPolicy: form.webSearchPolicy,
       projectBindings: projectBindings.length ? projectBindings : undefined,
+      knowledgeCardIds: [...form.knowledgeCardIds],
     }
     const session = await createSession(payload)
     await startSession(session.id)
@@ -452,6 +503,7 @@ async function launch(): Promise<void> {
 
 loadConnections()
 loadProjects()
+loadKnowledgeCards()
 loadInterviewers()
 
 if (route.query.mode === '模拟面试') {
@@ -602,5 +654,29 @@ if (route.query.mode === '模拟面试') {
     flex-direction: column;
     align-items: stretch;
   }
+}
+
+.knowledge-bind {
+  margin-top: 14px;
+}
+
+.knowledge-select {
+  width: 100%;
+}
+
+.kc-opt {
+  display: inline-block;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.kc-opt-tags {
+  float: right;
+  margin-left: 12px;
+  color: var(--ow-muted, #52685e);
+  font-size: 12px;
 }
 </style>
