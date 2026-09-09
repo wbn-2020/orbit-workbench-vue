@@ -19,6 +19,9 @@ export interface KnowledgeCard {
   sourceLogId: string | null
   tags: string[]
   createdAt: string
+  reviewStage?: number
+  nextReviewDate?: string | null
+  lastReviewedAt?: string | null
 }
 
 export type LearningGoalStatus = 'active' | 'paused' | 'done'

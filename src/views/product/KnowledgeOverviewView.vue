@@ -36,6 +36,29 @@
         </div>
       </section>
 
+      <section v-if="dueCards.length" class="ow-card ko-due">
+        <div class="ow-card-h">
+          <div class="ic b3"><AlarmClock aria-hidden="true" /></div>
+          今日到期 · {{ dueCards.length }} 张
+        </div>
+        <div class="ow-card-b">
+          <ul class="ko-due-list">
+            <li v-for="card in dueCards" :key="card.id" class="ko-due-item">
+              <div class="ko-due-body">
+                <b>{{ card.title }}</b>
+                <span class="ko-due-meta">
+                  {{ card.overdueDays > 0 ? `已到期 ${card.overdueDays} 天` : '今天到期' }}
+                  · 第 {{ card.reviewStage }} 轮
+                </span>
+              </div>
+              <button class="ow-btn sm" type="button" :disabled="reviewingId === card.id" @click="review(card.id)">
+                {{ reviewingId === card.id ? '记录中…' : '记一次回顾' }}
+              </button>
+            </li>
+          </ul>
+        </div>
+      </section>
+
       <div class="ko-grid">
         <section class="ow-card ko-col">
           <div class="ow-card-h">
@@ -84,12 +107,21 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { BadgeCheck, RefreshCw, Sparkles } from 'lucide-vue-next'
-import { getKnowledgeOverview, type KnowledgeOverview } from '@/api/knowledgeOverview'
+import { AlarmClock, BadgeCheck, RefreshCw, Sparkles } from 'lucide-vue-next'
+import {
+  getDueCards,
+  getKnowledgeOverview,
+  reviewCard,
+  type DueCard,
+  type KnowledgeOverview,
+} from '@/api/knowledgeOverview'
+import { ElMessage } from 'element-plus' 
 import { problemMessage } from '@/api/http'
 import ErrorState from '@/components/ErrorState.vue'
 
 const data = ref<KnowledgeOverview | null>(null)
+const dueCards = ref<DueCard[]>([])
+const reviewingId = ref<string | null>(null)
 const loading = ref(true)
 const loadError = ref('')
 
@@ -98,10 +130,29 @@ async function load(): Promise<void> {
   loadError.value = ''
   try {
     data.value = await getKnowledgeOverview()
+    try {
+      dueCards.value = await getDueCards()
+    } catch {
+      dueCards.value = []
+    }
   } catch (error) {
     loadError.value = problemMessage(error)
   } finally {
     loading.value = false
+  }
+}
+
+async function review(id: string): Promise<void> {
+  if (reviewingId.value) return
+  reviewingId.value = id
+  try {
+    await reviewCard(id)
+    dueCards.value = dueCards.value.filter((card) => card.id !== id)
+    ElMessage.success('已记一次回顾，下次复习日已按阶梯推进')
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
+  } finally {
+    reviewingId.value = null
   }
 }
 
@@ -247,5 +298,40 @@ onMounted(load)
   .ko-head {
     flex-direction: column;
   }
+}
+
+.ko-due-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.ko-due-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--ow-line-soft, rgb(31 111 92 / 12%));
+  border-radius: 10px;
+}
+
+.ko-due-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ko-due-body b {
+  color: var(--ow-ink);
+  font-size: 13.5px;
+}
+
+.ko-due-meta {
+  color: var(--ow-muted, #52685e);
+  font-size: 12px;
 }
 </style>

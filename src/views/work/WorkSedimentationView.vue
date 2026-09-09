@@ -28,7 +28,12 @@
           <ul class="kc-list">
             <li v-for="card in cards" :key="card.id" class="kc-item">
               <button class="kc-open" type="button" :aria-label="`编辑知识卡片 ${card.title}`" @click="openEditor(card)">
-                <span class="kc-title">{{ card.title }}</span>
+                <span class="kc-title">
+                  {{ card.title }}
+                  <span v-if="card.nextReviewDate" class="kc-review-badge" :class="{ due: isDue(card.nextReviewDate) }">
+                    {{ reviewLabel(card.nextReviewDate) }}
+                  </span>
+                </span>
                 <span class="kc-summary">{{ card.summary }}</span>
                 <span class="kc-tags">
                   <span v-for="tag in card.tags" :key="tag" class="kc-tag">{{ tag }}</span>
@@ -182,6 +187,23 @@ const categoryOptions: { value: WorkLogCategory; label: string }[] = [
   { value: 'learning', label: '学习' },
   { value: 'other', label: '其他' },
 ]
+
+function reviewLabel(date: string): string {
+  const target = new Date(`${date}T00:00:00`)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const days = Math.round((target.getTime() - today.getTime()) / 86_400_000)
+  if (days < 0) return `已到期 ${-days} 天`
+  if (days === 0) return '今天回顾'
+  return `${days} 天后回顾`
+}
+
+function isDue(date: string): boolean {
+  const target = new Date(`${date}T00:00:00`)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return target.getTime() <= today.getTime()
+}
 
 function categoryLabel(value: WorkLogCategory): string {
   return categoryOptions.find((o) => o.value === value)?.label ?? value
@@ -642,5 +664,21 @@ onBeforeUnmount(() => {
   .ws-side {
     position: static;
   }
+}
+
+.kc-review-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--ow-status-neutral-bg, var(--surface-2, #eef2f0));
+  color: var(--ow-status-neutral-text, #52685e);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.kc-review-badge.due {
+  background: var(--ow-status-warning-bg, #fdf3df);
+  color: var(--ow-status-warning-text, #7d5400);
 }
 </style>
