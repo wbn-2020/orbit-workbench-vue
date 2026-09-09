@@ -50,6 +50,7 @@
           </template>
           <template v-else>面试问答已保存，点击下方由 AI 生成 11 维评分报告（约十几秒）。</template>
         </div>
+        <pre v-if="streamingPreview" class="stream-preview">{{ streamingPreview }}</pre>
         <div class="act">
           <el-button
             type="primary"
@@ -244,12 +245,12 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import {
-  generateReport,
   generateTasksFromReport,
   getReport,
   getSession,
   parseDims,
   parseJsonArray,
+  streamGenerateReport,
   retryReport,
   TOPIC_MODES,
   type InterviewReport,
@@ -370,10 +371,32 @@ async function load(): Promise<void> {
   }
 }
 
+const streamingPreview = ref('')
+
 async function generate(): Promise<void> {
   generating.value = true
+  streamingPreview.value = ''
+  let streamFailed = false
   try {
-    const state = await generateReport(sessionId)
+    await streamGenerateReport(sessionId, undefined, {
+      onDelta: (delta) => {
+        // 等待期预览：只保留尾部 600 字，避免长报告撑爆 DOM
+        streamingPreview.value = (streamingPreview.value + delta).slice(-600)
+      },
+      onDone: () => {
+        // done 只说明模型写完；正式数据以刷新为准
+      },
+      onError: (message) => {
+        streamFailed = true
+        streamingPreview.value = ''
+        ElMessage.error(message)
+      },
+    })
+    if (streamFailed) {
+      await load()
+      return
+    }
+    const state = await getReport(sessionId)
     report.value = state.report
     exists.value = state.exists
     ElMessage.success('报告已生成')
@@ -381,6 +404,7 @@ async function generate(): Promise<void> {
     ElMessage.error(problemMessage(error))
     await load()
   } finally {
+    streamingPreview.value = ''
     generating.value = false
   }
 }
@@ -637,5 +661,22 @@ load()
   .col8 {
     grid-column: span 12;
   }
+}
+
+.stream-preview {
+  margin: 14px auto 0;
+  max-width: 640px;
+  max-height: 180px;
+  overflow: hidden;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--ow-muted, #52685e);
+  font-size: 12px;
+  line-height: 1.6;
+  border: 1px solid var(--ow-line-soft, rgb(31 111 92 / 12%));
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: var(--ow-surface-raised, var(--ow-surface, #fff));
 }
 </style>

@@ -393,3 +393,73 @@ export function answerSourceLabel(value: string | null | undefined): string {
   if (!value) return '未记录来源'
   return ANSWER_SOURCE_LABELS[value] ?? value
 }
+
+export interface ReportStreamHandlers {
+  onDelta?: (text: string) => void
+  onDone?: () => void
+  onError?: (message: string) => void
+}
+
+/**
+ * SSE 流式报告生成：增量仅用于等待期展示，报告以 done 后刷新到的正式数据为准。
+ */
+export async function streamGenerateReport(
+  sessionId: number,
+  connectionId: number | undefined,
+  handlers: ReportStreamHandlers,
+): Promise<void> {
+  const csrf = document.cookie
+    .split('; ')
+    .find((item) => item.startsWith('XSRF-TOKEN='))
+    ?.split('=')[1]
+  const response = await fetch(`/api/v1/interview-sessions/${sessionId}/report/generate/stream`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+      ...(csrf ? { 'X-XSRF-TOKEN': decodeURIComponent(csrf) } : {}),
+    },
+    body: JSON.stringify(connectionId ? { connectionId } : {}),
+  })
+  if (!response.ok || !response.body) {
+    let detail = `HTTP ${response.status}`
+    try {
+      const problem = await response.json()
+      detail = problem.detail || problem.title || detail
+    } catch {
+      /* 保留状态码信息 */
+    }
+    throw new Error(detail)
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const events = buffer.split('\n\n')
+    buffer = events.pop() ?? ''
+    for (const raw of events) {
+      let event = 'message'
+      const dataLines: string[] = []
+      raw.split('\n').forEach((line) => {
+        if (line.startsWith('event:')) event = line.slice(6).trim()
+        else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim())
+      })
+      if (!dataLines.length) continue
+      const data = dataLines.join('\n')
+      if (event === 'delta') {
+        handlers.onDelta?.(data)
+      } else if (event === 'done') {
+        handlers.onDone?.()
+        return
+      } else if (event === 'error') {
+        handlers.onError?.(data)
+        return
+      }
+    }
+  }
+}
