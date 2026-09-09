@@ -167,7 +167,7 @@ const visibleFaqs = computed(() => {
   width: 22px;
   height: 22px;
   place-items: center;
-  color: var(--brand-700);
+  color: #16634f;
   background: var(--brand-100);
   border-radius: 8px;
   font-size: 12px;
@@ -250,7 +250,7 @@ const visibleFaqs = computed(() => {
 }
 
 .cat-chip.on {
-  color: var(--brand-700);
+  color: #16634f;
   background: var(--brand-50);
   border-color: var(--brand-200);
 }

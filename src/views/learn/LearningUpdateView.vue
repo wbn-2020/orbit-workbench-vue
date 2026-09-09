@@ -333,7 +333,7 @@ onUnmounted(() => {
 
 .lu-head .lu-eyebrow {
   margin: 0 0 6px;
-  color: var(--brand-700, #1f6f5c);
+  color: var(--ow-eyebrow, #16634f);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 2px;
@@ -436,7 +436,7 @@ onUnmounted(() => {
 
 .lu-btn.primary {
   color: #fff;
-  background: linear-gradient(135deg, var(--brand), var(--brand-700, #1f6f5c));
+  background: linear-gradient(135deg, var(--btn-1, #1fa879), var(--btn-2, #15805f));
   border-color: transparent;
   box-shadow: 0 6px 16px rgb(31 111 92 / 30%);
 }
@@ -486,8 +486,8 @@ onUnmounted(() => {
 }
 
 .goal-status.active {
-  color: var(--brand-700, #1f6f5c);
-  background: var(--brand-50, rgb(31 111 92 / 12%));
+  color: var(--ow-status-success-text, #16634f);
+  background: var(--ow-status-success-bg, rgb(31 111 92 / 12%));
 }
 
 .goal-status.paused {
@@ -528,7 +528,7 @@ onUnmounted(() => {
 }
 
 .goal-pct {
-  color: var(--faint);
+  color: var(--ow-muted, #52685e);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
@@ -584,7 +584,7 @@ onUnmounted(() => {
   border: 1px solid var(--line, rgb(15 23 42 / 12%));
   border-radius: 999px;
   background: var(--surface, #fff);
-  color: var(--ink-secondary, #4a4a4a);
+  color: var(--ow-ink-secondary, #3f574c);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -631,7 +631,7 @@ onUnmounted(() => {
 }
 
 .focus-unit {
-  color: var(--faint);
+  color: var(--ow-muted, #52685e);
   font-size: 13px;
 }
 
@@ -659,7 +659,7 @@ onUnmounted(() => {
 }
 
 .focus-day {
-  color: var(--faint);
+  color: var(--ow-muted, #52685e);
   font-size: 11px;
 }
 

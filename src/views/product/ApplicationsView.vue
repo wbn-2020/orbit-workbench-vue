@@ -454,7 +454,7 @@ onMounted(() => {
   width: 38px;
   height: 38px;
   place-items: center;
-  color: var(--brand-700);
+  color: #16634f;
   background: linear-gradient(180deg, var(--brand-50), var(--brand-100));
   border-radius: 11px;
   font-weight: 800;

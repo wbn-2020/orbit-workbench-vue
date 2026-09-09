@@ -564,7 +564,7 @@ async function handleLogout(): Promise<void> {
   padding: 0 8px 14px;
   overflow-y: auto;
   overflow-x: hidden;
-  color: #d7deec;
+  color: #ffffff;
   background: linear-gradient(180deg, var(--nav-1) 0%, var(--nav-2) 55%, var(--nav-3) 100%);
   box-shadow: 4px 0 30px rgb(10 40 30 / 28%);
   transition: padding 200ms ease;
@@ -672,7 +672,7 @@ async function handleLogout(): Promise<void> {
 }
 
 :deep(.brand-copy small) {
-  color: rgb(255 255 255 / 50%);
+  color: rgb(255 255 255 / 92%);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 2.5px;
@@ -698,7 +698,7 @@ async function handleLogout(): Promise<void> {
   gap: 8px;
   width: 100%;
   padding: 6px 10px 6px 9px;
-  color: rgb(255 255 255 / 55%);
+  color: rgb(255 255 255 / 95%);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -762,7 +762,7 @@ async function handleLogout(): Promise<void> {
   gap: 11px;
   min-height: 40px;
   padding: 10px 12px;
-  color: #d7deec;
+  color: #ffffff;
   border-radius: 11px;
   font-size: 14px;
   font-weight: 600;
@@ -973,7 +973,7 @@ async function handleLogout(): Promise<void> {
 }
 
 .user-summary-name small {
-  color: rgb(255 255 255 / 62%);
+  color: #ffffff;
   font-size: 10px;
 }
 
@@ -1026,7 +1026,7 @@ async function handleLogout(): Promise<void> {
 }
 
 .crumb-root {
-  color: var(--faint);
+  color: var(--muted);
   white-space: nowrap;
 }
 

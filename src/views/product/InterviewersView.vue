@@ -212,7 +212,7 @@ const draft = reactive({
 const builtIns = computed(() => profiles.value.filter((profile) => profile.builtIn))
 const customs = computed(() => profiles.value.filter((profile) => !profile.builtIn))
 
-const BUILTIN_COLORS = ['#3a6fd0', '#7c5cf0', '#27b389', '#e09a1e', '#df4f4f', '#0ea5b7']
+const BUILTIN_COLORS = ['#2b55b0', '#5f3fd0', '#16634f', '#8a5a00', '#b83232', '#0a7a85']
 
 function builtinStyle(id: number): { background: string; color: string } {
   const color = BUILTIN_COLORS[id % BUILTIN_COLORS.length] ?? '#27b389'

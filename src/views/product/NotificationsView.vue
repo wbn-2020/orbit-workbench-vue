@@ -303,7 +303,7 @@ onMounted(load)
 
 .ntime {
   margin-top: 4px;
-  color: var(--faint);
+  color: var(--ow-muted, #52685e);
   font-size: 11px;
 }
 

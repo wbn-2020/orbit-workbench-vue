@@ -187,7 +187,7 @@ onUnmounted(() => {
 
 .wb-loading {
   margin: 0;
-  color: var(--muted);
+  color: var(--ow-muted, #5c7268);
   font-size: 14px;
 }
 
@@ -205,7 +205,7 @@ onUnmounted(() => {
 
 .wb-eyebrow {
   margin: 0 0 6px;
-  color: var(--brand-700, #1f6f5c);
+  color: var(--ow-eyebrow, #16634f);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 2px;
@@ -231,7 +231,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  color: var(--brand-700, #1f6f5c);
+  color: var(--ow-eyebrow, #16634f);
   background: var(--brand-50, rgb(31 111 92 / 12%));
   border: 1px solid var(--brand-200, rgb(31 111 92 / 20%));
   border-radius: 999px;
@@ -337,8 +337,9 @@ onUnmounted(() => {
 }
 
 .mode-metric small {
-  color: var(--faint);
+  color: var(--ow-ink-secondary, #3f574c);
   font-size: 11px;
+  font-weight: 600;
 }
 
 .asset-grid {

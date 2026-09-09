@@ -294,7 +294,7 @@ onBeforeUnmount(() => {
 
 .ws-head .ws-eyebrow {
   margin: 0 0 6px;
-  color: var(--brand-700, #1f6f5c);
+  color: var(--ow-eyebrow, #16634f);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 2px;
@@ -310,7 +310,7 @@ onBeforeUnmount(() => {
 .ws-sub {
   margin: 10px 0 0;
   max-width: 60ch;
-  color: var(--muted);
+  color: var(--ow-muted, #5c7268);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -408,7 +408,7 @@ onBeforeUnmount(() => {
 
 .ws-btn.primary {
   color: #fff;
-  background: linear-gradient(135deg, var(--brand), var(--brand-700, #1f6f5c));
+  background: linear-gradient(135deg, var(--btn-1, #1fa879), var(--btn-2, #15805f));
   border-color: transparent;
   box-shadow: 0 6px 16px rgb(31 111 92 / 30%);
 }

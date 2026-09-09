@@ -558,7 +558,7 @@ onMounted(() => {
 }
 
 .danger-btn {
-  color: var(--red-600);
+  color: #b8324f;
 }
 
 @media (max-width: 1100px) {

@@ -342,7 +342,7 @@ onMounted(() => {
 }
 
 .failed-count {
-  color: var(--ow-danger);
+  color: #c74349;
 }
 
 .file-input {

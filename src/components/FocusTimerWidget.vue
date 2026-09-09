@@ -295,7 +295,7 @@ onBeforeUnmount(clearTimer)
 }
 
 .focus-mode.focus {
-  color: var(--brand-700, #1f6f5c);
+  color: var(--ow-eyebrow, #16634f);
   background: var(--brand-50, rgb(31 111 92 / 12%));
 }
 
@@ -343,7 +343,7 @@ onBeforeUnmount(clearTimer)
 .focus-hint {
   margin: 0 0 12px;
   text-align: center;
-  color: var(--faint);
+  color: var(--ow-muted, #52685e);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -378,7 +378,7 @@ onBeforeUnmount(clearTimer)
 .focus-btn.primary {
   flex: 1;
   color: #fff;
-  background: linear-gradient(135deg, var(--brand), var(--brand-700, #1f6f5c));
+  background: linear-gradient(135deg, var(--btn-1, #1fa879), var(--btn-2, #15805f));
   border-color: transparent;
   box-shadow: 0 6px 16px rgb(31 111 92 / 30%);
 }

@@ -222,7 +222,7 @@ onMounted(() => {
 .score-chip {
   flex: none;
   padding: 3px 10px;
-  color: var(--green-700);
+  color: #0d7a52;
   background: linear-gradient(180deg, #e9f8ef, #d8f3e2);
   border-radius: 9px;
   font-size: 12px;
