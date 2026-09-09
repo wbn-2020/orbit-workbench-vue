@@ -8,11 +8,6 @@
           基于你的项目知识块检索并由 AI 生成答案 · 答案标注文件来源，检索不到会明确提示
         </div>
       </div>
-      <div class="acts">
-        <el-button :icon="RefreshCw" :loading="building" @click="buildAll">
-          {{ building ? '构建中…' : '重建全部项目知识块' }}
-        </el-button>
-      </div>
     </header>
 
     <ErrorState v-if="loadError" :message="loadError" :retry="load" />
@@ -44,27 +39,35 @@
             </button>
           </div>
 
-          <div v-if="result" class="answer">
+          <ErrorState
+            v-if="askError"
+            :message="askError"
+            :retry="ask"
+            retry-text="重新提问"
+          />
+          <div v-else-if="result" class="answer">
             <template v-if="result.insufficient">
               <div class="answer-q">{{ askedQuestion }}</div>
               <p class="answer-text warn-text">
-                资料中未找到足够依据。检索无结果不等于答案为否——可尝试更换关键词，或先「重建全部项目知识块」。
+                资料中未找到足够依据。检索无结果不等于答案为否——可尝试更换关键词，或先在项目资料页构建知识块。
               </p>
               <span class="ow-tag orange">资料不足</span>
             </template>
             <template v-else>
               <div class="answer-q">{{ askedQuestion }}</div>
-              <p class="answer-text ai-text">{{ result.answer }}</p>
-              <div class="ow-hint">以下为 AI 回答所引用的资料位置：</div>
-              <div v-for="(source, index) in result.sources" :key="index" class="source-row">
-                <span class="ow-tag blue">[{{ index + 1 }}]</span>
-                <span class="source-path">{{ source.relativePath }} · 第 {{ source.chunkNo }} 段</span>
-                <div class="source-snippet">{{ source.snippet }}</div>
-              </div>
+              <p class="answer-text ai-text">{{ result.answer || '正在生成…' }}</p>
+              <template v-if="result.sources.length">
+                <div class="ow-hint">以下为 AI 回答所引用的资料位置：</div>
+                <div v-for="(source, index) in result.sources" :key="index" class="source-row">
+                  <span class="ow-tag blue">[{{ index + 1 }}]</span>
+                  <span class="source-path">{{ source.relativePath }} · 第 {{ source.chunkNo }} 段</span>
+                  <div class="source-snippet">{{ source.snippet }}</div>
+                </div>
+              </template>
             </template>
           </div>
           <div v-else class="ow-empty" style="margin-top: 14px;">
-            先「重建全部项目知识块」（按项目版本切分已解析文件），再针对资料提问。
+            输入问题开始提问。回答只引用你项目资料里的知识块并标注来源；还没有知识块时，可先到项目资料页构建。
           </div>
         </div>
       </div>
@@ -81,7 +84,12 @@
             <li>回答仅基于检索到的资料块并标注来源；资料不足时不会编造答案。</li>
             <li>知识库问答默认不计入能力数据。</li>
           </ul>
-          <div class="ow-hint">画像事实（AI 分析 + 用户确认）API 已就绪，确认界面将在项目详情页继续接入。</div>
+          <div class="rebuild-row">
+            <el-button text size="small" :icon="RefreshCw" :loading="building" @click="buildAll">
+              {{ building ? '构建中…' : '重建全部项目知识块' }}
+            </el-button>
+          </div>
+          <div class="ow-hint">重建会按项目版本重新切分全部已解析文件，耗时取决于资料量。</div>
         </div>
       </div>
     </div>
@@ -106,6 +114,8 @@ const result = ref<AskResult | null>(null)
 const asking = ref(false)
 const building = ref(false)
 const loadError = ref('')
+/** 提问链路失败信息：流式与回退都失败时内联呈现，替代一闪而过的 toast 与误导性空态。 */
+const askError = ref('')
 
 const projects = ref<{ id: number; name: string; versionId: number | null }[]>([])
 
@@ -162,12 +172,16 @@ async function buildAll(): Promise<void> {
 
 async function ask(): Promise<void> {
   const text = question.value.trim()
-  if (!text) return
+  if (!text || asking.value) return
   asking.value = true
   askedQuestion.value = text
-  // 流式优先：先给一个空答案骨架，delta 逐字追加；SSE 不可用/失败时回退阻塞接口。
+  askError.value = ''
+  // 流式优先：先给一个空答案骨架，delta 逐字追加；仅当流式通道本身不可用
+  // （如网关不支持 SSE）才回退阻塞接口——上游 AI 失败时回退也会失败，不打无意义的第二次请求。
   result.value = { answer: '', insufficient: false, sources: [] }
   let streamed = false
+  // SSE 的 error 事件通过回调送达、不会向外抛出，需用局部变量收集后统一判定。
+  let streamErrorMessage = ''
   try {
     await streamAskKnowledge(text, scope.value, {
       onDelta: (delta: string) => {
@@ -178,20 +192,31 @@ async function ask(): Promise<void> {
         result.value = { answer, insufficient, sources: result.value?.sources ?? [] }
       },
       onError: (message: string) => {
-        // 流中途失败：后端未写入任何数据，保留空态让用户重试
+        // 流中途失败：后端未写入任何数据，清掉空骨架交给内联错误态
         if (streamed && result.value && !result.value.answer) result.value = null
-        ElMessage.error(message)
+        streamErrorMessage = message
       },
     })
-  } catch {
-    try {
-      result.value = await askKnowledge(text, scope.value)
-    } catch (error) {
-      result.value = null
-      ElMessage.error(problemMessage(error))
+  } catch (streamError) {
+    const streamMessage = streamError instanceof Error ? streamError.message : String(streamError)
+    if (!streamed) {
+      try {
+        result.value = await askKnowledge(text, scope.value)
+        return
+      } catch {
+        /* 阻塞接口同样失败：按流式错误呈现，不再叠加第二次噪音 */
+      }
     }
+    result.value = null
+    askError.value = streamMessage || '本次回答生成失败，请稍后重试'
+    return
   } finally {
     asking.value = false
+  }
+  if (streamErrorMessage) {
+    // 后端在流内明确报错（多为 AI 上游失败）：回退阻塞接口也会失败，直接诚实呈现。
+    result.value = null
+    askError.value = streamErrorMessage || '本次回答生成失败，请稍后重试'
   }
 }
 
@@ -287,6 +312,12 @@ load()
   color: var(--ink-2);
   font-size: 13px;
   line-height: 1.9;
+}
+
+.rebuild-row {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-start;
 }
 
 @media (max-width: 1100px) {

@@ -15,7 +15,20 @@
     </header>
 
     <ErrorState v-if="loadError" :message="loadError" :retry="load" />
-    <p v-if="loading && !summary" class="wb-loading">正在加载工作台...</p>
+    <div v-if="loading && !summary" class="wb-skeleton" aria-label="工作台加载中">
+      <el-skeleton animated :rows="2" style="height: 96px;" />
+      <el-skeleton animated style="margin-top: 18px;">
+        <template #template>
+          <div class="wb-skel-grid">
+            <el-skeleton-item variant="rect" style="height: 84px; border-radius: 14px;" />
+            <el-skeleton-item variant="rect" style="height: 84px; border-radius: 14px;" />
+            <el-skeleton-item variant="rect" style="height: 84px; border-radius: 14px;" />
+            <el-skeleton-item variant="rect" style="height: 84px; border-radius: 14px;" />
+          </div>
+          <el-skeleton-item variant="rect" style="margin-top: 18px; height: 120px; border-radius: 14px;" />
+        </template>
+      </el-skeleton>
+    </div>
 
     <template v-if="summary">
       <section v-if="isEmptyState" class="wb-section">
@@ -251,10 +264,16 @@ onUnmounted(() => {
   gap: 28px;
 }
 
-.wb-loading {
-  margin: 0;
-  color: var(--ow-muted, #5c7268);
-  font-size: 14px;
+.wb-skeleton .wb-skel-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 980px) {
+  .wb-skeleton .wb-skel-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .wb-hero {

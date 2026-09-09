@@ -5,7 +5,7 @@
       <strong>{{ title }}</strong>
       <p>{{ message }}</p>
     </div>
-    <el-button v-if="retry" text :icon="RefreshCw" @click="retry">重试</el-button>
+    <el-button v-if="retry" text :icon="RefreshCw" @click="retry">{{ retryText }}</el-button>
   </div>
 </template>
 
@@ -17,8 +17,10 @@ withDefaults(
     title?: string
     message: string
     retry?: () => void
+    /** 重试按钮文案；按动作语义命名（如「重新提问」）比通用「重试」更可读。 */
+    retryText?: string
   }>(),
-  { title: '加载失败', retry: undefined },
+  { title: '加载失败', retry: undefined, retryText: '重试' },
 )
 </script>
 

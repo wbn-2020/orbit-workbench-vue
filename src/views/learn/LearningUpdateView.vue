@@ -145,8 +145,12 @@
             </div>
           </div>
           <p class="focus-tip">
-            <Timer aria-hidden="true" /> 用右下角计时器开始一段专注，时长会自动记录。
+            <Timer aria-hidden="true" />
+            {{ totalFocusMinutes > 0 ? '用右下角计时器开始一段专注，时长会自动记录。' : '最近 7 天还没有专注记录。' }}
           </p>
+          <button v-if="!totalFocusMinutes && !statsError" class="focus-start-btn" type="button" @click="openTimer">
+            <Play aria-hidden="true" /> 开始一次专注
+          </button>
         </div>
       </aside>
     </div>
@@ -157,7 +161,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Plus, Target, Timer } from 'lucide-vue-next'
+import { Plus, Play, Target, Timer } from 'lucide-vue-next'
 import { problemMessage, getProblem } from '@/api/http'
 import {
   createLearningGoal,
@@ -191,6 +195,11 @@ const form = reactive<{ title: string; reason: string; linkedSkill: string }>({
 const canSubmit = computed(() => form.title.trim().length > 0 && !submitting.value)
 
 const totalFocusMinutes = computed(() => stats.value.reduce((sum, s) => sum + s.focusMinutes, 0))
+
+/** 空态行动入口：展开右下角计时器，而不是只留一句静态提示。 */
+function openTimer(): void {
+  window.dispatchEvent(new CustomEvent('focus-timer-open'))
+}
 
 const maxFocus = computed(() => Math.max(1, ...stats.value.map((s) => s.focusMinutes)))
 
@@ -678,6 +687,34 @@ onUnmounted(() => {
   height: 14px;
   flex: none;
   color: var(--brand);
+}
+
+.focus-start-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  justify-content: center;
+  margin-top: 10px;
+  height: 36px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--btn-1, #1fa879), var(--btn-2, #15805f));
+  border: 0;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgb(31 111 92 / 26%);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.focus-start-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.focus-start-btn:hover {
+  transform: translateY(-1px);
 }
 
 @media (max-width: 980px) {

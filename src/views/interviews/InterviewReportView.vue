@@ -428,10 +428,10 @@ const goalGaps = computed(() => {
   const seen = new Set<string>()
   const items: string[] = []
   for (const gap of [...knowledgeGaps.value, ...weaknesses.value]) {
-    const key = gap.trim()
+    const key = normalizeGap(gap)
     if (key && !seen.has(key)) {
       seen.add(key)
-      items.push(key)
+      items.push(gap.trim())
     }
   }
   return items.filter((item) => !createdGoalKeys.value.includes(item))
@@ -439,7 +439,43 @@ const goalGaps = computed(() => {
 
 const goalSourceTag = `面试缺口 #${sessionId}`
 
-/** 报告缺口 → 学习目标：linkedSkill 携带来源标注；已存在同来源+同标题的目标时跳过。 */
+function normalizeGap(value: string): string {
+  return value.replace(/\s+/g, ' ').trim()
+}
+
+/**
+ * 把 AI 缺口描述提炼成可读的目标短标题。
+ * 缺口原文是评语句式（如「对 X 缺乏讨论（可能是后续追问半径未覆盖…）」），
+ * 直接做目标名又长又技术腔；此处剥尾部解释性括注与模板后缀，保留核心主体。
+ * 纯启发式、不调 AI；完整原文始终保留在 reason 中。
+ */
+function shortenGapTitle(raw: string): string {
+  let text = normalizeGap(raw)
+  for (;;) {
+    // 循环剥离结尾括注；剥掉模板后缀后可能再露出括注，故循环往复直到稳定。
+    const before = text
+    for (;;) {
+      const tail = text.match(/[（(][^（）()]*[)）]$/)
+      if (!tail || tail.index === undefined) break
+      text = text.slice(0, tail.index).trim()
+    }
+    text = text
+      .replace(/(缺乏(?:深入)?讨论|讨论不足|了解不足|掌握不足|理解不足|不够深入|有待加强|表现不足)$/g, '')
+      .trim()
+    if (text === before) break
+  }
+  text = text.replace(/^对/, '').replace(/^[「『]+/, '').replace(/[」』]+$/, '').trim()
+  if (text.length > 22) {
+    const window = text.slice(0, 22)
+    const separators = [' ', '、', '，', ',', '：', ':', '；', ';']
+    let cut = -1
+    for (const sep of separators) cut = Math.max(cut, window.lastIndexOf(sep))
+    text = (cut > 8 ? window.slice(0, cut) : window).trim() + '…'
+  }
+  return text || normalizeGap(raw)
+}
+
+/** 报告缺口 → 学习目标：短标题可读、完整描述进 reason；同来源下按标题双形态去重。 */
 async function createGoalsFromGaps(): Promise<void> {
   if (creatingGoals.value || !goalGaps.value.length) return
   creatingGoals.value = true
@@ -448,16 +484,19 @@ async function createGoalsFromGaps(): Promise<void> {
     const existingKeys = new Set(
       existing
         .filter((goal) => (goal.linkedSkill ?? '').endsWith(goalSourceTag))
-        .map((goal) => goal.title),
+        .flatMap((goal) => [normalizeGap(goal.title), normalizeGap(shortenGapTitle(goal.title))]),
     )
     let created = 0
     for (const gap of goalGaps.value) {
-      if (existingKeys.has(gap)) continue
+      const shortTitle = shortenGapTitle(gap)
+      if (existingKeys.has(normalizeGap(shortTitle))) continue
       await createLearningGoal({
-        title: gap,
-        reason: `来自面试报告的薄弱点（会话 #${sessionId}）`,
-        linkedSkill: `${gap} · ${goalSourceTag}`,
+        // linked_skill 列仅 128 字符：放短标题 + 来源标签，长原文一律留在 reason（1024）。
+        title: shortTitle,
+        reason: `来自面试报告的薄弱点（会话 #${sessionId}）。完整描述：${gap}`,
+        linkedSkill: `${shortTitle} · ${goalSourceTag}`.slice(0, 128),
       })
+      existingKeys.add(normalizeGap(shortTitle))
       created += 1
     }
     createdGoalKeys.value.push(...goalGaps.value)

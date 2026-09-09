@@ -199,6 +199,11 @@ function createIdempotencyKey(): string {
     : `focus-${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
+/** 响应页面内「开始一次专注」类行动入口：展开计时器，用户按一次开始即可。 */
+function handleOpenRequest(): void {
+  collapsed.value = false
+}
+
 function persistPendingSessions(): void {
   try {
     localStorage.setItem(PENDING_STORAGE_KEY, JSON.stringify(pendingSessions.value))
@@ -229,8 +234,15 @@ function restorePendingSessions(): void {
   }
 }
 
-onMounted(restorePendingSessions)
-onBeforeUnmount(clearTimer)
+onMounted(() => {
+  restorePendingSessions()
+  window.addEventListener('focus-timer-open', handleOpenRequest)
+})
+
+onBeforeUnmount(() => {
+  clearTimer()
+  window.removeEventListener('focus-timer-open', handleOpenRequest)
+})
 </script>
 
 <style scoped>

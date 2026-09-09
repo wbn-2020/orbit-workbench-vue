@@ -2,12 +2,12 @@
   <div class="page logs-page">
     <header class="ow-page-top">
       <div>
-        <div class="ow-crumb">成长 / 面试记录</div>
+        <div class="ow-crumb">市场感知 / 面试记录</div>
         <h1><NotebookPen aria-hidden="true" /> 面试记录</h1>
         <div class="sub">你的全部模拟面试会话</div>
       </div>
       <div class="acts">
-        <button class="ow-btn gold" type="button" @click="router.push('/interviews/new')">＋ 新建面试</button>
+        <button class="ow-btn" type="button" @click="router.push('/interviews/new')">＋ 新建面试</button>
       </div>
     </header>
 
@@ -52,7 +52,7 @@
               </div>
             </div>
             <span v-if="reportScores[session.id] != null" class="score-chip">{{ reportScores[session.id] }}分</span>
-            <button class="ow-btn sm" type="button" @click="open(session)">
+            <button class="ow-btn sm" :class="{ ghost: isViewAction(session) }" type="button" @click="open(session)">
               {{ rowAction(session) }}
             </button>
           </div>
@@ -133,6 +133,11 @@ function rowAction(session: InterviewSession): string {
   if (session.status === 'READY') return '开始面试'
   if (isEnded(session.status)) return '报告'
   return '继续面试'
+}
+
+/** 查看类动作（报告）用描边次按钮：与开始/继续面试的实底主按钮区分主次，不再双绿并排。 */
+function isViewAction(session: InterviewSession): boolean {
+  return session.status === 'COMPLETED' || (isEnded(session.status) && session.status !== 'READY')
 }
 
 function open(session: InterviewSession): void {

@@ -2,7 +2,7 @@
   <div class="page study-page">
     <header class="ow-page-top">
       <div>
-        <div class="ow-crumb">成长 / 复习计划</div>
+        <div class="ow-crumb">学习更新 / 复习计划</div>
         <h1><CircleCheckBig aria-hidden="true" /> 复习计划</h1>
         <div class="sub">来自报告自动生成与手工创建的真实任务</div>
       </div>

@@ -94,6 +94,11 @@
                 </span>
               </div>
               <p class="log-content">{{ log.content }}</p>
+              <div v-if="distillErrors[log.id]" class="log-distill-error" role="alert">
+                <CircleAlert aria-hidden="true" />
+                <span class="err-text">蒸馏失败：{{ distillErrors[log.id] }}</span>
+                <button class="err-retry" type="button" @click="distill(log.id)">重试</button>
+              </div>
               <div class="log-actions">
                 <button
                   class="ws-btn ghost"
@@ -146,7 +151,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { CheckCircle2, FlaskConical, Plus, Sparkles } from 'lucide-vue-next'
+import { CheckCircle2, CircleAlert, FlaskConical, Plus, Sparkles } from 'lucide-vue-next'
 import {
   createWorkLog,
   distillWorkLog,
@@ -161,6 +166,8 @@ import { problemMessage } from '@/api/http'
 const logs = ref<WorkLog[]>([])
 const cards = ref<KnowledgeCard[]>([])
 const distillingId = ref<string | null>(null)
+/** 每条工作记录的蒸馏失败信息：内联呈现在记录卡上，不再只靠短暂 toast。 */
+const distillErrors = ref<Record<string, string>>({})
 const lastCard = ref<KnowledgeCard | null>(null)
 const loading = ref(false)
 const loadError = ref('')
@@ -243,12 +250,14 @@ async function submit(): Promise<void> {
 
 async function distill(id: string): Promise<void> {
   distillingId.value = id
+  delete distillErrors.value[id]
   try {
     const card = await distillWorkLog(id)
     lastCard.value = card
     await load()
   } catch (error) {
-    ElMessage.error(problemMessage(error))
+    // 失败必须留在记录卡上：用户等了几秒 AI 调用，toast 一闪而过等于什么都没发生。
+    distillErrors.value[id] = problemMessage(error)
   } finally {
     distillingId.value = null
   }
@@ -522,6 +531,51 @@ onBeforeUnmount(() => {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.6;
+}
+
+.log-distill-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  border: 1px solid var(--ow-danger, #b42318);
+  border-radius: 10px;
+  background: var(--ow-danger-soft, rgb(180 35 24 / 8%));
+  font-size: 12.5px;
+}
+
+.log-distill-error svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  color: var(--ow-danger, #b42318);
+}
+
+.log-distill-error .err-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--ow-danger, #b42318);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.log-distill-error .err-retry {
+  flex: none;
+  padding: 3px 10px;
+  border: 1px solid var(--ow-danger, #b42318);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ow-danger, #b42318);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.log-distill-error .err-retry:hover {
+  background: var(--ow-danger, #b42318);
+  color: #fff;
 }
 
 .log-empty,
