@@ -1,0 +1,1 @@
+import{i as e}from"./http-DGU0r6kZ.js";async function t(){let{data:t}=await e.get(`/knowledge-overview`);return t}async function n(){let{data:t}=await e.get(`/knowledge-cards/due`);return t.cards}async function r(t){let{data:n}=await e.post(`/knowledge-cards/${t}/review`);return n}export{t as n,r,n as t};

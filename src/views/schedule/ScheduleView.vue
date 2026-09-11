@@ -311,7 +311,7 @@ onMounted(load)
   color: var(--ink);
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: 12px;
 }
 
 .fld select {
@@ -320,7 +320,7 @@ onMounted(load)
   color: var(--ink);
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: 12px;
 }
 
 .chk {
@@ -328,7 +328,7 @@ onMounted(load)
   gap: 6px;
   align-items: center;
   align-self: end;
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--muted);
 }
 
@@ -382,7 +382,7 @@ onMounted(load)
 }
 
 .ev-time .ic {
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .ev-time .tm {
@@ -411,8 +411,8 @@ onMounted(load)
   padding: 1px 8px;
   color: var(--brand);
   background: var(--brand-50);
-  border-radius: 8px;
-  font-size: 11px;
+  border-radius: 12px;
+  font-size: 12px;
   font-weight: 700;
 }
 

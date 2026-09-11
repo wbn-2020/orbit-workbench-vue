@@ -154,7 +154,6 @@
         </div>
       </aside>
     </div>
-    <FocusTimerWidget />
   </div>
 </template>
 
@@ -172,7 +171,6 @@ import {
 } from '@/api/learning'
 import type { FocusStat, LearningGoal, LearningGoalStatus } from '@/api/types'
 import ErrorState from '@/components/ErrorState.vue'
-import FocusTimerWidget from '@/components/FocusTimerWidget.vue'
 
 const goals = ref<LearningGoal[]>([])
 const stats = ref<FocusStat[]>([])
@@ -351,7 +349,7 @@ onUnmounted(() => {
 .lu-head h1 {
   margin: 0;
   color: var(--ink);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
 }
 
@@ -381,7 +379,7 @@ onUnmounted(() => {
 .lu-card-title {
   margin: 0 0 14px;
   color: var(--ink);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -470,7 +468,7 @@ onUnmounted(() => {
 .goal-item {
   padding: 14px 16px;
   border: 1px solid var(--line-2);
-  border-radius: 14px;
+  border-radius: 12px;
 }
 
 .goal-head {
@@ -490,7 +488,7 @@ onUnmounted(() => {
 .goal-status {
   padding: 2px 9px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
 }
 
@@ -512,7 +510,7 @@ onUnmounted(() => {
 .goal-reason {
   margin: 0 0 10px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -574,10 +572,10 @@ onUnmounted(() => {
   width: 26px;
   height: 26px;
   border: 1px solid var(--line, rgb(15 23 42 / 12%));
-  border-radius: 8px;
+  border-radius: 12px;
   background: var(--surface, #fff);
   color: var(--ink, #1a1a1a);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -611,7 +609,7 @@ onUnmounted(() => {
 
 .goal-empty {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .lu-side {
@@ -629,19 +627,19 @@ onUnmounted(() => {
 .focus-loading {
   min-height: 48px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .focus-num {
   color: var(--ink);
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .focus-unit {
   color: var(--ow-muted, #52685e);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .focus-bars {
@@ -669,7 +667,7 @@ onUnmounted(() => {
 
 .focus-day {
   color: var(--ow-muted, #52685e);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .focus-tip {
@@ -700,11 +698,11 @@ onUnmounted(() => {
   color: #fff;
   background: linear-gradient(135deg, var(--btn-1, #1fa879), var(--btn-2, #15805f));
   border: 0;
-  border-radius: 10px;
+  border-radius: 12px;
   box-shadow: 0 4px 12px rgb(31 111 92 / 26%);
   cursor: pointer;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 

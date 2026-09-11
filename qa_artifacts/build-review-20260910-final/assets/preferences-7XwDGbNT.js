@@ -1,0 +1,1 @@
+import{i as e}from"./http-DGU0r6kZ.js";async function t(){let{data:t}=await e.get(`/preferences`);return t}async function n(t){let{data:n}=await e.put(`/preferences`,t);return n}export{n,t};

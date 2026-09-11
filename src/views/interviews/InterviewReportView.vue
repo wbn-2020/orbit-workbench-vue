@@ -259,6 +259,7 @@ import {
 import { createLearningGoal, listLearningGoals } from '@/api/learning'
 import { problemMessage } from '@/api/http'
 import ErrorState from '@/components/ErrorState.vue'
+import { gapKey, gapFromReason } from '@/utils/reportGoal'
 
 const route = useRoute()
 const router = useRouter()
@@ -397,6 +398,9 @@ async function generate(): Promise<void> {
       return
     }
     const state = await getReport(sessionId)
+    if (state.report?.status !== 'REPORT_READY') {
+      throw new Error('报告尚未生成完成，请刷新后确认状态')
+    }
     report.value = state.report
     exists.value = state.exists
     ElMessage.success('报告已生成')
@@ -484,19 +488,19 @@ async function createGoalsFromGaps(): Promise<void> {
     const existingKeys = new Set(
       existing
         .filter((goal) => (goal.linkedSkill ?? '').endsWith(goalSourceTag))
-        .flatMap((goal) => [normalizeGap(goal.title), normalizeGap(shortenGapTitle(goal.title))]),
+        .map((goal) => gapFromReason(goal.reason) ?? gapKey(goal.title)),
     )
     let created = 0
     for (const gap of goalGaps.value) {
       const shortTitle = shortenGapTitle(gap)
-      if (existingKeys.has(normalizeGap(shortTitle))) continue
+      if (existingKeys.has(gapKey(gap))) continue
       await createLearningGoal({
         // linked_skill 列仅 128 字符：放短标题 + 来源标签，长原文一律留在 reason（1024）。
         title: shortTitle,
         reason: `来自面试报告的薄弱点（会话 #${sessionId}）。完整描述：${gap}`,
         linkedSkill: `${shortTitle} · ${goalSourceTag}`.slice(0, 128),
       })
-      existingKeys.add(normalizeGap(shortTitle))
+      existingKeys.add(gapKey(gap))
       created += 1
     }
     createdGoalKeys.value.push(...goalGaps.value)
@@ -551,7 +555,7 @@ load()
 
 .overall .score {
   color: var(--ink);
-  font-size: 46px;
+  font-size: 36px;
   font-weight: 900;
   line-height: 1;
 }
@@ -566,7 +570,7 @@ load()
   display: inline-block;
   padding: 5px 16px;
   border-radius: 12px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -601,7 +605,7 @@ load()
   width: 120px;
   flex: 0 0 120px;
   color: var(--ink-2);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -623,7 +627,7 @@ load()
   width: 34px;
   flex: 0 0 34px;
   color: var(--ink);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   text-align: right;
 }
@@ -639,7 +643,7 @@ load()
 
 .radar-label {
   fill: var(--muted);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -647,7 +651,7 @@ load()
   margin: 0;
   padding-left: 18px;
   color: var(--ink-2);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.9;
 }
 
@@ -714,7 +718,7 @@ load()
   font-size: 12px;
   line-height: 1.6;
   border: 1px solid var(--ow-line-soft, rgb(31 111 92 / 12%));
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 10px 14px;
   background: var(--ow-surface-raised, var(--ow-surface, #fff));
 }

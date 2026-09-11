@@ -563,7 +563,7 @@ if (route.query.mode === '模拟面试') {
 }
 
 .bindings-header label {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .binding-row {
@@ -601,7 +601,7 @@ if (route.query.mode === '模拟面试') {
 .quick-start-body p {
   margin: 6px 0 0;
   color: var(--ow-muted);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
 }
 

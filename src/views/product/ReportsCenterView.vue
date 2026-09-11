@@ -601,7 +601,7 @@ onMounted(reload)
 
 .surface-head h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .version-pick {
@@ -660,7 +660,7 @@ onMounted(reload)
   background: var(--surface-2);
   border-left: 3px solid var(--line-2);
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.7;
 }
 
@@ -705,7 +705,7 @@ onMounted(reload)
   background: var(--brand-50);
   border-radius: 5px;
   font-family: ui-monospace, monospace;
-  font-size: 11px;
+  font-size: 12px;
   padding: 1px 6px;
 }
 
@@ -733,7 +733,7 @@ onMounted(reload)
   color: var(--brand-700);
   background: var(--surface);
   border-radius: 50%;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -771,7 +771,7 @@ onMounted(reload)
   width: 96px;
   flex: 0 0 96px;
   color: var(--ink-2);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -794,7 +794,7 @@ onMounted(reload)
   width: 34px;
   flex: 0 0 34px;
   color: var(--ink);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   text-align: right;
 }
@@ -803,7 +803,7 @@ onMounted(reload)
   width: 74px;
   flex: 0 0 74px;
   color: var(--ow-muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .muted {

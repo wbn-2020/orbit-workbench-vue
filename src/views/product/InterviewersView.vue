@@ -381,7 +381,7 @@ load()
   height: 38px;
   flex: none;
   place-items: center;
-  border-radius: 11px;
+  border-radius: 12px;
   font-weight: 800;
 }
 

@@ -1,0 +1,1 @@
+import{sn as e}from"./use-global-config-19dSQh_z.js";function t(){if(!arguments.length)return[];var t=arguments[0];return e(t)?t:[t]}export{t};

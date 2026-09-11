@@ -1,4 +1,5 @@
 import { http } from './http'
+import { consumeSse } from './sse'
 
 /* 面试主链 / 报告 / 复习计划 —— 对应后端 /interview-sessions 与 /study-tasks */
 
@@ -240,44 +241,19 @@ export async function streamNextQuestion(
     throw new Error(detail)
   }
 
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const events = buffer.split('\n\n')
-    buffer = events.pop() ?? ''
-    for (const raw of events) {
-      let event = 'message'
-      const dataLines: string[] = []
-      raw.split('\n').forEach((line) => {
-        if (line.startsWith('event:')) event = line.slice(6).trim()
-        else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim())
-      })
-      if (!dataLines.length) continue
-      const data = dataLines.join('\n')
+  await consumeSse(response.body, (event, data) => {
       if (event === 'start') {
-        try {
-          handlers.onStart?.(JSON.parse(data))
-        } catch {
-          /* 忽略解析失败 */
-        }
+        handlers.onStart?.(JSON.parse(data))
       } else if (event === 'delta') {
         handlers.onDelta?.(data)
       } else if (event === 'done') {
-        try {
-          const payload = JSON.parse(data) as { turnId: number; turnNo: number; question: string }
-          handlers.onDelta?.(`__DONE__${JSON.stringify(payload)}`)
-        } catch {
-          /* 忽略 */
-        }
+        const payload = JSON.parse(data) as { turnId: number; turnNo: number; question: string }
+        if (!payload.turnId || !payload.question) throw new Error('出题完成事件无效')
+        handlers.onDelta?.(`__DONE__${JSON.stringify(payload)}`)
       } else if (event === 'error') {
         handlers.onError?.(data)
       }
-    }
-  }
+  })
 }
 
 export async function submitAnswer(
@@ -433,33 +409,16 @@ export async function streamGenerateReport(
     throw new Error(detail)
   }
 
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const events = buffer.split('\n\n')
-    buffer = events.pop() ?? ''
-    for (const raw of events) {
-      let event = 'message'
-      const dataLines: string[] = []
-      raw.split('\n').forEach((line) => {
-        if (line.startsWith('event:')) event = line.slice(6).trim()
-        else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim())
-      })
-      if (!dataLines.length) continue
-      const data = dataLines.join('\n')
+  await consumeSse(response.body, (event, data) => {
       if (event === 'delta') {
         handlers.onDelta?.(data)
       } else if (event === 'done') {
+        if (JSON.parse(data).reportReady !== true) throw new Error('报告完成事件无效')
         handlers.onDone?.()
         return
       } else if (event === 'error') {
         handlers.onError?.(data)
         return
       }
-    }
-  }
+  })
 }

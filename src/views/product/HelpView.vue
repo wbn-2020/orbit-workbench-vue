@@ -78,7 +78,7 @@
           description="帮助内容是人工按当前实现整理的，可能没覆盖你的问题。换个关键词、切回「全部」，或者直接看下面的失败排查。"
           :icon="Search"
         />
-        <el-collapse v-else v-model="opened">
+        <el-collapse v-else v-model="opened" class="faq-columns">
           <el-collapse-item v-for="(faq, index) in visibleFaqs" :key="faq.q" :name="faq.q">
             <template #title>
               <span class="faq-title">
@@ -169,7 +169,7 @@ const visibleFaqs = computed(() => {
   place-items: center;
   color: #16634f;
   background: var(--brand-100);
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 900;
 }
@@ -177,19 +177,19 @@ const visibleFaqs = computed(() => {
 .step-card h3 {
   margin: 0;
   color: var(--ow-ink-secondary);
-  font-size: 13.5px;
+  font-size: 14px;
 }
 
 .step-card p {
   margin: 0;
   color: var(--ink-2);
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.7;
 }
 
 .step-link {
   color: var(--brand-700);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   text-decoration: none;
 }
@@ -198,9 +198,12 @@ const visibleFaqs = computed(() => {
   text-decoration: underline;
 }
 
+/* 帮助页原本单列铺满，25 条 FAQ 把页高撑到 3738px（4.15 屏）。
+   内容一条不删，改用双列排版压缩纵向长度；窄屏自动回落单列。 */
 .boundary-list,
 .trouble-list {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 10px;
   margin: 0;
   padding: 0;
@@ -214,8 +217,8 @@ const visibleFaqs = computed(() => {
   padding: 10px 12px;
   background: var(--surface-2);
   border: 1px solid var(--ow-line-soft);
-  border-radius: 10px;
-  font-size: 12.5px;
+  border-radius: 12px;
+  font-size: 12px;
 }
 
 .boundary-head {
@@ -242,9 +245,9 @@ const visibleFaqs = computed(() => {
   color: var(--ink-2);
   background: var(--surface-2);
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: 12px;
   font: inherit;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -253,6 +256,17 @@ const visibleFaqs = computed(() => {
   color: #16634f;
   background: var(--brand-50);
   border-color: var(--brand-200);
+}
+
+/* 双列 FAQ：保持 DOM 顺序（前半在左列、后半在右列），展开时不跨列断裂 */
+.faq-columns {
+  columns: 2;
+  column-gap: 12px;
+}
+
+.faq-columns :deep(.el-collapse-item) {
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
 }
 
 .faq-title {
@@ -271,25 +285,28 @@ const visibleFaqs = computed(() => {
 
 .faq-q {
   color: var(--ow-ink-secondary);
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 700;
 }
 
 .faq-a {
   margin: 0;
+  /* 行宽收进 32–38 汉字的舒适区（约 72ch），原先接近满屏，长句读起来串行 */
+  max-width: 72ch;
   color: var(--ink-2);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.8;
 }
 
 .trouble-when {
   color: var(--ow-ink-secondary);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
 }
 
 .trouble-symptom {
   margin: 0;
+  max-width: 72ch;
   color: var(--ink-2);
   line-height: 1.7;
 }
@@ -299,6 +316,12 @@ const visibleFaqs = computed(() => {
   gap: 6px;
   flex-wrap: wrap;
   margin-top: 2px;
+}
+
+@media (max-width: 900px) {
+  .faq-columns {
+    columns: 1;
+  }
 }
 
 @media (max-width: 720px) {

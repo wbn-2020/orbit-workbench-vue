@@ -1,4 +1,5 @@
 import { http } from './http'
+import { consumeSse } from './sse'
 
 /* 知识库（RAG 第一版：项目知识块检索 + AI 带来源回答）与项目画像事实 */
 
@@ -108,7 +109,7 @@ export async function archiveFact(
 
 export interface AskStreamHandlers {
   onDelta?: (text: string) => void
-  onDone?: (finalAnswer: string, insufficient: boolean) => void
+  onDone?: (finalAnswer: string, insufficient: boolean, sources: KnowledgeSource[]) => void
   onError?: (message: string) => void
 }
 
@@ -146,37 +147,18 @@ export async function streamAskKnowledge(
     throw new Error(detail)
   }
 
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const events = buffer.split('\n\n')
-    buffer = events.pop() ?? ''
-    for (const raw of events) {
-      let event = 'message'
-      const dataLines: string[] = []
-      raw.split('\n').forEach((line) => {
-        if (line.startsWith('event:')) event = line.slice(6).trim()
-        else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim())
-      })
-      if (!dataLines.length) continue
-      const data = dataLines.join('\n')
+  await consumeSse(response.body, (event, data) => {
       if (event === 'delta') {
         handlers.onDelta?.(data)
       } else if (event === 'done') {
-        try {
-          const payload = JSON.parse(data) as { insufficient: boolean; answer: string }
-          handlers.onDone?.(payload.answer, payload.insufficient)
-        } catch {
-          handlers.onDone?.(data, false)
+        const payload = JSON.parse(data) as AskResult
+        if (typeof payload.answer !== 'string' || !Array.isArray(payload.sources)) {
+          throw new Error('问答完成事件无效')
         }
+        handlers.onDone?.(payload.answer, payload.insufficient, payload.sources)
       } else if (event === 'error') {
         handlers.onError?.(data)
         return
       }
-    }
-  }
+  })
 }

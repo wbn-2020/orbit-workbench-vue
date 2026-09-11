@@ -20,12 +20,12 @@
       <el-skeleton animated style="margin-top: 18px;">
         <template #template>
           <div class="wb-skel-grid">
-            <el-skeleton-item variant="rect" style="height: 84px; border-radius: 14px;" />
-            <el-skeleton-item variant="rect" style="height: 84px; border-radius: 14px;" />
-            <el-skeleton-item variant="rect" style="height: 84px; border-radius: 14px;" />
-            <el-skeleton-item variant="rect" style="height: 84px; border-radius: 14px;" />
+            <el-skeleton-item variant="rect" style="height: 84px; border-radius: 12px;" />
+            <el-skeleton-item variant="rect" style="height: 84px; border-radius: 12px;" />
+            <el-skeleton-item variant="rect" style="height: 84px; border-radius: 12px;" />
+            <el-skeleton-item variant="rect" style="height: 84px; border-radius: 12px;" />
           </div>
-          <el-skeleton-item variant="rect" style="margin-top: 18px; height: 120px; border-radius: 14px;" />
+          <el-skeleton-item variant="rect" style="margin-top: 18px; height: 120px; border-radius: 12px;" />
         </template>
       </el-skeleton>
     </div>
@@ -284,7 +284,7 @@ onUnmounted(() => {
   padding: 26px 28px;
   background: linear-gradient(135deg, var(--surface), var(--brand-50, rgb(31 111 92 / 8%)));
   border: 1px solid var(--line-2);
-  border-radius: 20px;
+  border-radius: 18px;
   box-shadow: var(--shadow-sm);
 }
 
@@ -299,7 +299,7 @@ onUnmounted(() => {
 .wb-greeting {
   margin: 0;
   color: var(--ink);
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 800;
 }
 
@@ -320,7 +320,7 @@ onUnmounted(() => {
   background: var(--brand-50, rgb(31 111 92 / 12%));
   border: 1px solid var(--brand-200, rgb(31 111 92 / 20%));
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -333,7 +333,7 @@ onUnmounted(() => {
 .wb-section-title {
   margin: 0 0 14px;
   color: var(--ink);
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 800;
 }
 
@@ -368,7 +368,7 @@ onUnmounted(() => {
   height: 52px;
   flex: none;
   place-items: center;
-  border-radius: 14px;
+  border-radius: 12px;
   color: #fff;
 }
 
@@ -397,14 +397,14 @@ onUnmounted(() => {
 .mode-body h3 {
   margin: 0 0 4px;
   color: var(--ink);
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 800;
 }
 
 .mode-body p {
   margin: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -416,14 +416,14 @@ onUnmounted(() => {
 
 .mode-metric strong {
   color: var(--ink);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .mode-metric small {
   color: var(--ow-ink-secondary, #3f574c);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -440,7 +440,7 @@ onUnmounted(() => {
   padding: 18px;
   background: var(--surface);
   border: 1px solid var(--line-2);
-  border-radius: 16px;
+  border-radius: 18px;
   text-decoration: none;
   transition: transform 140ms ease, border-color 140ms ease;
 }
@@ -459,7 +459,7 @@ onUnmounted(() => {
 
 .asset-label {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -478,7 +478,7 @@ onUnmounted(() => {
   padding: 14px 18px;
   background: var(--surface);
   border: 1px solid var(--line-2);
-  border-radius: 14px;
+  border-radius: 12px;
 }
 
 .agenda li.done {
@@ -487,7 +487,7 @@ onUnmounted(() => {
 
 .agenda-time {
   color: var(--faint);
-  font-size: 13px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
   flex: none;
 }
@@ -532,7 +532,7 @@ onUnmounted(() => {
 .wb-onboard-title {
   margin: 0;
   color: var(--ow-ink, #21332c);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
 }
 
@@ -578,7 +578,7 @@ onUnmounted(() => {
   border-radius: 999px;
   background: var(--ow-primary-soft, rgb(31 111 92 / 12%));
   color: var(--ow-primary-strong, #1f6f5c);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -596,7 +596,7 @@ onUnmounted(() => {
 
 .wb-step-body small {
   color: var(--ow-muted, #5c7268);
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -629,7 +629,7 @@ onUnmounted(() => {
   gap: 22px;
   padding: 18px 22px;
   border: 1px solid var(--ow-line-soft, rgb(31 111 92 / 14%));
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--ow-surface, #fff);
   flex-wrap: wrap;
 }
@@ -643,14 +643,14 @@ onUnmounted(() => {
 
 .wb-trend-num {
   color: var(--ow-ink);
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .wb-trend-label {
   color: var(--ow-muted, #52685e);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .wb-trend-label .up { color: var(--ow-status-success-text, #0f7a40); }
@@ -664,7 +664,7 @@ onUnmounted(() => {
 
 .wb-trend-link {
   color: #16634f;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   text-decoration: none;
 }
@@ -672,7 +672,7 @@ onUnmounted(() => {
 .wb-trend-empty {
   margin: 0;
   color: var(--ow-muted, #52685e);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.7;
 }
 

@@ -183,7 +183,7 @@ onMounted(load)
 .ko-head h1 {
   margin: 0;
   color: var(--ow-ink);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
 }
 
@@ -207,7 +207,7 @@ onMounted(load)
   gap: 4px;
   padding: 18px 20px;
   border: 1px solid var(--ow-line-soft, rgb(31 111 92 / 14%));
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--ow-surface, #fff);
 }
 
@@ -220,7 +220,7 @@ onMounted(load)
 
 .ko-stat-label {
   color: var(--ow-ink-secondary, #3f574c);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -253,18 +253,18 @@ onMounted(load)
 .ko-item {
   padding: 10px 12px;
   border: 1px solid var(--ow-line-soft, rgb(31 111 92 / 12%));
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .ko-item b {
   color: var(--ow-ink);
-  font-size: 13.5px;
+  font-size: 14px;
 }
 
 .ko-item p {
   margin: 4px 0 0;
   color: var(--ow-muted, #52685e);
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -274,7 +274,7 @@ onMounted(load)
 
 .ko-empty {
   color: var(--ow-muted, #52685e);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .ko-empty a {
@@ -285,7 +285,7 @@ onMounted(load)
 .ko-note {
   margin: 0;
   color: var(--ow-muted, #52685e);
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.7;
 }
 
@@ -315,7 +315,7 @@ onMounted(load)
   gap: 12px;
   padding: 10px 12px;
   border: 1px solid var(--ow-line-soft, rgb(31 111 92 / 12%));
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .ko-due-body {
@@ -327,7 +327,7 @@ onMounted(load)
 
 .ko-due-body b {
   color: var(--ow-ink);
-  font-size: 13.5px;
+  font-size: 14px;
 }
 
 .ko-due-meta {

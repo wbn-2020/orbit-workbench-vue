@@ -1,12 +1,18 @@
-:root {
+/*
+  选择器刻意写成 html:root（权重 0,1,1）而不是 :root（0,1,0）：
+  Element Plus 的组件样式由 unplugin-vue-components 按需注入，注入时机晚于本文件，
+  同权重下后加载者胜出，会把 --el-* 打回出厂值（实测 --el-text-color-regular 被改回 #606266）。
+  提高一级权重后，本文件的设计令牌在任何加载顺序下都稳定生效。
+*/
+html:root {
   color-scheme: light;
-  /* 与 body.ow-proto 保持同一套字体栈，避免两套声明在 Inter 被加载后产生不一致 */
+  /* 与 body.ow-proto 保持同一套字体栈，避免两处声明不一致 */
   font-family:
     "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Segoe UI", system-ui, -apple-system, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 
-  /* 设计令牌与 8 套主题见 styles/proto.css；此处 --ow-* 为其主题别名 */
+  /* 设计令牌与两套主题（晨野 / 夜航）见 styles/proto.css；此处 --ow-* 为其主题别名 */
 
   --ow-sidebar-width: 224px;
   --ow-topbar-height: 72px;
@@ -32,12 +38,16 @@
   --el-text-color-primary: var(--ow-ink);
   --el-text-color-regular: var(--ow-ink-secondary);
   --el-text-color-secondary: var(--ow-muted);
+  --el-text-color-placeholder: var(--ow-faint);
   --el-mask-color: var(--ow-mask);
   --el-border-radius-base: var(--ow-radius-sm);
   --el-box-shadow-light: var(--ow-shadow-sm);
+  /* 表格文字色在 EP 里是独立变量，必须单独对齐，否则表格会保留下沉一档的出厂灰 */
+  --el-table-text-color: var(--ow-ink-secondary);
+  --el-table-header-text-color: var(--ow-muted);
 }
 
-:root.dark {
+html:root.dark {
   color-scheme: dark;
   --el-bg-color: var(--ow-surface);
   --el-bg-color-page: var(--ow-bg);
@@ -52,8 +62,11 @@
   --el-text-color-primary: var(--ow-ink);
   --el-text-color-regular: var(--ow-ink-secondary);
   --el-text-color-secondary: var(--ow-muted);
+  --el-text-color-placeholder: var(--ow-faint);
   --el-mask-color: var(--ow-mask);
   --el-box-shadow-light: var(--ow-shadow-sm);
+  --el-table-text-color: var(--ow-ink-secondary);
+  --el-table-header-text-color: var(--ow-muted);
 }
 
 * {
@@ -151,7 +164,7 @@ p {
 .surface-title {
   margin: 0;
   color: var(--ow-ink);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -223,7 +236,7 @@ p {
 .el-button {
   min-height: 36px;
   font-weight: 650;
-  border-radius: 9px;
+  border-radius: 12px;
   box-shadow: var(--ow-shadow-sm);
 }
 
@@ -254,6 +267,32 @@ p {
   --el-table-row-hover-bg-color: var(--ow-surface-hover);
 }
 
+/* 状态标签用的是「填充色当文字色」，出厂绿/红作正文只有约 2.6:1 / 3.9:1，
+   不达 WCAG AA 正文 4.5:1。改用专门为文字设计的深一档语义色。 */
+html .el-tag.el-tag--success {
+  --el-tag-bg-color: var(--ow-status-success-bg);
+  --el-tag-border-color: var(--ow-status-success-border);
+  --el-tag-text-color: var(--ow-status-success-text);
+}
+
+html .el-tag.el-tag--danger {
+  --el-tag-bg-color: var(--ow-status-danger-bg);
+  --el-tag-border-color: var(--ow-status-danger-border);
+  --el-tag-text-color: var(--ow-status-danger-text);
+}
+
+html .el-tag.el-tag--warning {
+  --el-tag-bg-color: var(--ow-status-warning-bg);
+  --el-tag-border-color: var(--ow-status-warning-border);
+  --el-tag-text-color: var(--ow-status-warning-text);
+}
+
+html .el-tag.el-tag--info {
+  --el-tag-bg-color: var(--ow-status-info-bg);
+  --el-tag-border-color: var(--ow-status-info-border);
+  --el-tag-text-color: var(--ow-status-info-text);
+}
+
 .el-table th.el-table__cell {
   color: var(--ow-muted);
   font-size: 12px;
@@ -278,7 +317,7 @@ p {
 .el-select__wrapper,
 .el-segmented,
 .el-radio-button__inner {
-  border-radius: 9px;
+  border-radius: 12px;
 }
 
 .el-input__wrapper,
@@ -288,6 +327,53 @@ p {
 
 .el-message-box {
   border-radius: var(--ow-radius);
+}
+
+/* 窄屏触屏命中区（P1-1 / V2-F7 收口）：桌面紧凑、窄屏放大。
+
+   实现要点：
+   1) 必须放全局样式——放在组件 scoped 块里只能影响该组件自己的模板。
+   2) min-height / min-width 与各组件 scoped 里的 height / width 是**不同属性**，
+      CSS 规范下 min-height 优先于 height，所以无需改动任何组件的 scoped 样式即可撑开。
+
+   豁免清单（不参与本次收口）：
+   - input[type=radio] / [type=checkbox]：13×13 是 Element Plus 隐藏的真实原生控件，
+     用户实际点的是外层 label / 伪元素，命中区本来就够。
+   - .el-switch：开关的视觉尺寸是设计选择，强行撑到 44 会破坏控件外形。
+   - a.step-link / a.ko-stat-link：宽度已达 294–320px 的块状文字链接，按可点击性
+     已足够，仅补齐高度以免误触相邻行。
+*/
+@media (max-width: 900px) {
+  button,
+  .el-button,
+  .ow-btn,
+  .goal-step-btn,
+  .goal-op,
+  .cat-chip,
+  .lu-btn,
+  .ws-btn,
+  .focus-start-btn,
+  a.step-link,
+  a.ko-stat-link {
+    min-height: 44px;
+  }
+
+  /* 正方形 / 图标类按钮同时补宽度 */
+  .el-button.is-circle,
+  .goal-step-btn,
+  .ow-btn.xs {
+    min-width: 44px;
+  }
+
+  /* 放大后保持内容居中：部分自定义按钮类原本没有 flex 居中，
+     直接撑高会让文字/图标贴边。 */
+  .goal-step-btn,
+  .goal-op,
+  .cat-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 720px) {

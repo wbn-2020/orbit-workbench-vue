@@ -188,8 +188,8 @@ async function ask(): Promise<void> {
         streamed = true
         if (result.value) result.value.answer += delta
       },
-      onDone: (answer: string, insufficient: boolean) => {
-        result.value = { answer, insufficient, sources: result.value?.sources ?? [] }
+      onDone: (answer, insufficient, sources) => {
+        result.value = { answer, insufficient, sources }
       },
       onError: (message: string) => {
         // 流中途失败：后端未写入任何数据，清掉空骨架交给内联错误态
@@ -270,7 +270,7 @@ load()
 .answer-text {
   margin: 0 0 10px;
   color: var(--ink-2);
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.8;
   white-space: pre-wrap;
   word-break: break-word;
@@ -294,7 +294,7 @@ load()
 
 .source-path {
   color: var(--brand-700);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   word-break: break-all;
 }
@@ -310,7 +310,7 @@ load()
   margin: 0;
   padding-left: 18px;
   color: var(--ink-2);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.9;
 }
 

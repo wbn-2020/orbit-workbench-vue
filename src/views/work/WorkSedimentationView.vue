@@ -39,6 +39,9 @@
                   <span v-for="tag in card.tags" :key="tag" class="kc-tag">{{ tag }}</span>
                 </span>
               </button>
+              <button class="ws-btn ghost" type="button" :disabled="reviewingId !== null" @click="review(card)">
+                <CheckCircle2 aria-hidden="true" /> {{ reviewingId === card.id ? '记录中…' : '记一次回顾' }}
+              </button>
             </li>
             <li v-if="!cards.length" class="kc-empty">
               还没有知识卡片。从右侧挑一条工作记录点「蒸馏为知识卡片」，它就会成为你的第一张资产。
@@ -162,6 +165,22 @@ import {
 import type { KnowledgeCard, WorkLog, WorkLogCategory } from '@/api/types'
 import ErrorState from '@/components/ErrorState.vue'
 import { problemMessage } from '@/api/http'
+import { reviewCard } from '@/api/knowledgeOverview'
+
+const reviewingId = ref<string | null>(null)
+async function review(card: KnowledgeCard): Promise<void> {
+  if (reviewingId.value) return
+  reviewingId.value = card.id
+  try {
+    const updated = await reviewCard(card.id)
+    Object.assign(card, updated)
+    ElMessage.success('已记录回顾，下次复习日期已更新')
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
+  } finally {
+    reviewingId.value = null
+  }
+}
 
 const logs = ref<WorkLog[]>([])
 const cards = ref<KnowledgeCard[]>([])
@@ -320,7 +339,7 @@ onBeforeUnmount(() => {
 .ws-loading {
   margin: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .ws-head .ws-eyebrow {
@@ -334,7 +353,7 @@ onBeforeUnmount(() => {
 .ws-head h1 {
   margin: 0;
   color: var(--ink);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
 }
 
@@ -370,7 +389,7 @@ onBeforeUnmount(() => {
 .ws-card-title {
   margin: 0 0 14px;
   color: var(--ink);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -470,7 +489,7 @@ onBeforeUnmount(() => {
 .log-item {
   padding: 14px 16px;
   border: 1px solid var(--line-2);
-  border-radius: 14px;
+  border-radius: 12px;
 }
 
 .log-head {
@@ -483,7 +502,7 @@ onBeforeUnmount(() => {
 .log-cat {
   padding: 2px 9px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   background: var(--glass);
   color: var(--muted);
@@ -529,7 +548,7 @@ onBeforeUnmount(() => {
 .log-content {
   margin: 0 0 10px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
@@ -540,9 +559,9 @@ onBeforeUnmount(() => {
   padding: 8px 12px;
   margin-bottom: 10px;
   border: 1px solid var(--ow-danger, #b42318);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--ow-danger-soft, rgb(180 35 24 / 8%));
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 .log-distill-error svg {
@@ -564,7 +583,7 @@ onBeforeUnmount(() => {
   flex: none;
   padding: 3px 10px;
   border: 1px solid var(--ow-danger, #b42318);
-  border-radius: 8px;
+  border-radius: 12px;
   background: transparent;
   color: var(--ow-danger, #b42318);
   font-family: inherit;
@@ -581,7 +600,7 @@ onBeforeUnmount(() => {
 .log-empty,
 .kc-empty {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .ws-side {
@@ -642,7 +661,7 @@ onBeforeUnmount(() => {
 .ws-kc-sub {
   margin: 4px 0 12px;
   color: var(--ow-muted, #5c7268);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
@@ -657,7 +676,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 6px;
   color: var(--ow-ink-secondary, #3f574c);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -685,7 +704,7 @@ onBeforeUnmount(() => {
 
 .kc-title {
   color: var(--ink);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -707,7 +726,7 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: var(--glass);
   color: var(--faint);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 @media (max-width: 980px) {
@@ -727,7 +746,7 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: var(--ow-status-neutral-bg, var(--surface-2, #eef2f0));
   color: var(--ow-status-neutral-text, #52685e);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 

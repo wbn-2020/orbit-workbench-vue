@@ -287,7 +287,7 @@ onMounted(() => {
 
 .skill-summary {
   margin: 6px 0 0;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--ow-ink-secondary);
 }

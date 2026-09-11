@@ -962,7 +962,7 @@ watch([testStreaming, testPrompt], () => {
 
 .connection-cell small {
   color: var(--ow-muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .mono {
@@ -1001,14 +1001,14 @@ watch([testStreaming, testPrompt], () => {
 
 .section-head h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
 }
 
 .section-note {
   max-width: 900px;
   margin: 6px 0 0;
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.7;
   color: var(--ow-text-muted);
 }
@@ -1016,7 +1016,7 @@ watch([testStreaming, testPrompt], () => {
 .cell-note {
   display: block;
   margin-top: 2px;
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--ow-text-muted);
 }
 
@@ -1130,7 +1130,7 @@ watch([testStreaming, testPrompt], () => {
 .profile-grid dt {
   margin-bottom: 4px;
   color: var(--ow-muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .profile-grid dd {

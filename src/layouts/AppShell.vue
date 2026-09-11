@@ -3,8 +3,6 @@
     class="app-shell"
     :class="{ 'search-open': mobileSearchOpen, 'sidebar-collapsed': sidebarCollapsed }"
   >
-    <DreamyBackground />
-
     <aside class="sidebar">
       <div class="sidebar-top">
         <BrandBlock />
@@ -184,6 +182,15 @@
             <Bell aria-hidden="true" />
             <span v-if="unreadCount" class="bell-dot">{{ unreadCount }}</span>
           </button>
+          <button
+            class="focus-entry"
+            type="button"
+            aria-label="专注计时"
+            title="专注计时（学习更新）"
+            @click="router.push('/learning-update')"
+          >
+            <Timer aria-hidden="true" />
+          </button>
           <button class="theme-toggle" type="button" aria-label="切换主题" @click="ui.toggleNext()">
             <component :is="isDarkTheme ? Sun : MoonStar" aria-hidden="true" />
           </button>
@@ -220,6 +227,7 @@
     </div>
 
     <ChangePasswordDialog v-model="passwordDialogOpen" />
+    <FocusTimerWidget :active="route.name === 'learning-update'" />
   </div>
 </template>
 
@@ -252,14 +260,15 @@ import {
   Settings,
   Sun,
   Target,
+  Timer,
   UserRound,
   UsersRound,
 } from 'lucide-vue-next'
 import { computed, defineComponent, h, nextTick, onMounted, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
+import FocusTimerWidget from '@/components/FocusTimerWidget.vue'
 
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
-import DreamyBackground from '@/components/DreamyBackground.vue'
 import { getProblem } from '@/api/http'
 import { getUnreadCount } from '@/api/notifications'
 import {
@@ -566,7 +575,11 @@ async function handleLogout(): Promise<void> {
   overflow-y: auto;
   overflow-x: hidden;
   color: #ffffff;
-  background: linear-gradient(180deg, var(--nav-1) 0%, var(--nav-2) 55%, var(--nav-3) 100%);
+  /* 22 号诊断「渐变不作为全页面武器」收口：侧栏原本是 224×900 的三色纵向渐变，
+     每页必有且纯粹是装饰性背景墙。改用设计系统早已预留的 --ow-sidebar 纯色 token，
+     纵向层次交由下方 box-shadow 承担。
+     功能性渐变（评分环 .score-ring / 焦点条 .focus-bar）与按钮品牌渐变不在此列，保留。 */
+  background: var(--ow-sidebar);
   box-shadow: 4px 0 30px rgb(10 40 30 / 28%);
   transition: padding 200ms ease;
 }
@@ -600,7 +613,7 @@ async function handleLogout(): Promise<void> {
   color: rgb(255 255 255 / 70%);
   background: rgb(255 255 255 / 5%);
   border: 1px solid rgb(255 255 255 / 8%);
-  border-radius: 9px;
+  border-radius: 12px;
   cursor: pointer;
   flex: none;
   transition: color 140ms ease, background 140ms ease, transform 140ms ease;
@@ -632,7 +645,7 @@ async function handleLogout(): Promise<void> {
 
 .sidebar::-webkit-scrollbar-thumb {
   background: rgb(255 255 255 / 16%);
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid transparent;
   background-clip: content-box;
 }
@@ -674,7 +687,7 @@ async function handleLogout(): Promise<void> {
 
 :deep(.brand-copy small) {
   color: rgb(255 255 255 / 92%);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 2.5px;
 }
@@ -700,12 +713,12 @@ async function handleLogout(): Promise<void> {
   width: 100%;
   padding: 6px 10px 6px 9px;
   color: rgb(255 255 255 / 95%);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 2px;
   background: transparent;
   border: 0;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   font-family: inherit;
   text-align: left;
@@ -764,7 +777,7 @@ async function handleLogout(): Promise<void> {
   min-height: 40px;
   padding: 10px 12px;
   color: #ffffff;
-  border-radius: 11px;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.2px;
@@ -807,34 +820,6 @@ async function handleLogout(): Promise<void> {
   filter: drop-shadow(0 0 6px rgb(246 183 60 / 60%));
 }
 
-.nav-badge {
-  margin-left: auto;
-  color: #5a3a00;
-  background: linear-gradient(180deg, #f6b841, #e89412);
-  border-radius: 11px;
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 18px;
-  padding: 0 8px;
-  box-shadow: 0 2px 5px rgb(0 0 0 / 25%);
-}
-
-.nav-new {
-  margin-left: auto;
-  color: #fff;
-  background: var(--brand);
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 16px;
-  padding: 0 7px;
-  box-shadow: 0 2px 6px rgb(0 0 0 / 20%);
-}
-
-.nav-badge + .nav-new {
-  margin-left: 6px;
-}
-
 .sidebar-footer {
   position: relative;
   z-index: 1;
@@ -848,7 +833,7 @@ async function handleLogout(): Promise<void> {
   padding: 13px;
   background: rgb(255 255 255 / 7%);
   border: 1px solid rgb(255 255 255 / 10%);
-  border-radius: 14px;
+  border-radius: 12px;
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 8%),
     0 8px 22px rgb(0 0 0 / 20%);
@@ -913,9 +898,7 @@ async function handleLogout(): Promise<void> {
   padding: 10px 6px;
 }
 
-.app-shell.sidebar-collapsed .nav-item-text,
-.app-shell.sidebar-collapsed .nav-badge,
-.app-shell.sidebar-collapsed .nav-new {
+.app-shell.sidebar-collapsed .nav-item-text {
   display: none;
 }
 
@@ -949,7 +932,7 @@ async function handleLogout(): Promise<void> {
   place-items: center;
   color: #fff;
   background: linear-gradient(135deg, var(--av-1), var(--av-2));
-  border-radius: 11px;
+  border-radius: 12px;
   box-shadow: 0 4px 12px rgb(0 0 0 / 32%);
 }
 
@@ -968,14 +951,14 @@ async function handleLogout(): Promise<void> {
 .user-summary-name strong {
   overflow: hidden;
   color: #fff;
-  font-size: 13px;
+  font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .user-summary-name small {
   color: #ffffff;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 /* 本地账户样式已简化：移除等级进度条与金币装饰（F-07） */
@@ -995,7 +978,11 @@ async function handleLogout(): Promise<void> {
   align-items: center;
   gap: 14px;
   padding: 13px 30px;
-  background: linear-gradient(180deg, var(--topbar-1), var(--topbar-2));
+  /* 顶栏同为全站级装饰渐变：1376×72 的白色半透明渐变叠加 backdrop-filter，
+     既是视觉噪音，也是此前「大量文本对比度无法测量」的成因之一
+     （文本坐在渐变/玻璃底上，自动扫描器无从判定）。
+     改为纯色（仍是半透明白，毛玻璃质感保留），让上层文字落在可测量的背景上。 */
+  background: var(--topbar-1);
   border-bottom: 1px solid var(--topbar-border);
   backdrop-filter: blur(16px) saturate(140%);
   box-shadow: 0 6px 20px rgb(22 82 60 / 6%);
@@ -1022,7 +1009,7 @@ async function handleLogout(): Promise<void> {
   align-items: center;
   gap: 2px;
   min-width: 0;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -1094,7 +1081,7 @@ async function handleLogout(): Promise<void> {
 .recents-title {
   padding: 6px 12px;
   color: var(--faint);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -1109,10 +1096,10 @@ async function handleLogout(): Promise<void> {
   white-space: nowrap;
   background: transparent;
   border: 0;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .rec:hover {
@@ -1146,7 +1133,7 @@ async function handleLogout(): Promise<void> {
   color: var(--muted);
   background: var(--glass);
   border: 1px solid var(--glass-border);
-  border-radius: 7px;
+  border-radius: 12px;
 }
 
 .search-group-icon svg {
@@ -1197,7 +1184,7 @@ async function handleLogout(): Promise<void> {
 .hit-sub {
   flex-shrink: 0;
   color: var(--faint);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .hit-snippet {
@@ -1246,7 +1233,8 @@ async function handleLogout(): Promise<void> {
   transform: translateY(-1px);
 }
 
-.bell {
+.bell,
+.focus-entry {
   position: relative;
   display: grid;
   width: 42px;
@@ -1261,12 +1249,14 @@ async function handleLogout(): Promise<void> {
   transition: 0.15s;
 }
 
-.bell svg {
+.bell svg,
+.focus-entry svg {
   width: 20px;
   height: 20px;
 }
 
-.bell:hover {
+.bell:hover,
+.focus-entry:hover {
   color: var(--brand-700);
   background: var(--brand-50);
   border-color: var(--brand);
@@ -1286,9 +1276,9 @@ async function handleLogout(): Promise<void> {
   padding: 0 5px;
   color: #fff;
   background: var(--red);
-  border-radius: 10px;
+  border-radius: 12px;
   box-shadow: 0 0 0 2px var(--surface);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
 }
 
@@ -1390,6 +1380,24 @@ async function handleLogout(): Promise<void> {
   .search-toggle {
     display: grid;
   }
+
+  /* 触屏命中区与可读性：窄屏下顶栏图标按钮统一到 44×44，
+     输入类控件字号提到 16px（低于 16px 时 iOS Safari 会自动放大整页）。 */
+  .search-toggle,
+  .bell,
+  .focus-entry,
+  .theme-toggle,
+  .mobile-menu {
+    width: 44px;
+    height: 44px;
+  }
+
+  .search-input,
+  :deep(.el-input__inner),
+  :deep(.el-textarea__inner) {
+    font-size: 17px;
+  }
+
 
   .search {
     display: none;

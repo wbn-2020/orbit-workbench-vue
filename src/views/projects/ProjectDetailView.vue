@@ -761,7 +761,7 @@ onUnmounted(() => {
 
 .overview-item strong {
   color: var(--ow-ink-secondary);
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .overview-item strong.danger {
@@ -865,7 +865,7 @@ onUnmounted(() => {
 .fact-body p {
   margin: 7px 0 6px;
   color: var(--ow-ink);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.7;
   white-space: pre-wrap;
 }

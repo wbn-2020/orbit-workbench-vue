@@ -180,10 +180,6 @@ const router = createRouter({
           name: 'ai-connections',
           component: () => import('@/views/settings/AiConnectionsView.vue'),
           meta: { title: 'AI 连接' },
-                },
-        {
-          path: '/:pathMatch(.*)*',
-          redirect: '/workbench',
         },
       ],
     },

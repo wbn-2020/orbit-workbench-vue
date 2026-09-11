@@ -624,7 +624,7 @@ onMounted(load)
 
 .radar-label {
   fill: var(--ink-2);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -712,7 +712,7 @@ onMounted(load)
   color: var(--brand-700);
   background: none;
   border: 1px solid var(--line-2);
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -730,7 +730,7 @@ onMounted(load)
   padding: 8px 12px 10px 16px;
   background: var(--surface-3);
   border: 1px dashed var(--line-2);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .evidence-line {
@@ -738,7 +738,7 @@ onMounted(load)
   align-items: center;
   gap: 10px;
   color: var(--ink-2);
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 .evidence-line b {
@@ -756,13 +756,13 @@ onMounted(load)
   padding: 8px 0;
   border-bottom: 1px dashed var(--line);
   color: var(--ink-2);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .self-row b,
 .source-row b {
   color: var(--ink);
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .self-row span,
@@ -782,7 +782,7 @@ onMounted(load)
 
 .axis-label {
   fill: var(--faint);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .trend-legend {
@@ -802,8 +802,8 @@ onMounted(load)
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-left: 3px solid var(--gold);
-  border-radius: 10px;
-  font-size: 13px;
+  border-radius: 12px;
+  font-size: 14px;
   line-height: 1.7;
 }
 
@@ -848,7 +848,7 @@ onMounted(load)
   margin: 8px 0 0;
   max-width: 64ch;
   color: var(--ow-muted);
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.7;
 }
 

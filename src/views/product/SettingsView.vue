@@ -13,14 +13,45 @@
         </div>
         <div class="ow-card-b">
           <p class="ow-hint data-note">
-            当前产品数据保存在后端 MySQL；本页的导入导出、清空等危险操作尚未开放，不会伪造成功结果。
+            备份当前账号在本产品中写入的数据（项目、画像事实、知识卡片、面试、报告、简历、日程、偏好等）。
+            导入是<strong>覆盖式恢复</strong>：会先清空同范围数据再写回，请在同一账号下使用。
           </p>
           <div class="ow-row">
-            <button class="ow-btn" type="button" disabled title="敬请期待">导出 JSON 存档</button>
-            <button class="ow-btn ghost" type="button" disabled title="敬请期待">导入 JSON 存档</button>
+            <button class="ow-btn" type="button" :disabled="dataBusy !== ''" @click="handleExport">
+              {{ dataBusy === 'export' ? '导出中…' : '导出 JSON 存档' }}
+            </button>
+            <button class="ow-btn ghost" type="button" :disabled="dataBusy !== ''" @click="triggerImport">
+              {{ dataBusy === 'import' ? '导入中…' : '导入 JSON 存档' }}
+            </button>
+            <input
+              ref="importInput"
+              class="hidden-file"
+              type="file"
+              accept="application/json,.json"
+              @change="handleImportFile"
+            >
           </div>
+          <p v-if="dataError" class="error-text">{{ dataError }}</p>
+          <p v-if="dataHint" class="ow-hint">{{ dataHint }}</p>
           <div class="data-danger">
-            <button class="ow-btn danger" type="button" disabled title="敬请期待">清空全部数据（二次确认）</button>
+            <button class="ow-btn danger" type="button" :disabled="dataBusy !== ''" @click="handleClear">
+              {{ dataBusy === 'clear' ? '清空中…' : '清空全部数据（二次确认）' }}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="ow-card col6">
+        <div class="ow-card-h">
+          <div class="ic b2"><Beaker aria-hidden="true" /></div>
+          实验特性
+        </div>
+        <div class="ow-card-b">
+          <p class="ow-hint data-note">
+            岗位上表匹配需要手工录入岗位要求，投入产出比偏低，已从主导航撤出，保留为实验特性。
+          </p>
+          <div class="ow-row">
+            <RouterLink class="ow-btn ghost" to="/jobs">进入岗位与 JD 匹配</RouterLink>
           </div>
         </div>
       </section>
@@ -169,8 +200,8 @@
 </template>
 
 <script setup lang="ts">
-import { Bell, Download, Info, Sun, UserRound } from 'lucide-vue-next'
-import { ElMessage } from 'element-plus'
+import { Beaker, Bell, Download, Info, Sun, UserRound } from 'lucide-vue-next'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -178,6 +209,7 @@ import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { problemMessage } from '@/api/http'
+import { CLEAR_CONFIRM, countBackupRows, clearAllData, exportBackup, importBackup, type BackupPayload } from '@/api/dataBackup'
 import { getPreferences, updatePreferences } from '@/api/preferences'
 import { useAuthStore } from '@/stores/auth'
 import { OW_THEMES, useUiStore } from '@/stores/ui'
@@ -324,6 +356,109 @@ async function savePreferences(): Promise<void> {
   }
 }
 
+const importInput = ref<HTMLInputElement | null>(null)
+const dataBusy = ref<'' | 'export' | 'import' | 'clear'>('')
+const dataError = ref('')
+const dataHint = ref('')
+
+function stamp(): string {
+  const now = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`
+}
+
+async function handleExport(): Promise<void> {
+  dataBusy.value = 'export'
+  dataError.value = ''
+  dataHint.value = ''
+  try {
+    const payload = await exportBackup()
+    const blob = new Blob([JSON.stringify(payload, null, 1)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `orbit-workbench-backup-${stamp()}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+    dataHint.value = `已导出 ${payload.tables.length} 张表、${countBackupRows(payload)} 行数据。`
+  } catch (error) {
+    dataError.value = problemMessage(error)
+  } finally {
+    dataBusy.value = ''
+  }
+}
+
+function triggerImport(): void {
+  dataError.value = ''
+  dataHint.value = ''
+  importInput.value?.click()
+}
+
+async function handleImportFile(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  let payload: BackupPayload
+  try {
+    payload = JSON.parse(await file.text()) as BackupPayload
+  } catch {
+    dataError.value = '文件不是合法的 JSON，未做任何改动'
+    return
+  }
+  try {
+    await ElMessageBox.confirm(
+      `将用该备份覆盖当前账号的数据（${payload.tables?.length ?? 0} 张表、${countBackupRows(payload)} 行），此操作不可撤销。`,
+      '确认覆盖式恢复',
+      { type: 'warning', confirmButtonText: '覆盖恢复', cancelButtonText: '取消' },
+    )
+  } catch {
+    return
+  }
+  dataBusy.value = 'import'
+  try {
+    const summary = await importBackup(payload)
+    dataHint.value = `已恢复 ${summary.tables} 张表、${summary.rows} 行数据。`
+    ElMessage.success('导入完成')
+  } catch (error) {
+    dataError.value = problemMessage(error)
+  } finally {
+    dataBusy.value = ''
+  }
+}
+
+async function handleClear(): Promise<void> {
+  dataError.value = ''
+  dataHint.value = ''
+  let entered = ''
+  try {
+    const result = await ElMessageBox.prompt(
+      `将删除本账号在本产品中写入的全部数据（项目、画像事实、知识卡片、面试、报告、简历、日程、偏好等）。请输入「${CLEAR_CONFIRM}」以确认。`,
+      '清空全部数据',
+      {
+        type: 'warning',
+        confirmButtonText: '确认清空',
+        cancelButtonText: '取消',
+        inputPlaceholder: CLEAR_CONFIRM,
+        inputValidator: (value: string) => (value === CLEAR_CONFIRM ? true : `请输入「${CLEAR_CONFIRM}」`),
+      },
+    )
+    entered = result.value
+  } catch {
+    return
+  }
+  dataBusy.value = 'clear'
+  try {
+    const summary = await clearAllData(entered)
+    dataHint.value = `已清空 ${summary.rows} 行数据。`
+    ElMessage.success('数据已清空')
+  } catch (error) {
+    dataError.value = problemMessage(error)
+  } finally {
+    dataBusy.value = ''
+  }
+}
+
 async function handleLogout(): Promise<void> {
   await auth.logout().catch(() => undefined)
   await router.replace('/login')
@@ -347,6 +482,10 @@ onMounted(loadPreferences)
 
 .col6 { grid-column: span 6; }
 .col12 { grid-column: span 12; }
+
+.hidden-file {
+  display: none;
+}
 
 .data-note {
   margin: 0 0 12px;
@@ -394,7 +533,7 @@ onMounted(loadPreferences)
   color: var(--ink);
   background: var(--glass-2);
   border: 1.5px solid var(--line-2);
-  border-radius: 14px;
+  border-radius: 12px;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
@@ -415,19 +554,19 @@ onMounted(loadPreferences)
 
 .theme-card .tc-prev {
   height: 48px;
-  border-radius: 10px;
+  border-radius: 12px;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 40%);
 }
 
 .theme-card .tc-name {
   color: var(--ink);
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 800;
 }
 
 .theme-card .tc-desc {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -506,7 +645,7 @@ onMounted(loadPreferences)
 .error-line {
   margin: 10px 0 0;
   color: var(--red-600);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
 }
 

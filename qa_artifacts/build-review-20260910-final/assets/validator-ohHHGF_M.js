@@ -1,0 +1,1 @@
+import{pn as e}from"./use-global-config-19dSQh_z.js";var t=t=>[``,...e].includes(t);export{t};

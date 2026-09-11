@@ -59,7 +59,7 @@
                 </div>
               </div>
               <button
-                v-if="task.status === 'PLANNED' || task.status === 'IN_PROGRESS'"
+                v-if="task.status === 'PLANNED' || task.status === 'IN_PROGRESS' || task.status === 'POSTPONED'"
                 class="ow-btn xs"
                 type="button"
                 @click="complete(task)"
@@ -67,7 +67,7 @@
                 完成
               </button>
               <button
-                v-if="task.status === 'PLANNED'"
+                v-if="task.status === 'PLANNED' || task.status === 'POSTPONED'"
                 class="ow-btn xs ghost"
                 type="button"
                 @click="skip(task)"
@@ -529,7 +529,7 @@ onMounted(() => {
   width: 72px;
   flex: 0 0 72px;
   color: var(--ink-2);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -552,7 +552,7 @@ onMounted(() => {
   width: 30px;
   flex: 0 0 30px;
   color: var(--ink);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 800;
   text-align: right;
 }

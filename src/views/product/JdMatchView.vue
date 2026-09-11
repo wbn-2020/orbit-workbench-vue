@@ -1011,7 +1011,7 @@ function applicationStageLabel(stage?: string | null): string {
 
 .posting-title strong {
   color: var(--ow-ink-secondary);
-  font-size: 13.5px;
+  font-size: 14px;
 }
 
 .posting-meta {
@@ -1038,7 +1038,7 @@ function applicationStageLabel(stage?: string | null): string {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 .assoc-link {
@@ -1059,7 +1059,7 @@ function applicationStageLabel(stage?: string | null): string {
   background: var(--gold-50);
   border: 1px solid var(--gold-200);
   border-radius: 12px;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .guide-card p {
@@ -1078,7 +1078,7 @@ function applicationStageLabel(stage?: string | null): string {
   background: var(--surface-2);
   border: 1px dashed var(--line);
   border-radius: 12px;
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 .trace-bar b {
@@ -1123,7 +1123,7 @@ function applicationStageLabel(stage?: string | null): string {
 
 .count-card b {
   color: var(--ow-ink-secondary);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 900;
 }
 
@@ -1173,8 +1173,8 @@ function applicationStageLabel(stage?: string | null): string {
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-left-width: 3px;
-  border-radius: 10px;
-  font-size: 13px;
+  border-radius: 12px;
+  font-size: 14px;
 }
 
 .req-item.is-matched {
@@ -1206,7 +1206,7 @@ function applicationStageLabel(stage?: string | null): string {
 .req-reason {
   margin: 0;
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.65;
 }
 
@@ -1222,7 +1222,7 @@ function applicationStageLabel(stage?: string | null): string {
   padding: 8px 10px;
   background: var(--ow-surface);
   border: 1px solid var(--ow-line-soft);
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .evidence-head {
@@ -1235,7 +1235,7 @@ function applicationStageLabel(stage?: string | null): string {
 .snippet {
   margin: 4px 0 0;
   color: var(--ink-2);
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
@@ -1269,7 +1269,7 @@ function applicationStageLabel(stage?: string | null): string {
   gap: 10px;
   margin: 0;
   color: var(--ow-ink-secondary);
-  font-size: 13.5px;
+  font-size: 14px;
 }
 
 .block-hint {
@@ -1284,7 +1284,7 @@ function applicationStageLabel(stage?: string | null): string {
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 .plain-list li {
@@ -1305,9 +1305,9 @@ function applicationStageLabel(stage?: string | null): string {
   max-height: 320px;
   color: var(--ink-2);
   background: var(--surface-2);
-  border-radius: 10px;
+  border-radius: 12px;
   font-family: var(--mono, ui-monospace, monospace);
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;

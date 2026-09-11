@@ -146,7 +146,7 @@ onBeforeUnmount(clearPasswords)
   place-items: center;
   color: var(--ow-primary-ink);
   background: var(--ow-primary);
-  border-radius: 7px;
+  border-radius: 12px;
   font-weight: 800;
 }
 
@@ -156,7 +156,7 @@ onBeforeUnmount(clearPasswords)
 
 .auth-brand span:last-child {
   color: var(--ow-muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .auth-heading {

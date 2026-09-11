@@ -992,7 +992,7 @@ onBeforeRouteLeave(async () => {
   color: var(--ow-accent);
   background: var(--ow-accent-soft);
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 12px;
   font-style: normal;
 }
 
@@ -1020,7 +1020,7 @@ onBeforeRouteLeave(async () => {
 
 .empty-hint {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .item-row {
@@ -1064,7 +1064,7 @@ onBeforeRouteLeave(async () => {
 .readonly-text {
   margin: 0;
   color: var(--ow-ink-secondary);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.7;
 }
 
@@ -1147,7 +1147,7 @@ onBeforeRouteLeave(async () => {
   margin: 10px 0 0;
   padding: 0;
   list-style: none;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .source-list b {
@@ -1179,7 +1179,7 @@ onBeforeRouteLeave(async () => {
 .diff-meta,
 .diff-counts {
   margin: 0 0 10px;
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 .diff-counts {
@@ -1199,7 +1199,7 @@ onBeforeRouteLeave(async () => {
 .diff-section h3 {
   margin: 0;
   color: var(--ow-ink-secondary);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .diff-entry {
@@ -1208,8 +1208,8 @@ onBeforeRouteLeave(async () => {
   padding: 8px 10px;
   background: var(--surface-2);
   border: 1px solid var(--ow-line-soft);
-  border-radius: 9px;
-  font-size: 12.5px;
+  border-radius: 12px;
+  font-size: 12px;
 }
 
 .diff-tags {

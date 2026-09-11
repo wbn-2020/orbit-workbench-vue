@@ -211,7 +211,7 @@ onMounted(() => {
   place-items: center;
   color: var(--brand);
   background: var(--brand-50);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .log-ico.done {
@@ -229,7 +229,7 @@ onMounted(() => {
   padding: 3px 10px;
   color: #0d7a52;
   background: linear-gradient(180deg, #e9f8ef, #d8f3e2);
-  border-radius: 9px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 800;
 }

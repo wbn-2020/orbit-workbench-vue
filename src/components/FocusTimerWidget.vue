@@ -1,5 +1,5 @@
 <template>
-  <div class="focus-widget" :class="{ collapsed: collapsed }" aria-live="polite">
+  <div v-if="visible" class="focus-widget" :class="{ collapsed: collapsed }" aria-live="polite">
     <button
       v-if="collapsed"
       class="focus-fab"
@@ -18,7 +18,7 @@
           <Component :is="mode === 'focus' ? Brain : Coffee" aria-hidden="true" />
           {{ mode === 'focus' ? '专注' : '休息' }}
         </span>
-        <button class="focus-collapse" type="button" aria-label="收起" title="收起" @click="collapsed = true">
+        <button class="focus-collapse" type="button" aria-label="收起" title="收起" @click="collapse">
           <ChevronDown aria-hidden="true" />
         </button>
       </header>
@@ -69,8 +69,18 @@ import {
 const FOCUS_SECONDS = 25 * 60
 const BREAK_SECONDS = 5 * 60
 
-const collapsed = ref(false)
+/**
+ * 计时器是机制层组件，不是全局常驻 UI（22 号诊断 B3）：
+ * 只在「学习更新」模式内显示；一旦开始计时，切到别的页面仍保留（否则用户会以为计时丢了）；
+ * 页面内行动入口（`focus-timer-open`）也能临时唤起它。
+ */
+const props = withDefaults(defineProps<{ active?: boolean }>(), { active: false })
+
+const collapsed = ref(true)
 const running = ref(false)
+const requestedOpen = ref(false)
+const visible = computed(() => props.active || running.value || requestedOpen.value
+  || startedAt.value !== null || pendingSessions.value.length > 0 || saving.value)
 const mode = ref<'focus' | 'break'>('focus')
 const remaining = ref(FOCUS_SECONDS)
 const savedHint = ref('')
@@ -100,6 +110,10 @@ function clearTimer(): void {
 
 async function persistSession(session: SaveFocusSessionInput): Promise<void> {
   if (saving.value) return
+  if (!pendingSessions.value.some((item) => item.idempotencyKey === session.idempotencyKey)) {
+    pendingSessions.value.push(session)
+    persistPendingSessions()
+  }
   saving.value = true
   try {
     await saveFocusSession(session)
@@ -201,7 +215,14 @@ function createIdempotencyKey(): string {
 
 /** 响应页面内「开始一次专注」类行动入口：展开计时器，用户按一次开始即可。 */
 function handleOpenRequest(): void {
+  requestedOpen.value = true
   collapsed.value = false
+}
+
+/** 用户主动收起：同时撤销页面行动的临时唤起，让计时器回到「模式内」语义。 */
+function collapse(): void {
+  collapsed.value = true
+  requestedOpen.value = false
 }
 
 function persistPendingSessions(): void {
@@ -329,7 +350,7 @@ onBeforeUnmount(() => {
   color: var(--muted);
   background: transparent;
   border: 0;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
 }
 
@@ -339,7 +360,7 @@ onBeforeUnmount(() => {
 }
 
 .focus-clock {
-  font-size: 46px;
+  font-size: 36px;
   font-weight: 800;
   line-height: 1;
   text-align: center;

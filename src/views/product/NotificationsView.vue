@@ -254,8 +254,8 @@ onMounted(load)
   place-items: center;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 11px;
-  font-size: 18px;
+  border-radius: 12px;
+  font-size: 17px;
 }
 
 .nb {
@@ -289,22 +289,22 @@ onMounted(load)
   padding: 1px 7px;
   color: #fff;
   background: var(--brand);
-  border-radius: 8px;
-  font-size: 10px;
+  border-radius: 12px;
+  font-size: 12px;
   font-weight: 800;
 }
 
 .nd {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
 .ntime {
   margin-top: 4px;
   color: var(--ow-muted, #52685e);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .acts {

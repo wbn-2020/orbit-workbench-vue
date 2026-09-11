@@ -1,0 +1,3 @@
+async function e(e,t){let n=e.getReader(),r=new TextDecoder,i=``,a=`message`,o=[];try{for(;;){let e=await n.read();if(e.done)throw Error(`生成连接提前结束，未收到完成确认，请刷新后重试`);i+=r.decode(e.value,{stream:!0});let s;for(;(s=i.indexOf(`
+`))>=0;){let e=i.slice(0,s).replace(/\r$/,``);if(i=i.slice(s+1),e)e.startsWith(`event:`)?a=e.slice(6).replace(/^ /,``):e.startsWith(`data:`)&&o.push(e.slice(5).replace(/^ /,``));else{if(o.length&&(t(a,o.join(`
+`)),a===`done`||a===`error`))return;a=`message`,o=[]}}}}finally{await n.cancel().catch(()=>void 0),n.releaseLock()}}export{e as t};

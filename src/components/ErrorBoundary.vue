@@ -71,7 +71,7 @@ function reload(): void {
   padding: 32px;
   background: var(--surface, #fff);
   border: 1px solid var(--line-2, #d8e2dd);
-  border-radius: 16px;
+  border-radius: 18px;
   box-shadow: var(--shadow-sm, 0 1px 2px rgb(15 23 42 / 6%));
   text-align: center;
 }
@@ -85,14 +85,14 @@ function reload(): void {
 .reb-card h1 {
   margin: 12px 0 0;
   color: var(--ink, #1a2b25);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
 }
 
 .reb-detail {
   margin: 10px 0 0;
   color: var(--ow-danger, #b42318);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   word-break: break-word;
 }
@@ -100,7 +100,7 @@ function reload(): void {
 .reb-hint {
   margin: 6px 0 0;
   color: var(--muted, #52685e);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .reb-acts {
@@ -114,7 +114,7 @@ function reload(): void {
   height: 38px;
   padding: 0 18px;
   border: 1px solid var(--line-2, #d8e2dd);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--surface-2, #f3f6f4);
   color: var(--ink-2, #3f574c);
   font-family: inherit;

@@ -33,11 +33,11 @@ const html = computed(() => DOMPurify.sanitize(markdown.render(props.content || 
 }
 
 .markdown-viewer :deep(h2) {
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .markdown-viewer :deep(h3) {
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .markdown-viewer :deep(p),

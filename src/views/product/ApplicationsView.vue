@@ -395,7 +395,7 @@ onMounted(() => {
   text-align: center;
   background: var(--surface-2);
   border: 1.5px solid var(--line);
-  border-radius: 11px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 700;
 }
@@ -456,7 +456,7 @@ onMounted(() => {
   place-items: center;
   color: #16634f;
   background: linear-gradient(180deg, var(--brand-50), var(--brand-100));
-  border-radius: 11px;
+  border-radius: 12px;
   font-weight: 800;
 }
 
@@ -476,7 +476,7 @@ onMounted(() => {
 .app-title strong {
   overflow: hidden;
   color: var(--ow-ink-secondary);
-  font-size: 13.5px;
+  font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

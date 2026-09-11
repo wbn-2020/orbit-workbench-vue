@@ -454,7 +454,7 @@ onBeforeUnmount(() => {
 .ow-iv-right::-webkit-scrollbar-thumb,
 .ow-iv-messages::-webkit-scrollbar-thumb {
   background: var(--line-2);
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid transparent;
   background-clip: content-box;
 }
