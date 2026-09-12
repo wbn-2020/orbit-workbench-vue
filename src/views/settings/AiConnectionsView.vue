@@ -301,6 +301,26 @@
           <el-form-item label="超时（毫秒）" prop="timeoutMs">
             <el-input-number v-model="form.timeoutMs" :min="1000" :max="120000" :step="1000" />
           </el-form-item>
+          <el-form-item label="输入价（元/百万 token）">
+            <el-input-number
+              v-model="form.inputPricePerMillion"
+              :min="0"
+              :step="0.1"
+              :precision="4"
+              :controls="false"
+              placeholder="留空表示不计价"
+            />
+          </el-form-item>
+          <el-form-item label="输出价（元/百万 token）">
+            <el-input-number
+              v-model="form.outputPricePerMillion"
+              :min="0"
+              :step="0.1"
+              :precision="4"
+              :controls="false"
+              placeholder="留空表示不计价"
+            />
+          </el-form-item>
           <el-form-item label="联网形状">
             <el-select v-model="form.webSearchDialect" style="width: 100%">
               <el-option
@@ -495,6 +515,9 @@ const form = reactive({
   timeoutMs: 30_000,
   enabled: true,
   webSearchDialect: 'NONE',
+  // 单价是可选项：不填就是「不计价」，用量页会如实显示未计价而不是 0
+  inputPricePerMillion: null as number | null,
+  outputPricePerMillion: null as number | null,
 })
 
 // 协议换了，原形状可能根本不属于这个协议；退回不联网比留着发错参数安全。
@@ -680,6 +703,8 @@ function openEdit(connection: AiConnection): void {
   form.timeoutMs = connection.timeoutMs || 30_000
   form.enabled = connection.enabled
   form.webSearchDialect = connection.webSearchDialect || 'NONE'
+  form.inputPricePerMillion = connection.inputPricePerMillion ?? null
+  form.outputPricePerMillion = connection.outputPricePerMillion ?? null
   testResult.value = undefined
   saveConflict.value = ''
   modelProfiles.value = []
@@ -750,6 +775,8 @@ function buildPayload(): AiConnectionPayload {
     timeoutMs: form.timeoutMs,
     enabled: form.enabled,
     webSearchDialect: form.webSearchDialect,
+    inputPricePerMillion: form.inputPricePerMillion,
+    outputPricePerMillion: form.outputPricePerMillion,
   }
   if (form.apiKey) payload.apiKey = form.apiKey
   return payload

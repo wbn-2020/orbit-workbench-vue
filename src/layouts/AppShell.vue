@@ -233,6 +233,7 @@
 
 <script setup lang="ts">
 import {
+  Activity,
   Bell,
   BadgeCheck,
   BookOpen,
@@ -403,6 +404,7 @@ const navGroups = [
     items: [
       { label: '通知中心', to: '/notifications', icon: Bell },
       { label: 'AI 连接', to: '/settings/ai-connections', icon: Bot },
+      { label: '用量与费用', to: '/usage', icon: Activity },
       { label: '帮助与引导', to: '/help', icon: HelpCircle },
       { label: '设置', to: '/settings', icon: Settings },
     ],

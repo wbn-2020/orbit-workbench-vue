@@ -333,6 +333,8 @@ export interface AiConnection {
   webSearchDialect?: string
   webSearchSupported?: boolean
   forcedSearchSupported?: boolean
+  inputPricePerMillion?: number | null
+  outputPricePerMillion?: number | null
 }
 
 export interface AiConnectionPayload {
@@ -347,6 +349,9 @@ export interface AiConnectionPayload {
   enabled: boolean
   /** 省略即 NONE：未声明联网形状的请求永远不带检索参数。 */
   webSearchDialect?: string
+  /** 可选单价（每百万 token）。留空即不计价，用量页会如实显示「未计价」而不是 0。 */
+  inputPricePerMillion?: number | null
+  outputPricePerMillion?: number | null
 }
 
 export interface AiConnectionUpdatePayload extends AiConnectionPayload {

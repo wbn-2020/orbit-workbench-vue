@@ -181,6 +181,13 @@ const router = createRouter({
           component: () => import('@/views/settings/AiConnectionsView.vue'),
           meta: { title: 'AI 连接' },
         },
+
+        {
+          path: 'usage',
+          name: 'usage',
+          component: () => import('@/views/product/UsageView.vue'),
+          meta: { title: '用量与费用' },
+        },
       ],
     },
     { path: '/:pathMatch(.*)*', redirect: '/workbench' },
