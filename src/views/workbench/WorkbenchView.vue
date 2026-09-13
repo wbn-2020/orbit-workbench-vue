@@ -117,6 +117,35 @@
       </section>
 
       <section v-if="!isEmptyState" class="wb-section">
+        <h2 class="wb-section-title">成长管线</h2>
+        <div v-if="pipelineProblems.length" class="pipeline-list">
+          <RouterLink
+            v-for="check in pipelineProblems"
+            :key="check.key"
+            :to="check.to"
+            class="pipeline-item"
+            :class="check.status.toLowerCase()"
+          >
+            <span class="pipeline-badge" aria-hidden="true">
+              <Component :is="check.status === 'BLOCK' ? OctagonAlert : check.status === 'STALE' ? CalendarClock : CircleAlert" />
+            </span>
+            <span class="pipeline-body">
+              <strong>{{ check.title }}</strong>
+              <small>{{ check.detail }}</small>
+            </span>
+            <span class="pipeline-action">{{ check.action }} →</span>
+          </RouterLink>
+        </div>
+        <div v-else class="pipeline-item ok">
+          <span class="pipeline-badge" aria-hidden="true"><ShieldCheck /></span>
+          <span class="pipeline-body">
+            <strong>管线健康</strong>
+            <small>账户、资料、面试节奏、沉淀与复习链路都没有卡点，保持节奏即可。</small>
+          </span>
+        </div>
+      </section>
+
+      <section v-if="!isEmptyState" class="wb-section">
         <h2 class="wb-section-title">数据核心</h2>
         <div class="asset-grid">
           <RouterLink
@@ -149,10 +178,14 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import {
+  CalendarClock,
   CheckCircle2,
   Circle,
+  CircleAlert,
   Compass,
   Layers,
+  OctagonAlert,
+  ShieldCheck,
   Sparkles,
   Timer,
 } from 'lucide-vue-next'
@@ -175,6 +208,12 @@ function modeIcon(key: WorkMode) {
   if (key === 'work-sedimentation') return Layers
   return Sparkles
 }
+
+/** BLOCK 排最前（阻断链路），其次 ACTION，STALE 只是节奏提示。后端已排序，这里再兜底。 */
+const pipelineProblems = computed(() => {
+  const rank = { BLOCK: 0, ACTION: 1, STALE: 2 } as const
+  return [...(summary.value?.pipeline ?? [])].sort((a, b) => rank[a.status] - rank[b.status])
+})
 
 const trendDelta = computed(() => {
   const series = trend.value?.series ?? []
@@ -679,5 +718,110 @@ onUnmounted(() => {
 .wb-trend-empty a {
   color: #16634f;
   font-weight: 700;
+}
+
+.pipeline-list {
+  display: grid;
+  gap: 10px;
+}
+
+.pipeline-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-left-width: 4px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: border-color 140ms ease, transform 140ms ease;
+}
+
+.pipeline-item:hover {
+  transform: translateY(-1px);
+  border-color: var(--brand);
+}
+
+.pipeline-item.block {
+  border-left-color: var(--ow-status-danger, #c04545);
+}
+
+.pipeline-item.action {
+  border-left-color: var(--ow-status-warning, #d97706);
+}
+
+.pipeline-item.stale {
+  border-left-color: var(--ow-info, #2f80ed);
+}
+
+.pipeline-item.ok {
+  border-left-color: var(--ow-status-success, #1d9e61);
+  cursor: default;
+}
+
+.pipeline-badge {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 9px;
+  background: var(--brand-50, rgb(31 111 92 / 10%));
+  color: var(--ow-ink-secondary, #3f574c);
+}
+
+.pipeline-badge svg {
+  width: 17px;
+  height: 17px;
+}
+
+.pipeline-item.block .pipeline-badge {
+  color: var(--ow-status-danger-text, #a13030);
+}
+
+.pipeline-item.action .pipeline-badge {
+  color: var(--ow-status-warning-text, #7d5400);
+}
+
+.pipeline-item.stale .pipeline-badge {
+  color: #245fae;
+}
+
+.pipeline-item.ok .pipeline-badge {
+  color: #1d6f43;
+}
+
+.pipeline-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.pipeline-body strong {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pipeline-body small {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.pipeline-action {
+  flex: none;
+  color: #16634f;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .pipeline-action {
+    display: none;
+  }
 }
 </style>

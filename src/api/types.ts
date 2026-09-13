@@ -74,10 +74,21 @@ export interface AgendaItem {
   done: boolean
 }
 
+/** 管线体检单项；status：BLOCK 阻断 / ACTION 待处理 / STALE 节奏脱期。空数组=健康。 */
+export interface PipelineCheck {
+  key: string
+  status: 'BLOCK' | 'ACTION' | 'STALE'
+  title: string
+  detail: string
+  to: string
+  action: string
+}
+
 export interface WorkbenchSummary {
   greeting: string
   modes: ModeCard[]
   assets: AssetCount[]
   agenda: AgendaItem[]
   focusTodayMinutes: number
+  pipeline: PipelineCheck[]
 }
