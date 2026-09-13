@@ -255,7 +255,8 @@ const mainDone = computed(() => turns.value.filter((turn) => turn.turnType === '
 const followCount = computed(() => turns.value.filter((turn) => turn.turnType === 'FOLLOW_UP').length)
 const lastAnswered = computed(() => {
   const last = turns.value[turns.value.length - 1]
-  return Boolean(last && last.answer !== null)
+  // 后端全局 non_null：未答回合的 answer 键整个缺失（undefined），必须宽松判空
+  return Boolean(last && last.answer != null)
 })
 const currentTurn = computed(() => {
   const last = turns.value[turns.value.length - 1]

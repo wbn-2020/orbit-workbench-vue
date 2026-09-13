@@ -45,7 +45,7 @@
               <span class="fact-type">{{ typeLabel(fact.factType) }}</span>
               <span class="fact-title">{{ fact.title }}</span>
               <span v-if="fact.source === 'AI_SUGGESTED'" class="fact-origin">
-                AI 建议<template v-if="fact.confidence !== null"> · 置信 {{ fact.confidence }}</template>
+                AI 建议<template v-if="fact.confidence != null"> · 置信 {{ fact.confidence }}</template>
               </span>
               <span v-else class="fact-origin">本人录入</span>
             </div>

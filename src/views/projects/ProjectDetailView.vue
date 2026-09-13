@@ -175,7 +175,7 @@
             <div class="fact-body">
               <div class="fact-title-line">
                 <strong>{{ fact.title }}</strong>
-                <span v-if="fact.confidence !== null" class="confidence">
+                <span v-if="fact.confidence != null" class="confidence">
                   分析置信度 {{ fact.confidence }}%
                 </span>
               </div>
