@@ -164,7 +164,7 @@
                 <div class="ow-hint item-desc">超过保留期的 AI 调用账目会被自动清理；默认永久保留</div>
               </div>
               <el-select
-                v-model="preferenceDraft.auditRetentionDays"
+                v-model="auditRetentionSelect"
                 class="timezone-select"
                 :disabled="preferenceLoading || preferenceSaving"
                 aria-label="调用记录保留"
@@ -184,7 +184,7 @@
                 <div class="ow-hint item-desc">超过保留期的通知会被自动清理；默认永久保留</div>
               </div>
               <el-select
-                v-model="preferenceDraft.notificationRetentionDays"
+                v-model="notificationRetentionSelect"
                 class="timezone-select"
                 :disabled="preferenceLoading || preferenceSaving"
                 aria-label="通知保留"
@@ -300,8 +300,11 @@ const TIMEZONE_OPTIONS = [
 ] as const
 
 /** 保留期选项：null = 永久保留（默认，不悄悄删数据）；最短 7 天与后端校验一致。 */
+/* el-select 把 null 当作"未选择"会显示原生占位符，用哨兵值映射"永久保留" */
+const PERMANENT = 'PERMANENT'
+
 const RETENTION_OPTIONS = [
-  { value: null, label: '永久保留（默认）' },
+  { value: PERMANENT, label: '永久保留（默认）' },
   { value: 30, label: '保留 30 天' },
   { value: 90, label: '保留 90 天' },
   { value: 180, label: '保留 180 天' },
@@ -366,6 +369,25 @@ const FALLBACK_THEME = OW_THEMES[0] ?? {
 
 const currentTheme = computed(() => OW_THEMES.find((meta) => meta.value === ui.theme) ?? FALLBACK_THEME)
 const avatarText = computed(() => auth.user?.username.slice(0, 2).toUpperCase() || '求职')
+
+function retentionToSelect(days: number | null): number | string {
+  return days == null ? PERMANENT : days
+}
+function retentionFromSelect(sel: number | string): number | null {
+  return sel === PERMANENT ? null : Number(sel)
+}
+const auditRetentionSelect = computed({
+  get: () => retentionToSelect(preferenceDraft.auditRetentionDays),
+  set: (sel: number | string) => {
+    preferenceDraft.auditRetentionDays = retentionFromSelect(sel)
+  },
+})
+const notificationRetentionSelect = computed({
+  get: () => retentionToSelect(preferenceDraft.notificationRetentionDays),
+  set: (sel: number | string) => {
+    preferenceDraft.notificationRetentionDays = retentionFromSelect(sel)
+  },
+})
 const preferenceDirty = computed(() => {
   const current = preference.value
   if (!current) return false
