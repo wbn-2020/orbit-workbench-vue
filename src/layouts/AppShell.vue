@@ -240,6 +240,7 @@ import {
   Bot,
   BriefcaseBusiness,
   CalendarDays,
+  CalendarRange,
   ChevronDown,
   ChevronsLeft,
   ChevronsRight,
@@ -363,6 +364,7 @@ const navGroups = [
     items: [
       { label: '今日工作台', to: '/workbench', icon: LayoutDashboard },
       { label: '日程与提醒', to: '/schedule', icon: CalendarDays },
+      { label: '周期复盘', to: '/reflection', icon: CalendarRange },
     ],
   },
   {

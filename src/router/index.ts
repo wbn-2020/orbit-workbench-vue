@@ -188,6 +188,12 @@ const router = createRouter({
           component: () => import('@/views/product/UsageView.vue'),
           meta: { title: '用量与费用' },
         },
+        {
+          path: 'reflection',
+          name: 'reflection',
+          component: () => import('@/views/product/ReflectionView.vue'),
+          meta: { title: '周期复盘' },
+        },
       ],
     },
     { path: '/:pathMatch(.*)*', redirect: '/workbench' },
