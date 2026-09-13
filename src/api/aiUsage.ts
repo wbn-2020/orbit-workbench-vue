@@ -7,6 +7,9 @@ export interface UsageRow {
   failed: number
   inputTokens: number
   outputTokens: number
+  /** 明细列（V42）：聚合口径 COALESCE(SUM,0)，恒为数字；缓存/推理是 input/output 的子集 */
+  cachedInputTokens: number
+  reasoningOutputTokens: number
   // 后端 Jackson 省略 null：无单价/无 token 时该键整个缺失（undefined），消费处必须宽松判空
   costAmount?: number | null
   unpricedCalls: number
@@ -18,6 +21,8 @@ export interface UsageSummary {
   failed: number
   inputTokens: number
   outputTokens: number
+  cachedInputTokens: number
+  reasoningOutputTokens: number
   costAmount?: number | null
   pricedCalls: number
   unpricedCalls: number

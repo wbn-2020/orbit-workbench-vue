@@ -335,6 +335,7 @@ export interface AiConnection {
   forcedSearchSupported?: boolean
   inputPricePerMillion?: number | null
   outputPricePerMillion?: number | null
+  cachedInputPricePerMillion?: number | null
 }
 
 export interface AiConnectionPayload {
@@ -352,6 +353,8 @@ export interface AiConnectionPayload {
   /** 可选单价（每百万 token）。留空即不计价，用量页会如实显示「未计价」而不是 0。 */
   inputPricePerMillion?: number | null
   outputPricePerMillion?: number | null
+  /** 缓存命中输入价（qwen 等带隐式缓存的模型）；未配时命中部分按常规输入价计。 */
+  cachedInputPricePerMillion?: number | null
 }
 
 export interface AiConnectionUpdatePayload extends AiConnectionPayload {

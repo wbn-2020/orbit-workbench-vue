@@ -40,6 +40,12 @@ export interface CallAudit {
   latencyMs?: number | null
   requestChars: number
   responseChars: number
+  /** token 明细（V42）：后端按 non_null 序列化，历史行或上游没报都会省略键，消费处必须宽松判空 */
+  inputTokens?: number | null
+  outputTokens?: number | null
+  cachedInputTokens?: number | null
+  reasoningOutputTokens?: number | null
+  costAmount?: number | null
   createdAt: string
   finishedAt: string | null
 }

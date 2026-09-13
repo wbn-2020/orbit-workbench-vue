@@ -227,8 +227,23 @@
           <el-table-column label="延迟" width="100">
             <template #default="{ row }">{{ typeof row.latencyMs === 'number' ? `${row.latencyMs} ms` : '—' }}</template>
           </el-table-column>
-          <el-table-column label="请求/响应字数" width="140">
-            <template #default="{ row }">{{ row.requestChars }} / {{ row.responseChars }}</template>
+          <el-table-column label="token 明细" min-width="200">
+            <template #default="{ row }">
+              <template v-if="row.inputTokens != null || row.outputTokens != null">
+                <span class="mono">↑{{ row.inputTokens ?? 0 }} / ↓{{ row.outputTokens ?? 0 }}</span>
+                <small v-if="row.cachedInputTokens || row.reasoningOutputTokens" class="cell-note">
+                  缓存 {{ row.cachedInputTokens ?? 0 }} · 推理 {{ row.reasoningOutputTokens ?? 0 }}
+                </small>
+                <small class="cell-note">
+                  {{ row.costAmount != null ? `成本 ${row.costAmount}` : '未计价' }}
+                  <span class="char-hint">（{{ row.requestChars }}/{{ row.responseChars }} 字）</span>
+                </small>
+              </template>
+              <template v-else>
+                {{ row.requestChars }} / {{ row.responseChars }} 字
+                <small class="cell-note">上游未报 token</small>
+              </template>
+            </template>
           </el-table-column>
         </el-table>
       </div>
@@ -320,6 +335,17 @@
               :controls="false"
               placeholder="留空表示不计价"
             />
+          </el-form-item>
+          <el-form-item label="缓存输入价（元/百万 token）">
+            <el-input-number
+              v-model="form.cachedInputPricePerMillion"
+              :min="0"
+              :step="0.1"
+              :precision="4"
+              :controls="false"
+              placeholder="留空按输入价计"
+            />
+            <small class="muted dialect-hint">命中缓存的输入 token 用这个价（如 qwen 隐式缓存）；未配则按常规输入价计。</small>
           </el-form-item>
           <el-form-item label="联网形状">
             <el-select v-model="form.webSearchDialect" style="width: 100%">
@@ -518,6 +544,7 @@ const form = reactive({
   // 单价是可选项：不填就是「不计价」，用量页会如实显示未计价而不是 0
   inputPricePerMillion: null as number | null,
   outputPricePerMillion: null as number | null,
+  cachedInputPricePerMillion: null as number | null,
 })
 
 // 协议换了，原形状可能根本不属于这个协议；退回不联网比留着发错参数安全。
@@ -705,6 +732,7 @@ function openEdit(connection: AiConnection): void {
   form.webSearchDialect = connection.webSearchDialect || 'NONE'
   form.inputPricePerMillion = connection.inputPricePerMillion ?? null
   form.outputPricePerMillion = connection.outputPricePerMillion ?? null
+  form.cachedInputPricePerMillion = connection.cachedInputPricePerMillion ?? null
   testResult.value = undefined
   saveConflict.value = ''
   modelProfiles.value = []
@@ -777,6 +805,7 @@ function buildPayload(): AiConnectionPayload {
     webSearchDialect: form.webSearchDialect,
     inputPricePerMillion: form.inputPricePerMillion,
     outputPricePerMillion: form.outputPricePerMillion,
+    cachedInputPricePerMillion: form.cachedInputPricePerMillion,
   }
   if (form.apiKey) payload.apiKey = form.apiKey
   return payload

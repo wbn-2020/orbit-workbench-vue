@@ -36,6 +36,7 @@
           <span class="stat-num">{{ formatTokens(data.total.inputTokens + data.total.outputTokens) }}</span>
           <span class="stat-label">Token 总量</span>
           <span class="stat-sub">入 {{ formatTokens(data.total.inputTokens) }} · 出 {{ formatTokens(data.total.outputTokens) }}</span>
+          <span class="stat-sub">缓存命中 {{ formatTokens(data.total.cachedInputTokens) }} · 推理 {{ formatTokens(data.total.reasoningOutputTokens) }}</span>
         </div>
         <div class="stat">
           <span class="stat-num">{{ costText }}</span>
@@ -56,13 +57,14 @@
           <div class="ow-card-b">
             <table class="usage-table">
               <thead>
-                <tr><th>场景</th><th>调用</th><th>Token</th><th>费用</th></tr>
+                <tr><th>场景</th><th>调用</th><th>Token</th><th>明细</th><th>费用</th></tr>
               </thead>
               <tbody>
                 <tr v-for="row in data.byScenario" :key="row.key">
                   <td>{{ scenarioLabel(row.key) }}</td>
                   <td class="num">{{ row.calls }}</td>
                   <td class="num">{{ formatTokens(row.inputTokens + row.outputTokens) }}</td>
+                  <td class="num detail">{{ detailText(row) }}</td>
                   <td class="num">{{ rowCost(row) }}</td>
                 </tr>
               </tbody>
@@ -75,13 +77,14 @@
           <div class="ow-card-b">
             <table class="usage-table">
               <thead>
-                <tr><th>模型</th><th>调用</th><th>Token</th><th>费用</th></tr>
+                <tr><th>模型</th><th>调用</th><th>Token</th><th>明细</th><th>费用</th></tr>
               </thead>
               <tbody>
                 <tr v-for="row in data.byModel" :key="row.key">
                   <td>{{ row.key }}</td>
                   <td class="num">{{ row.calls }}</td>
                   <td class="num">{{ formatTokens(row.inputTokens + row.outputTokens) }}</td>
+                  <td class="num detail">{{ detailText(row) }}</td>
                   <td class="num">{{ rowCost(row) }}</td>
                 </tr>
               </tbody>
@@ -94,23 +97,25 @@
         <div class="ow-card-h"><div class="ic b3"><CalendarDays aria-hidden="true" /></div>按日</div>
         <div class="ow-card-b">
           <table class="usage-table">
-            <thead>
-              <tr><th>日期</th><th>调用</th><th>Token</th><th>费用</th></tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in data.byDay" :key="row.key">
-                <td>{{ row.key }}</td>
-                <td class="num">{{ row.calls }}</td>
-                <td class="num">{{ formatTokens(row.inputTokens + row.outputTokens) }}</td>
-                <td class="num">{{ rowCost(row) }}</td>
-              </tr>
-            </tbody>
+              <thead>
+                <tr><th>日期</th><th>调用</th><th>Token</th><th>明细</th><th>费用</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in data.byDay" :key="row.key">
+                  <td>{{ row.key }}</td>
+                  <td class="num">{{ row.calls }}</td>
+                  <td class="num">{{ formatTokens(row.inputTokens + row.outputTokens) }}</td>
+                  <td class="num detail">{{ detailText(row) }}</td>
+                  <td class="num">{{ rowCost(row) }}</td>
+                </tr>
+              </tbody>
           </table>
         </div>
       </section>
 
       <p class="usage-note">
         单价在「AI 连接」里按每百万 token 配置，由你自己填写——产品不内置价格表，避免过时报价误导。
+        命中缓存的输入 token 按缓存输入价计（未配缓存价则按常规输入价，宁可高估不低估）。
         <template v-if="!data.anyPricingConfigured">当前还没有任何连接配置单价，因此费用一律显示为空。</template>
       </p>
     </template>
@@ -166,6 +171,14 @@ function rowCost(row: UsageRow): string {
     return row.unpricedCalls > 0 ? '未计价' : '—'
   }
   return row.costAmount.toFixed(4)
+}
+
+/** 分组行明细：缓存命中是输入的子集、推理是输出的子集；都为 0 时不占位。 */
+function detailText(row: UsageRow): string {
+  const parts: string[] = []
+  if (row.cachedInputTokens) parts.push(`缓存 ${formatTokens(row.cachedInputTokens)}`)
+  if (row.reasoningOutputTokens) parts.push(`推理 ${formatTokens(row.reasoningOutputTokens)}`)
+  return parts.length ? parts.join(' · ') : '—'
 }
 
 const costText = computed(() => {
@@ -256,6 +269,14 @@ onMounted(load)
 .usage-table .num {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+/* 明细列是「缓存 X · 推理 Y」这样的短文本，不用右对齐表格数字的字距 */
+.usage-table .detail {
+  text-align: left;
+  font-size: 12px;
+  color: var(--ow-muted, #52685e);
+  white-space: nowrap;
 }
 
 .empty-note,
