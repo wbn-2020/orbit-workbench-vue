@@ -16,6 +16,15 @@
           手动补充
         </el-button>
         <el-button
+          :icon="Layers"
+          :loading="digesting"
+          :disabled="confirmedCount < 4"
+          :title="confirmedCount < 4 ? '已确认事实少于 4 条时逐条注入已足够紧凑，暂不需要编译' : '把已确认事实编译成一份高密度画像快照'"
+          @click="compileDigest"
+        >
+          {{ digest ? '重新编译' : '编译画像' }}
+        </el-button>
+        <el-button
           type="primary"
           :icon="WandSparkles"
           :loading="distilling"
@@ -23,6 +32,26 @@
         >
           生成建议
         </el-button>
+      </div>
+    </div>
+
+    <div v-if="digest" class="surface-body digest-body">
+      <div class="digest-card" :class="{ stale: digest.stale }">
+        <div class="digest-head">
+          <span class="digest-title">画像快照</span>
+          <span class="digest-meta">
+            编译自 {{ digest.sourceCount }} 条事实 · {{ shortTime(digest.compiledAt) }}
+          </span>
+          <span v-if="digest.stale" class="digest-stale">
+            编译后事实集有变化（+{{ digest.factsAdded }} / -{{ digest.factsRemoved }}）· 注入已回退逐条模式
+          </span>
+          <span v-else class="digest-fresh">注入使用中</span>
+        </div>
+        <pre class="digest-text">{{ digest.digest }}</pre>
+        <div class="digest-actions">
+          <el-button size="small" text :loading="digesting" @click="compileDigest">重新编译</el-button>
+          <el-button size="small" text @click="removeDigest">删除快照</el-button>
+        </div>
       </div>
     </div>
 
@@ -111,19 +140,23 @@
 </template>
 
 <script setup lang="ts">
-import { BrainCircuit, Plus, WandSparkles } from 'lucide-vue-next'
+import { BrainCircuit, Layers, Plus, WandSparkles } from 'lucide-vue-next'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, reactive, ref } from 'vue'
 
 import {
   archiveUserFact,
+  compileProfileDigest,
   confirmUserFact,
   createUserFact,
+  deleteProfileDigest,
   describeAge,
   distillUserFacts,
+  getProfileDigest,
   listUserFacts,
   reaffirmUserFact,
   USER_FACT_TYPE_LABELS,
+  type ProfileDigest,
   type UserFact,
   type UserFactType,
 } from '@/api/userFacts'
@@ -133,6 +166,8 @@ import EmptyState from '@/components/EmptyState.vue'
 const facts = ref<UserFact[]>([])
 const loading = ref(true)
 const distilling = ref(false)
+const digest = ref<ProfileDigest | null>(null)
+const digesting = ref(false)
 const busyId = ref(-1)
 const editing = ref(false)
 const createForm = reactive<{ factType: UserFactType; title: string; content: string }>({
@@ -143,19 +178,62 @@ const createForm = reactive<{ factType: UserFactType; title: string; content: st
 
 const visibleFacts = computed(() => facts.value.filter((fact) => fact.status !== 'ARCHIVED'))
 const archivedCount = computed(() => facts.value.length - visibleFacts.value.length)
+const confirmedCount = computed(() =>
+  facts.value.filter((fact) => fact.status === 'CONFIRMED').length,
+)
 
 function typeLabel(type: UserFactType): string {
   return USER_FACT_TYPE_LABELS[type] ?? type
 }
 
+function shortTime(iso: string): string {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return iso
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 async function load(): Promise<void> {
   loading.value = true
   try {
-    facts.value = await listUserFacts()
+    const [items, currentDigest] = await Promise.all([listUserFacts(), getProfileDigest()])
+    facts.value = items
+    digest.value = currentDigest
   } catch (error) {
     ElMessage.error(problemMessage(error))
   } finally {
     loading.value = false
+  }
+}
+
+async function compileDigest(): Promise<void> {
+  digesting.value = true
+  try {
+    digest.value = await compileProfileDigest()
+    ElMessage.success('画像快照已编译，注入链路将优先使用它')
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
+  } finally {
+    digesting.value = false
+  }
+}
+
+async function removeDigest(): Promise<void> {
+  try {
+    await ElMessageBox.confirm(
+      '删除后注入链路回到逐条事实模式，事实本身不受影响。',
+      '删除画像快照',
+      { confirmButtonText: '删除', cancelButtonText: '返回', type: 'info' },
+    )
+  } catch {
+    return
+  }
+  try {
+    await deleteProfileDigest()
+    digest.value = null
+    ElMessage.success('已删除快照')
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
   }
 }
 
@@ -271,6 +349,75 @@ onMounted(load)
 <style scoped>
 .facts-panel {
   overflow: hidden;
+}
+
+.digest-body {
+  padding-bottom: 0;
+}
+
+.digest-card {
+  border: 1px solid var(--ow-line-soft, rgb(31 111 92 / 14%));
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 8px;
+  background: var(--glass, rgb(31 111 92 / 3%));
+}
+
+.digest-card.stale {
+  border-color: var(--ow-warning-border, rgb(138 90 0 / 35%));
+}
+
+.digest-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.digest-title {
+  font-weight: 800;
+  color: var(--ow-ink);
+}
+
+.digest-meta {
+  font-size: var(--fs-xs);
+  color: var(--ow-muted, #52685e);
+}
+
+.digest-fresh,
+.digest-stale {
+  font-size: var(--fs-xs);
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+
+.digest-fresh {
+  color: var(--ow-success-text, #16634f);
+  background: var(--ow-success-soft, rgb(31 157 90 / 10%));
+}
+
+.digest-stale {
+  color: var(--ow-warning-text, #8a5a00);
+  background: var(--ow-warning-bg, #fff4d6);
+}
+
+.digest-text {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-2, rgb(255 255 255 / 60%));
+  color: var(--ow-ink-secondary, #3f574c);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.digest-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .panel-actions {

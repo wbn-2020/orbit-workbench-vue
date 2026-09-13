@@ -2,7 +2,7 @@ import { http } from './http'
 
 /* AI 场景绑定与调用审计 —— 对应后端 /ai-scenarios（场景级主备账户 + 真实调用留痕） */
 
-export type AiScenario = 'INTERVIEW_QUESTION' | 'INTERVIEW_REPORT' | 'PROJECT_FACT' | 'KNOWLEDGE_ANSWER' | 'USER_FACT'
+export type AiScenario = 'INTERVIEW_QUESTION' | 'INTERVIEW_REPORT' | 'PROJECT_FACT' | 'KNOWLEDGE_ANSWER' | 'USER_FACT' | 'PROFILE_DIGEST'
 
 /** ROUTE：已显式配置；DEFAULT：未配置，回退"第一个已启用账户" */
 export type AiScenarioSource = 'ROUTE' | 'DEFAULT'
@@ -102,6 +102,7 @@ export const AI_SCENARIO_HINTS: Record<AiScenario, string> = {
   PROJECT_FACT: '项目画像事实的 AI 分析',
   KNOWLEDGE_ANSWER: '知识库带来源问答',
   USER_FACT: '用户画像事实沉淀（个人记忆层）',
+  PROFILE_DIGEST: '画像编译快照（记忆层高密度摘要）',
 }
 
 export function aiAuditStatusLabel(status: CallAudit['status']): string {

@@ -83,6 +83,36 @@ export async function reaffirmUserFact(id: number): Promise<UserFact> {
   return data
 }
 
+/* ---- 画像编译快照（V44，借鉴 EvoFlow 两阶段记忆固化） ---- */
+
+export interface ProfileDigest {
+  id: number
+  digest: string
+  sourceCount: number
+  model: string | null
+  compiledAt: string
+  /** 编译后事实集有新增/归档：注入已自动回退逐条模式 */
+  stale: boolean
+  factsAdded: number
+  factsRemoved: number
+}
+
+/** 当前快照；从未编译过后端返回 204，这里归一为 null。 */
+export async function getProfileDigest(): Promise<ProfileDigest | null> {
+  const { data, status } = await http.get<ProfileDigest | ''>('/user-facts/digest')
+  return status === 204 || !data ? null : (data as ProfileDigest)
+}
+
+/** 编译：同步调模型，耗时可到分钟级。 */
+export async function compileProfileDigest(): Promise<ProfileDigest> {
+  const { data } = await http.post<ProfileDigest>('/user-facts/digest')
+  return data
+}
+
+export async function deleteProfileDigest(): Promise<void> {
+  await http.delete('/user-facts/digest')
+}
+
 /** 天数转人话，用于「N 个月前确认」提示。 */
 export function describeAge(days: number | null): string {
   if (days == null) return '未知'
