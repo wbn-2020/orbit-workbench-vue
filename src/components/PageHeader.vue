@@ -54,7 +54,7 @@ withDefaults(
 
 .page-heading h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: var(--fs-lg);
   line-height: 1.25;
 }
 

@@ -326,7 +326,7 @@ onMounted(load)
 
 .period-nav button.range {
   padding: 7px 12px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   white-space: nowrap;
 }
 
@@ -350,20 +350,20 @@ onMounted(load)
 
 .stat-num {
   color: var(--ow-ink);
-  font-size: 28px;
+  font-size: var(--fs-xl);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
   color: var(--ow-ink-secondary, #3f574c);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
 .stat-sub {
   color: var(--ow-muted, #52685e);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .stat-sub.up {
@@ -435,7 +435,7 @@ onMounted(load)
   display: flex;
   gap: 16px;
   margin-top: 10px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--ow-muted, #52685e);
 }
 
@@ -468,7 +468,7 @@ onMounted(load)
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 
 .fact-list dt {
@@ -500,7 +500,7 @@ onMounted(load)
 }
 
 .tag-list li {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   padding: 3px 9px;
   border-radius: 999px;
   border: 1px solid var(--ow-line-soft, rgb(31 111 92 / 18%));
@@ -510,7 +510,7 @@ onMounted(load)
 
 .caveat {
   margin: 10px 0 0;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.6;
   color: var(--ow-status-warning-text, #7d5400);
 }
@@ -518,7 +518,7 @@ onMounted(load)
 .empty-note,
 .reflect-note {
   color: var(--ow-muted, #52685e);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   line-height: 1.7;
 }
 

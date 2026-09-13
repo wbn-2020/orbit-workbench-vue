@@ -400,7 +400,7 @@ load()
   align-items: center;
   gap: 4px;
   margin-left: 10px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   cursor: pointer;
 }
 </style>

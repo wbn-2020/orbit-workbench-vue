@@ -122,14 +122,14 @@ async function submit(): Promise<void> {
 h1 {
   margin: 0 0 4px;
   color: var(--ink);
-  font-size: 22px;
+  font-size: var(--fs-lg);
   font-weight: 800;
 }
 
 .auth-sub {
   margin: 0 0 22px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .submit-button {
@@ -140,7 +140,7 @@ h1 {
 .auth-demo {
   margin: 14px 0 0;
   color: var(--faint);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .auth-demo a {

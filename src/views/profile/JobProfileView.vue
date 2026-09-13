@@ -279,19 +279,19 @@ onMounted(() => {
 
 .section-heading h3 {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .section-heading p,
 .form-note {
   margin: 4px 0 0;
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .skill-summary {
   margin: 6px 0 0;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--ow-ink-secondary);
 }

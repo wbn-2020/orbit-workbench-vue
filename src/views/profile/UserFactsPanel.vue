@@ -309,7 +309,7 @@ onMounted(load)
 }
 
 .fact-type {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 999px;
@@ -323,13 +323,13 @@ onMounted(load)
 }
 
 .fact-origin {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--ow-muted, #52685e);
 }
 
 .fact-content {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   line-height: 1.65;
   color: var(--ow-ink-secondary, #3f574c);
 }
@@ -343,14 +343,14 @@ onMounted(load)
   margin-left: 8px;
   padding: 1px 8px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--ow-warning-text, #8a5a00);
   background: var(--ow-warning-bg, #fff4d6);
 }
 
 .facts-note {
   margin: 12px 0 0;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--ow-muted, #52685e);
 }
 

@@ -396,13 +396,13 @@ onMounted(() => {
   background: var(--surface-2);
   border: 1.5px solid var(--line);
   border-radius: 12px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
 .pipeline-stage strong {
   color: var(--ink);
-  font-size: 17px;
+  font-size: var(--fs-md);
   font-weight: 900;
 }
 
@@ -476,7 +476,7 @@ onMounted(() => {
 .app-title strong {
   overflow: hidden;
   color: var(--ow-ink-secondary);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -485,7 +485,7 @@ onMounted(() => {
   margin: 0;
   overflow: hidden;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

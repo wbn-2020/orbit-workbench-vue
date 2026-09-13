@@ -220,20 +220,20 @@ onMounted(load)
 
 .stat-num {
   color: var(--ow-ink);
-  font-size: 28px;
+  font-size: var(--fs-xl);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
   color: var(--ow-ink-secondary, #3f574c);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
 .stat-sub {
   color: var(--ow-muted, #52685e);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .stat-sub.warn {
@@ -249,7 +249,7 @@ onMounted(load)
 .usage-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 
 .usage-table th {
@@ -274,7 +274,7 @@ onMounted(load)
 /* 明细列是「缓存 X · 推理 Y」这样的短文本，不用右对齐表格数字的字距 */
 .usage-table .detail {
   text-align: left;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--ow-muted, #52685e);
   white-space: nowrap;
 }
@@ -282,7 +282,7 @@ onMounted(load)
 .empty-note,
 .usage-note {
   color: var(--ow-muted, #52685e);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   line-height: 1.7;
 }
 

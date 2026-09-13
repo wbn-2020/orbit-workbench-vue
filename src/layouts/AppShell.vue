@@ -704,7 +704,7 @@ async function handleLogout(): Promise<void> {
 
 :deep(.brand-copy strong) {
   color: #fff;
-  font-size: 17px;
+  font-size: var(--fs-md);
   font-weight: 800;
   letter-spacing: 0.3px;
   line-height: 1.2;
@@ -712,7 +712,7 @@ async function handleLogout(): Promise<void> {
 
 :deep(.brand-copy small) {
   color: rgb(255 255 255 / 92%);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   letter-spacing: 2.5px;
 }
@@ -738,7 +738,7 @@ async function handleLogout(): Promise<void> {
   width: 100%;
   padding: 6px 10px 6px 9px;
   color: rgb(255 255 255 / 95%);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   letter-spacing: 2px;
   background: transparent;
@@ -760,8 +760,7 @@ async function handleLogout(): Promise<void> {
   width: 3px;
   height: 11px;
   border-radius: 3px;
-  background: linear-gradient(180deg, var(--gold), rgb(246 183 60 / 25%));
-  box-shadow: 0 0 8px rgb(246 183 60 / 45%);
+  background: var(--gold);
   flex: none;
 }
 
@@ -803,13 +802,12 @@ async function handleLogout(): Promise<void> {
   padding: 10px 12px;
   color: #ffffff;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   letter-spacing: 0.2px;
   transition:
     color 160ms ease-out,
-    background-color 160ms ease-out,
-    transform 100ms ease-out;
+    background-color 160ms ease-out;
 }
 
 .nav-item svg {
@@ -817,32 +815,26 @@ async function handleLogout(): Promise<void> {
   height: 19px;
   flex: none;
   opacity: 0.85;
-  transition: transform 180ms ease, opacity 180ms ease;
+  transition: opacity 180ms ease;
 }
 
 .nav-item:hover {
   color: #fff;
   background: rgb(255 255 255 / 7%);
-  transform: translateX(2px);
 }
 
 .nav-item:hover svg {
   opacity: 1;
-  transform: scale(1.08);
 }
 
 .nav-item.router-link-active {
   color: #fff;
   background: linear-gradient(90deg, rgb(255 255 255 / 20%), rgb(255 255 255 / 4%));
-  box-shadow:
-    inset 3px 0 0 var(--gold),
-    0 6px 18px rgb(0 0 0 / 18%),
-    0 0 18px rgb(246 183 60 / 22%);
+  box-shadow: inset 3px 0 0 var(--gold);
 }
 
 .nav-item.router-link-active svg {
   opacity: 1;
-  filter: drop-shadow(0 0 6px rgb(246 183 60 / 60%));
 }
 
 .sidebar-footer {
@@ -927,11 +919,7 @@ async function handleLogout(): Promise<void> {
   display: none;
 }
 
-.app-shell.sidebar-collapsed .nav-item.router-link-active {
-  box-shadow:
-    inset 0 0 0 1px rgb(246 183 60 / 55%),
-    0 6px 18px rgb(0 0 0 / 22%);
-}
+/* 折叠态的选中指示复用基础规则的金色左侧内衬，不再叠加描边环与大阴影 */
 
 .app-shell.sidebar-collapsed .sidebar-footer {
   padding: 5px 2px 0;
@@ -976,14 +964,14 @@ async function handleLogout(): Promise<void> {
 .user-summary-name strong {
   overflow: hidden;
   color: #fff;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .user-summary-name small {
   color: #ffffff;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 /* 本地账户样式已简化：移除等级进度条与金币装饰（F-07） */
@@ -1029,7 +1017,7 @@ async function handleLogout(): Promise<void> {
   align-items: center;
   gap: 2px;
   min-width: 0;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
@@ -1081,7 +1069,7 @@ async function handleLogout(): Promise<void> {
   border: 1.5px solid var(--line-2);
   border-radius: 12px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   transition: border-color 0.14s, box-shadow 0.14s;
 }
 
@@ -1109,7 +1097,7 @@ async function handleLogout(): Promise<void> {
 .recents-title {
   padding: 6px 12px;
   color: var(--faint);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
@@ -1127,7 +1115,7 @@ async function handleLogout(): Promise<void> {
   border-radius: 12px;
   cursor: pointer;
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .rec:hover {
@@ -1243,7 +1231,7 @@ async function handleLogout(): Promise<void> {
 .hit-sub {
   flex-shrink: 0;
   color: var(--faint);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .hit-snippet {
@@ -1253,7 +1241,7 @@ async function handleLogout(): Promise<void> {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.5;
 }
 
@@ -1331,7 +1319,7 @@ async function handleLogout(): Promise<void> {
   background: var(--red);
   border-radius: 12px;
   box-shadow: 0 0 0 2px var(--surface);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 
@@ -1345,7 +1333,7 @@ async function handleLogout(): Promise<void> {
   border: 1px solid var(--line-2);
   border-radius: 12px;
   cursor: pointer;
-  font-size: 17px;
+  font-size: var(--fs-md);
   transition: 0.15s;
 }
 
@@ -1390,7 +1378,7 @@ async function handleLogout(): Promise<void> {
   color: #fff;
   background: linear-gradient(135deg, var(--av-1), var(--av-2));
   border-radius: 12px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   box-shadow: 0 4px 12px rgb(31 158 116 / 40%);
 }
@@ -1447,7 +1435,7 @@ async function handleLogout(): Promise<void> {
   .search-input,
   :deep(.el-input__inner),
   :deep(.el-textarea__inner) {
-    font-size: 17px;
+    font-size: var(--fs-md);
   }
 
 

@@ -302,7 +302,7 @@ onMounted(load)
 .fld {
   display: grid;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 
@@ -328,7 +328,7 @@ onMounted(load)
   gap: 6px;
   align-items: center;
   align-self: end;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 
@@ -352,7 +352,7 @@ onMounted(load)
 .day-h {
   margin-bottom: 6px;
   color: var(--faint);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 
@@ -378,11 +378,11 @@ onMounted(load)
   gap: 2px;
   align-items: center;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .ev-time .ic {
-  font-size: 17px;
+  font-size: var(--fs-md);
 }
 
 .ev-time .tm {
@@ -397,7 +397,7 @@ onMounted(load)
 
 .ev-title {
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
@@ -412,7 +412,7 @@ onMounted(load)
   color: var(--brand);
   background: var(--brand-50);
   border-radius: 12px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 

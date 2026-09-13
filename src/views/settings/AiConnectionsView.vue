@@ -1101,12 +1101,12 @@ watch([testStreaming, testPrompt], () => {
 
 .connection-cell small {
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .mono {
   font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .row-actions {
@@ -1140,14 +1140,14 @@ watch([testStreaming, testPrompt], () => {
 
 .section-head h2 {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 600;
 }
 
 .section-note {
   max-width: 900px;
   margin: 6px 0 0;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.7;
   color: var(--ow-text-muted);
 }
@@ -1155,7 +1155,7 @@ watch([testStreaming, testPrompt], () => {
 .cell-note {
   display: block;
   margin-top: 2px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--ow-text-muted);
 }
 
@@ -1178,7 +1178,7 @@ watch([testStreaming, testPrompt], () => {
   gap: 12px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--ow-line-soft, rgb(31 111 92 / 8%));
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 
 .detail-k {
@@ -1191,7 +1191,7 @@ watch([testStreaming, testPrompt], () => {
   padding: 10px;
   border-radius: 8px;
   background: var(--ow-surface-sunken, #f4f6f5);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-all;
@@ -1249,11 +1249,11 @@ watch([testStreaming, testPrompt], () => {
 
 .test-heading span {
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .test-result {
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .test-result.success {
@@ -1266,7 +1266,7 @@ watch([testStreaming, testPrompt], () => {
 
 .test-block p {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .connection-metadata {
@@ -1292,7 +1292,7 @@ watch([testStreaming, testPrompt], () => {
 .metadata-heading span,
 .metadata-empty {
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .profile-grid {
@@ -1309,7 +1309,7 @@ watch([testStreaming, testPrompt], () => {
 .profile-grid dt {
   margin-bottom: 4px;
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .profile-grid dd {
@@ -1328,7 +1328,7 @@ watch([testStreaming, testPrompt], () => {
   gap: 10px;
   min-height: 42px;
   border-top: 1px solid var(--ow-line-soft);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .test-history-row time {

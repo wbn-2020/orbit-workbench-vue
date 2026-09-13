@@ -544,7 +544,7 @@ if (route.query.mode === '模拟面试') {
 .web-note {
   margin: 6px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.6;
 }
 
@@ -563,7 +563,7 @@ if (route.query.mode === '模拟面试') {
 }
 
 .bindings-header label {
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .binding-row {
@@ -574,7 +574,7 @@ if (route.query.mode === '模拟面试') {
 
 .binding-add {
   padding: 6px 12px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 @media (max-width: 720px) {
@@ -593,7 +593,7 @@ if (route.query.mode === '模拟面试') {
 
 .quick-start-body h2 {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--fs-md);
   font-weight: 800;
   color: var(--ow-ink);
 }
@@ -601,7 +601,7 @@ if (route.query.mode === '模拟面试') {
 .quick-start-body p {
   margin: 6px 0 0;
   color: var(--ow-muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.6;
 }
 
@@ -628,7 +628,7 @@ if (route.query.mode === '模拟面试') {
 
 .advanced-hint {
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 500;
 }
 
@@ -677,6 +677,6 @@ if (route.query.mode === '模拟面试') {
   float: right;
   margin-left: 12px;
   color: var(--ow-muted, #52685e);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 </style>

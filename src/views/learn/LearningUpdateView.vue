@@ -341,7 +341,7 @@ onUnmounted(() => {
 .lu-head .lu-eyebrow {
   margin: 0 0 6px;
   color: var(--ow-eyebrow, #16634f);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 2px;
 }
@@ -349,7 +349,7 @@ onUnmounted(() => {
 .lu-head h1 {
   margin: 0;
   color: var(--ink);
-  font-size: 22px;
+  font-size: var(--fs-lg);
   font-weight: 800;
 }
 
@@ -357,7 +357,7 @@ onUnmounted(() => {
   margin: 10px 0 0;
   max-width: 60ch;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.6;
 }
 
@@ -379,7 +379,7 @@ onUnmounted(() => {
 .lu-card-title {
   margin: 0 0 14px;
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
 }
 
@@ -401,7 +401,7 @@ onUnmounted(() => {
   border: 1.5px solid var(--line-2);
   border-radius: 12px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   transition: border-color 0.14s, box-shadow 0.14s;
 }
 
@@ -428,7 +428,7 @@ onUnmounted(() => {
   padding: 0 16px;
   border-radius: 12px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   cursor: pointer;
   border: 1px solid var(--line-2);
@@ -481,14 +481,14 @@ onUnmounted(() => {
 
 .goal-title {
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
 .goal-status {
   padding: 2px 9px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 
@@ -510,7 +510,7 @@ onUnmounted(() => {
 .goal-reason {
   margin: 0 0 10px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.5;
 }
 
@@ -536,7 +536,7 @@ onUnmounted(() => {
 
 .goal-pct {
   color: var(--ow-muted, #52685e);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -546,7 +546,7 @@ onUnmounted(() => {
   gap: 5px;
   margin-top: 8px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
 }
 
@@ -575,7 +575,7 @@ onUnmounted(() => {
   border-radius: 12px;
   background: var(--surface, #fff);
   color: var(--ink, #1a1a1a);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -592,7 +592,7 @@ onUnmounted(() => {
   border-radius: 999px;
   background: var(--surface, #fff);
   color: var(--ow-ink-secondary, #3f574c);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   cursor: pointer;
 }
@@ -609,7 +609,7 @@ onUnmounted(() => {
 
 .goal-empty {
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .lu-side {
@@ -627,19 +627,19 @@ onUnmounted(() => {
 .focus-loading {
   min-height: 48px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .focus-num {
   color: var(--ink);
-  font-size: 36px;
+  font-size: var(--fs-2xl);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .focus-unit {
   color: var(--ow-muted, #52685e);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .focus-bars {
@@ -667,7 +667,7 @@ onUnmounted(() => {
 
 .focus-day {
   color: var(--ow-muted, #52685e);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .focus-tip {
@@ -676,7 +676,7 @@ onUnmounted(() => {
   gap: 6px;
   margin: 8px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.5;
 }
 
@@ -702,7 +702,7 @@ onUnmounted(() => {
   box-shadow: 0 4px 12px rgb(31 111 92 / 26%);
   cursor: pointer;
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 

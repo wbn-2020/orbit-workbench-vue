@@ -45,12 +45,12 @@ const shownIcon = computed(() => props.icon ?? Inbox)
 h3 {
   margin: 0;
   color: var(--ow-ink-secondary);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 p {
   max-width: 48ch;
   margin: 6px 0 14px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 </style>

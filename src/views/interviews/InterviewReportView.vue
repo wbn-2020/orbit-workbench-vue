@@ -559,7 +559,7 @@ load()
 
 .overall .score {
   color: var(--ink);
-  font-size: 36px;
+  font-size: var(--fs-2xl);
   font-weight: 900;
   line-height: 1;
 }
@@ -567,14 +567,14 @@ load()
 .overall .score-sub {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .grade {
   display: inline-block;
   padding: 5px 16px;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
 }
 
@@ -609,7 +609,7 @@ load()
   width: 120px;
   flex: 0 0 120px;
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 600;
 }
 
@@ -631,7 +631,7 @@ load()
   width: 34px;
   flex: 0 0 34px;
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
   text-align: right;
 }
@@ -647,7 +647,7 @@ load()
 
 .radar-label {
   fill: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
@@ -655,7 +655,7 @@ load()
   margin: 0;
   padding-left: 18px;
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.9;
 }
 
@@ -680,7 +680,7 @@ load()
 .weak-title {
   display: block;
   margin-bottom: 6px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .weak-title.project {
@@ -719,7 +719,7 @@ load()
   white-space: pre-wrap;
   word-break: break-word;
   color: var(--ow-muted, #52685e);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.6;
   border: 1px solid var(--ow-line-soft, rgb(31 111 92 / 12%));
   border-radius: 12px;

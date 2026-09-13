@@ -482,7 +482,7 @@ onBeforeUnmount(() => {
 .web-outcome-note {
   margin: 8px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.6;
 }
 

@@ -29,15 +29,15 @@ const html = computed(() => DOMPurify.sanitize(markdown.render(props.content || 
 }
 
 .markdown-viewer :deep(h1) {
-  font-size: 22px;
+  font-size: var(--fs-lg);
 }
 
 .markdown-viewer :deep(h2) {
-  font-size: 17px;
+  font-size: var(--fs-md);
 }
 
 .markdown-viewer :deep(h3) {
-  font-size: 17px;
+  font-size: var(--fs-md);
 }
 
 .markdown-viewer :deep(p),

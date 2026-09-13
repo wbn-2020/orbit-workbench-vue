@@ -286,7 +286,7 @@ onBeforeUnmount(() => {
   box-shadow: 0 10px 26px rgb(31 111 92 / 40%);
   cursor: pointer;
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
@@ -321,7 +321,7 @@ onBeforeUnmount(() => {
   gap: 6px;
   padding: 4px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 0.5px;
 }
@@ -359,7 +359,7 @@ onBeforeUnmount(() => {
 }
 
 .focus-clock {
-  font-size: 36px;
+  font-size: var(--fs-2xl);
   font-weight: 800;
   line-height: 1;
   text-align: center;
@@ -376,7 +376,7 @@ onBeforeUnmount(() => {
   margin: 0 0 12px;
   text-align: center;
   color: var(--ow-muted, #52685e);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.5;
 }
 
@@ -398,7 +398,7 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   cursor: pointer;
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
@@ -429,7 +429,7 @@ onBeforeUnmount(() => {
   margin: 10px 0 0;
   text-align: center;
   color: var(--green, #16a34a);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
@@ -440,7 +440,7 @@ onBeforeUnmount(() => {
   gap: 8px;
   margin-top: 10px;
   color: var(--danger, #b91c1c);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.4;
 }
 

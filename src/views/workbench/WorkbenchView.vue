@@ -330,7 +330,7 @@ onUnmounted(() => {
 .wb-eyebrow {
   margin: 0 0 6px;
   color: var(--ow-eyebrow, #16634f);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 2px;
 }
@@ -338,7 +338,7 @@ onUnmounted(() => {
 .wb-greeting {
   margin: 0;
   color: var(--ink);
-  font-size: 28px;
+  font-size: var(--fs-xl);
   font-weight: 800;
 }
 
@@ -346,7 +346,7 @@ onUnmounted(() => {
   margin: 10px 0 0;
   max-width: 52ch;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.6;
 }
 
@@ -359,7 +359,7 @@ onUnmounted(() => {
   background: var(--brand-50, rgb(31 111 92 / 12%));
   border: 1px solid var(--brand-200, rgb(31 111 92 / 20%));
   border-radius: 999px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -372,7 +372,7 @@ onUnmounted(() => {
 .wb-section-title {
   margin: 0 0 14px;
   color: var(--ink);
-  font-size: 17px;
+  font-size: var(--fs-md);
   font-weight: 800;
 }
 
@@ -435,14 +435,14 @@ onUnmounted(() => {
 .mode-body h3 {
   margin: 0 0 4px;
   color: var(--ink);
-  font-size: 17px;
+  font-size: var(--fs-md);
   font-weight: 800;
 }
 
 .mode-body p {
   margin: 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.5;
 }
 
@@ -454,14 +454,14 @@ onUnmounted(() => {
 
 .mode-metric strong {
   color: var(--ink);
-  font-size: 22px;
+  font-size: var(--fs-lg);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .mode-metric small {
   color: var(--ow-ink-secondary, #3f574c);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
 }
 
@@ -490,14 +490,14 @@ onUnmounted(() => {
 
 .asset-count {
   color: var(--brand-700, #1f6f5c);
-  font-size: 28px;
+  font-size: var(--fs-xl);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .asset-label {
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 600;
 }
 
@@ -525,7 +525,7 @@ onUnmounted(() => {
 
 .agenda-time {
   color: var(--faint);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-variant-numeric: tabular-nums;
   flex: none;
 }
@@ -533,7 +533,7 @@ onUnmounted(() => {
 .agenda-title {
   flex: 1;
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 600;
 }
 
@@ -550,7 +550,7 @@ onUnmounted(() => {
 
 .agenda-empty {
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 @media (max-width: 720px) {
@@ -570,7 +570,7 @@ onUnmounted(() => {
 .wb-onboard-title {
   margin: 0;
   color: var(--ow-ink, #21332c);
-  font-size: 22px;
+  font-size: var(--fs-lg);
   font-weight: 800;
 }
 
@@ -578,7 +578,7 @@ onUnmounted(() => {
   margin: 8px 0 0;
   max-width: 62ch;
   color: var(--ow-ink-secondary, #3f574c);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.65;
 }
 
@@ -615,7 +615,7 @@ onUnmounted(() => {
   border-radius: 999px;
   background: var(--ow-primary-soft, rgb(31 111 92 / 12%));
   color: var(--ow-primary-strong, #1f6f5c);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
 }
 
@@ -627,13 +627,13 @@ onUnmounted(() => {
 
 .wb-step-body strong {
   color: var(--ow-ink, #21332c);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
 .wb-step-body small {
   color: var(--ow-muted, #5c7268);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.55;
 }
 
@@ -680,14 +680,14 @@ onUnmounted(() => {
 
 .wb-trend-num {
   color: var(--ow-ink);
-  font-size: 36px;
+  font-size: var(--fs-2xl);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .wb-trend-label {
   color: var(--ow-muted, #52685e);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .wb-trend-label .up { color: var(--ow-status-success-text, #0f7a40); }
@@ -701,7 +701,7 @@ onUnmounted(() => {
 
 .wb-trend-link {
   color: #16634f;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   text-decoration: none;
 }
@@ -709,7 +709,7 @@ onUnmounted(() => {
 .wb-trend-empty {
   margin: 0;
   color: var(--ow-muted, #52685e);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.7;
 }
 
@@ -799,7 +799,7 @@ onUnmounted(() => {
 
 .pipeline-body strong {
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
@@ -812,7 +812,7 @@ onUnmounted(() => {
 .pipeline-action {
   flex: none;
   color: #16634f;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   white-space: nowrap;
 }

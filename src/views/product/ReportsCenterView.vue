@@ -588,7 +588,7 @@ onMounted(reload)
 
 .filter-label {
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
@@ -606,7 +606,7 @@ onMounted(reload)
 
 .surface-head h2 {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .version-pick {
@@ -655,7 +655,7 @@ onMounted(reload)
   display: flex;
   justify-content: space-between;
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .missing {
@@ -665,7 +665,7 @@ onMounted(reload)
   background: var(--surface-2);
   border-left: 3px solid var(--line-2);
   border-radius: 6px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.7;
 }
 
@@ -710,7 +710,7 @@ onMounted(reload)
   background: var(--brand-50);
   border-radius: 5px;
   font-family: ui-monospace, monospace;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   padding: 1px 6px;
 }
 
@@ -738,7 +738,7 @@ onMounted(reload)
   color: var(--brand-700);
   background: var(--surface);
   border-radius: 50%;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
 }
 
@@ -762,7 +762,7 @@ onMounted(reload)
   flex-wrap: wrap;
   gap: 6px 12px;
   margin-top: 8px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .dim {
@@ -776,7 +776,7 @@ onMounted(reload)
   width: 96px;
   flex: 0 0 96px;
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 600;
 }
 
@@ -799,7 +799,7 @@ onMounted(reload)
   width: 34px;
   flex: 0 0 34px;
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
   text-align: right;
 }
@@ -808,7 +808,7 @@ onMounted(reload)
   width: 74px;
   flex: 0 0 74px;
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .muted {
@@ -816,7 +816,7 @@ onMounted(reload)
 }
 
 .small {
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 @media (max-width: 820px) {

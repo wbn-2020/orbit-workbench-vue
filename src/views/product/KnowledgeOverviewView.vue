@@ -175,7 +175,7 @@ onMounted(load)
 .ko-eyebrow {
   margin: 0 0 6px;
   color: var(--ow-eyebrow, #16634f);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 2px;
 }
@@ -183,7 +183,7 @@ onMounted(load)
 .ko-head h1 {
   margin: 0;
   color: var(--ow-ink);
-  font-size: 22px;
+  font-size: var(--fs-lg);
   font-weight: 800;
 }
 
@@ -191,7 +191,7 @@ onMounted(load)
   margin: 10px 0 0;
   max-width: 64ch;
   color: var(--ow-muted, #52685e);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.7;
 }
 
@@ -213,25 +213,25 @@ onMounted(load)
 
 .ko-stat-num {
   color: var(--ow-ink);
-  font-size: 28px;
+  font-size: var(--fs-xl);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .ko-stat-label {
   color: var(--ow-ink-secondary, #3f574c);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
 .ko-stat-extra {
   color: var(--ow-muted, #52685e);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .ko-stat-link {
   color: #16634f;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-decoration: none;
 }
@@ -258,13 +258,13 @@ onMounted(load)
 
 .ko-item b {
   color: var(--ow-ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .ko-item p {
   margin: 4px 0 0;
   color: var(--ow-muted, #52685e);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -274,7 +274,7 @@ onMounted(load)
 
 .ko-empty {
   color: var(--ow-muted, #52685e);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .ko-empty a {
@@ -285,7 +285,7 @@ onMounted(load)
 .ko-note {
   margin: 0;
   color: var(--ow-muted, #52685e);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.7;
 }
 
@@ -327,11 +327,11 @@ onMounted(load)
 
 .ko-due-body b {
   color: var(--ow-ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .ko-due-meta {
   color: var(--ow-muted, #52685e);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 </style>

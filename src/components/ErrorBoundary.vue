@@ -85,14 +85,14 @@ function reload(): void {
 .reb-card h1 {
   margin: 12px 0 0;
   color: var(--ink, #1a2b25);
-  font-size: 17px;
+  font-size: var(--fs-md);
   font-weight: 800;
 }
 
 .reb-detail {
   margin: 10px 0 0;
   color: var(--ow-danger, #b42318);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   word-break: break-word;
 }
@@ -100,7 +100,7 @@ function reload(): void {
 .reb-hint {
   margin: 6px 0 0;
   color: var(--muted, #52685e);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .reb-acts {
@@ -118,7 +118,7 @@ function reload(): void {
   background: var(--surface-2, #f3f6f4);
   color: var(--ink-2, #3f574c);
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   cursor: pointer;
 }

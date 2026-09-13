@@ -490,7 +490,7 @@ onMounted(() => {
 
 .ow-titem .tt {
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -511,7 +511,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .mastery-total b {
@@ -529,7 +529,7 @@ onMounted(() => {
   width: 72px;
   flex: 0 0 72px;
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
 }
 
@@ -552,7 +552,7 @@ onMounted(() => {
   width: 30px;
   flex: 0 0 30px;
   color: var(--ink);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-align: right;
 }

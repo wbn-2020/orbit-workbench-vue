@@ -90,7 +90,7 @@ body {
   overflow-x: hidden;
   color: var(--ow-ink);
   background: var(--bg);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -163,7 +163,7 @@ p {
 .surface-title {
   margin: 0;
   color: var(--ow-ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
@@ -171,7 +171,7 @@ p {
   display: block;
   margin-top: 3px;
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .surface-body {
@@ -223,7 +223,7 @@ p {
 
 .detail-grid dt {
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .detail-grid dd {
@@ -294,7 +294,7 @@ html .el-tag.el-tag--info {
 
 .el-table th.el-table__cell {
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 

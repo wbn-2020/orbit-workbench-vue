@@ -339,13 +339,13 @@ onBeforeUnmount(() => {
 .ws-loading {
   margin: 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .ws-head .ws-eyebrow {
   margin: 0 0 6px;
   color: var(--ow-eyebrow, #16634f);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 2px;
 }
@@ -353,7 +353,7 @@ onBeforeUnmount(() => {
 .ws-head h1 {
   margin: 0;
   color: var(--ink);
-  font-size: 22px;
+  font-size: var(--fs-lg);
   font-weight: 800;
 }
 
@@ -361,7 +361,7 @@ onBeforeUnmount(() => {
   margin: 10px 0 0;
   max-width: 60ch;
   color: var(--ow-muted, #5c7268);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.6;
 }
 
@@ -389,7 +389,7 @@ onBeforeUnmount(() => {
 .ws-card-title {
   margin: 0 0 14px;
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
 }
 
@@ -408,7 +408,7 @@ onBeforeUnmount(() => {
   border: 1.5px solid var(--line-2);
   border-radius: 12px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   transition: border-color 0.14s, box-shadow 0.14s;
 }
 
@@ -443,7 +443,7 @@ onBeforeUnmount(() => {
   padding: 0 16px;
   border-radius: 12px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   cursor: pointer;
   border: 1px solid var(--line-2);
@@ -502,7 +502,7 @@ onBeforeUnmount(() => {
 .log-cat {
   padding: 2px 9px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   background: var(--glass);
   color: var(--muted);
@@ -527,7 +527,7 @@ onBeforeUnmount(() => {
   flex: 1;
   min-width: 0;
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
@@ -536,7 +536,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 4px;
   color: var(--green, #16a34a);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
@@ -548,7 +548,7 @@ onBeforeUnmount(() => {
 .log-content {
   margin: 0 0 10px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.6;
 }
 
@@ -561,7 +561,7 @@ onBeforeUnmount(() => {
   border: 1px solid var(--ow-danger, #b42318);
   border-radius: 12px;
   background: var(--ow-danger-soft, rgb(180 35 24 / 8%));
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .log-distill-error svg {
@@ -587,7 +587,7 @@ onBeforeUnmount(() => {
   background: transparent;
   color: var(--ow-danger, #b42318);
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   cursor: pointer;
 }
@@ -600,7 +600,7 @@ onBeforeUnmount(() => {
 .log-empty,
 .kc-empty {
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .ws-side {
@@ -628,13 +628,13 @@ onBeforeUnmount(() => {
 
 .card-flash strong {
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .card-flash p {
   margin: 4px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.5;
 }
 
@@ -661,7 +661,7 @@ onBeforeUnmount(() => {
 .ws-kc-sub {
   margin: 4px 0 12px;
   color: var(--ow-muted, #5c7268);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.6;
 }
 
@@ -676,14 +676,14 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 6px;
   color: var(--ow-ink-secondary, #3f574c);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 600;
 }
 
 .kc-source {
   margin: 0;
   color: var(--ow-muted, #5c7268);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .kc-list {
@@ -704,13 +704,13 @@ onBeforeUnmount(() => {
 
 .kc-title {
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
 .kc-summary {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.5;
 }
 
@@ -726,7 +726,7 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: var(--glass);
   color: var(--faint);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 @media (max-width: 980px) {
@@ -746,7 +746,7 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: var(--ow-status-neutral-bg, var(--surface-2, #eef2f0));
   color: var(--ow-status-neutral-text, #52685e);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 

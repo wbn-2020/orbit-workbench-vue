@@ -756,12 +756,12 @@ onUnmounted(() => {
 .overview-item span,
 .version-meta {
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .overview-item strong {
   color: var(--ow-ink-secondary);
-  font-size: 22px;
+  font-size: var(--fs-lg);
 }
 
 .overview-item strong.danger {
@@ -802,7 +802,7 @@ onUnmounted(() => {
 
 .facts-note {
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.6;
 }
 
@@ -836,7 +836,7 @@ onUnmounted(() => {
   justify-items: start;
   gap: 8px;
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.5;
 }
 
@@ -853,26 +853,26 @@ onUnmounted(() => {
 
 .fact-title-line strong {
   color: var(--ow-ink-secondary);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.6;
 }
 
 .confidence {
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .fact-body p {
   margin: 7px 0 6px;
   color: var(--ow-ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.7;
   white-space: pre-wrap;
 }
 
 .fact-body small {
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.6;
 }
 
@@ -910,7 +910,7 @@ onUnmounted(() => {
   padding: 10px 18px;
   border-top: 1px solid var(--ow-line-soft);
   color: var(--ow-danger);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.6;
   word-break: break-all;
 }
@@ -951,7 +951,7 @@ onUnmounted(() => {
 .import-note {
   margin: 10px 0 0;
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.65;
 }
 

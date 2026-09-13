@@ -252,7 +252,7 @@ onMounted(load)
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 12px;
-  font-size: 17px;
+  font-size: var(--fs-md);
 }
 
 .nb {
@@ -278,7 +278,7 @@ onMounted(load)
   align-items: center;
   gap: 8px;
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
@@ -287,21 +287,21 @@ onMounted(load)
   color: #fff;
   background: var(--brand);
   border-radius: 12px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 
 .nd {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.55;
 }
 
 .ntime {
   margin-top: 4px;
   color: var(--ow-muted, #52685e);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .acts {

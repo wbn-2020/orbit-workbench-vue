@@ -270,7 +270,7 @@ load()
 .answer-text {
   margin: 0 0 10px;
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.8;
   white-space: pre-wrap;
   word-break: break-word;
@@ -294,7 +294,7 @@ load()
 
 .source-path {
   color: var(--brand-700);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   word-break: break-all;
 }
@@ -302,7 +302,7 @@ load()
 .source-snippet {
   grid-column: 1 / -1;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.6;
 }
 
@@ -310,7 +310,7 @@ load()
   margin: 0;
   padding-left: 18px;
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.9;
 }
 

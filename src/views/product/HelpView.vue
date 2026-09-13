@@ -170,26 +170,26 @@ const visibleFaqs = computed(() => {
   color: #16634f;
   background: var(--brand-100);
   border-radius: 12px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 900;
 }
 
 .step-card h3 {
   margin: 0;
   color: var(--ow-ink-secondary);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .step-card p {
   margin: 0;
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.7;
 }
 
 .step-link {
   color: var(--brand-700);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-decoration: none;
 }
@@ -218,7 +218,7 @@ const visibleFaqs = computed(() => {
   background: var(--surface-2);
   border: 1px solid var(--ow-line-soft);
   border-radius: 12px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .boundary-head {
@@ -247,7 +247,7 @@ const visibleFaqs = computed(() => {
   border: 1px solid var(--line);
   border-radius: 12px;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   cursor: pointer;
 }
@@ -279,13 +279,13 @@ const visibleFaqs = computed(() => {
 
 .faq-no {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 
 .faq-q {
   color: var(--ow-ink-secondary);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
@@ -294,13 +294,13 @@ const visibleFaqs = computed(() => {
   /* 行宽收进 32–38 汉字的舒适区（约 72ch），原先接近满屏，长句读起来串行 */
   max-width: 72ch;
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.8;
 }
 
 .trouble-when {
   color: var(--ow-ink-secondary);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
 }
 

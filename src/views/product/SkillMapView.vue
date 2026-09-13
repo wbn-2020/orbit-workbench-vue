@@ -577,7 +577,7 @@ onMounted(load)
 
 .filter-label {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 
@@ -624,7 +624,7 @@ onMounted(load)
 
 .radar-label {
   fill: var(--ink-2);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
@@ -665,7 +665,7 @@ onMounted(load)
 .dim-name {
   overflow: hidden;
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -700,7 +700,7 @@ onMounted(load)
 
 .dim-score {
   color: var(--brand-700);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -713,7 +713,7 @@ onMounted(load)
   background: none;
   border: 1px solid var(--line-2);
   border-radius: 12px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   cursor: pointer;
 }
@@ -738,13 +738,13 @@ onMounted(load)
   align-items: center;
   gap: 10px;
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .evidence-line b {
   min-width: 28px;
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-variant-numeric: tabular-nums;
 }
 
@@ -756,13 +756,13 @@ onMounted(load)
   padding: 8px 0;
   border-bottom: 1px dashed var(--line);
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .self-row b,
 .source-row b {
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .self-row span,
@@ -772,7 +772,7 @@ onMounted(load)
 
 .source-row em {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-style: normal;
 }
 
@@ -782,7 +782,7 @@ onMounted(load)
 
 .axis-label {
   fill: var(--faint);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .trend-legend {
@@ -792,7 +792,7 @@ onMounted(load)
   gap: 6px 18px;
   margin-top: 10px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .missing {
@@ -803,7 +803,7 @@ onMounted(load)
   border: 1px solid var(--line);
   border-left: 3px solid var(--gold);
   border-radius: 12px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.7;
 }
 
@@ -839,7 +839,7 @@ onMounted(load)
 
 .empty-guide-body h2 {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--fs-md);
   font-weight: 800;
   color: var(--ow-ink);
 }
@@ -848,7 +848,7 @@ onMounted(load)
   margin: 8px 0 0;
   max-width: 64ch;
   color: var(--ow-muted);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.7;
 }
 

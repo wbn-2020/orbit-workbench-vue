@@ -332,7 +332,7 @@ onMounted(() => {
 .version-counts,
 .import-note {
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .version-counts {

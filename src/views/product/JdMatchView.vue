@@ -1011,7 +1011,7 @@ function applicationStageLabel(stage?: string | null): string {
 
 .posting-title strong {
   color: var(--ow-ink-secondary);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .posting-meta {
@@ -1020,7 +1020,7 @@ function applicationStageLabel(stage?: string | null): string {
   gap: 4px 10px;
   margin: 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .pager {
@@ -1038,7 +1038,7 @@ function applicationStageLabel(stage?: string | null): string {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .assoc-link {
@@ -1059,7 +1059,7 @@ function applicationStageLabel(stage?: string | null): string {
   background: var(--gold-50);
   border: 1px solid var(--gold-200);
   border-radius: 12px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .guide-card p {
@@ -1078,7 +1078,7 @@ function applicationStageLabel(stage?: string | null): string {
   background: var(--surface-2);
   border: 1px dashed var(--line);
   border-radius: 12px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .trace-bar b {
@@ -1099,7 +1099,7 @@ function applicationStageLabel(stage?: string | null): string {
 
 .control-hint {
   margin: -6px 0 0;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .state-alert :deep(p) {
@@ -1123,13 +1123,13 @@ function applicationStageLabel(stage?: string | null): string {
 
 .count-card b {
   color: var(--ow-ink-secondary);
-  font-size: 22px;
+  font-size: var(--fs-lg);
   font-weight: 900;
 }
 
 .count-card span {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
@@ -1150,7 +1150,7 @@ function applicationStageLabel(stage?: string | null): string {
 
 .scoring-note {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.7;
 }
 
@@ -1174,7 +1174,7 @@ function applicationStageLabel(stage?: string | null): string {
   border: 1px solid var(--line);
   border-left-width: 3px;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .req-item.is-matched {
@@ -1206,7 +1206,7 @@ function applicationStageLabel(stage?: string | null): string {
 .req-reason {
   margin: 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.65;
 }
 
@@ -1229,13 +1229,13 @@ function applicationStageLabel(stage?: string | null): string {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .snippet {
   margin: 4px 0 0;
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
@@ -1243,7 +1243,7 @@ function applicationStageLabel(stage?: string | null): string {
 
 .evidence-more {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .link-btn {
@@ -1269,12 +1269,12 @@ function applicationStageLabel(stage?: string | null): string {
   gap: 10px;
   margin: 0;
   color: var(--ow-ink-secondary);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .block-hint {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.7;
 }
 
@@ -1284,7 +1284,7 @@ function applicationStageLabel(stage?: string | null): string {
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .plain-list li {
@@ -1307,7 +1307,7 @@ function applicationStageLabel(stage?: string | null): string {
   background: var(--surface-2);
   border-radius: 12px;
   font-family: var(--mono, ui-monospace, monospace);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;

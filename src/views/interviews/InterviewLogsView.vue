@@ -230,7 +230,7 @@ onMounted(() => {
   color: #0d7a52;
   background: linear-gradient(180deg, #e9f8ef, #d8f3e2);
   border-radius: 12px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 </style>

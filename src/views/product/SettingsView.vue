@@ -85,6 +85,22 @@
             </button>
           </div>
           <div class="ow-note current-theme">当前主题：{{ currentTheme.name }} · {{ currentTheme.desc }}</div>
+
+          <div class="theme-head readability-head">
+            <div>
+              <div class="theme-title">阅读偏好</div>
+              <div class="ow-hint theme-hint">大字号模式 · 全站字号阶梯整档 +2px · 只保存在当前浏览器</div>
+            </div>
+            <button
+              class="ow-btn ghost xs"
+              type="button"
+              :class="{ active: ui.largeText }"
+              :aria-pressed="ui.largeText"
+              @click="ui.toggleLargeText()"
+            >
+              {{ ui.largeText ? '已开启 · 恢复正常' : '开启大字号' }}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -568,7 +584,7 @@ onMounted(loadPreferences)
 
 .theme-title {
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
@@ -615,13 +631,13 @@ onMounted(loadPreferences)
 
 .theme-card .tc-name {
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
 }
 
 .theme-card .tc-desc {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
 }
 
@@ -640,7 +656,7 @@ onMounted(loadPreferences)
 .version-label {
   margin-left: auto;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
@@ -667,7 +683,7 @@ onMounted(loadPreferences)
 
 .titem-title {
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
@@ -700,7 +716,7 @@ onMounted(loadPreferences)
 .error-line {
   margin: 10px 0 0;
   color: var(--red-600);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.6;
 }
 
@@ -737,7 +753,7 @@ onMounted(loadPreferences)
 .about-text {
   margin: 0;
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.8;
 }
 

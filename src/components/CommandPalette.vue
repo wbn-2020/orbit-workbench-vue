@@ -251,7 +251,7 @@ defineExpose({ show })
 .cmd-key-hint {
   flex: none;
   color: var(--faint, #9ca3af);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .cmd-list {
@@ -263,7 +263,7 @@ defineExpose({ show })
 .cmd-group {
   padding: 8px 12px 4px;
   color: var(--faint, #9ca3af);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
@@ -280,7 +280,7 @@ defineExpose({ show })
   border-radius: 10px;
   cursor: pointer;
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .cmd-item.is-active {
@@ -301,7 +301,7 @@ defineExpose({ show })
   color: var(--muted, #6b7280);
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .cmd-item.is-active .cmd-item-sub {
@@ -313,7 +313,7 @@ defineExpose({ show })
   padding: 22px 12px;
   color: var(--muted, #6b7280);
   text-align: center;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .cmd-foot {
@@ -322,7 +322,7 @@ defineExpose({ show })
   padding: 9px 16px;
   color: var(--faint, #9ca3af);
   border-top: 1px solid var(--line, #e5e7eb);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .cmd-foot kbd {

@@ -31,6 +31,17 @@ const THEME_MIGRATION: Record<string, OwTheme> = {
 
 const THEME_STORAGE_KEY = 'ow_theme'
 
+/* 阅读偏好（26 号阶段④）：只保存在当前浏览器，开启后字号阶梯整档 +2px。 */
+const LARGE_TEXT_KEY = 'ow_text_large'
+
+function readStoredLargeText(): boolean {
+  try {
+    return localStorage.getItem(LARGE_TEXT_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
 function readStoredTheme(): OwTheme {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY)
@@ -43,6 +54,21 @@ function readStoredTheme(): OwTheme {
 
 export const useUiStore = defineStore('ui', () => {
   const theme = ref<OwTheme>(readStoredTheme())
+  const largeText = ref(readStoredLargeText())
+
+  function applyLargeText(next: boolean): void {
+    largeText.value = next
+    document.documentElement.classList.toggle('ow-text-large', next)
+    try {
+      localStorage.setItem(LARGE_TEXT_KEY, next ? '1' : '0')
+    } catch {
+      /* 忽略持久化失败 */
+    }
+  }
+
+  function toggleLargeText(): void {
+    applyLargeText(!largeText.value)
+  }
 
   function apply(next: OwTheme): void {
     theme.value = next
@@ -63,6 +89,7 @@ export const useUiStore = defineStore('ui', () => {
 
   function init(): void {
     apply(theme.value)
+    applyLargeText(largeText.value)
   }
 
   function toggleNext(): void {
@@ -71,5 +98,5 @@ export const useUiStore = defineStore('ui', () => {
     if (next) apply(next.value)
   }
 
-  return { theme, apply, init, toggleNext }
+  return { theme, largeText, apply, applyLargeText, toggleLargeText, init, toggleNext }
 })

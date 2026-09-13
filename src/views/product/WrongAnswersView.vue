@@ -918,7 +918,7 @@ void initialize()
 
 .filter-label {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 
@@ -969,7 +969,7 @@ void initialize()
 .q {
   margin: 0;
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   line-height: 1.6;
 }
@@ -980,7 +980,7 @@ void initialize()
   gap: 6px 14px;
   margin-top: 8px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .wrong-actions {
@@ -1002,21 +1002,21 @@ void initialize()
   gap: 8px;
   margin-bottom: 8px;
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
 }
 
 .trace-line {
   margin: 0 0 6px;
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.65;
 }
 
 .trace-line b {
   margin-right: 8px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 
@@ -1037,7 +1037,7 @@ void initialize()
 .attempt-answer {
   margin: 6px 0 0;
   color: var(--ink-2);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.65;
   white-space: pre-wrap;
 }
@@ -1066,7 +1066,7 @@ void initialize()
 
 .muted {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .rule {
@@ -1081,21 +1081,21 @@ void initialize()
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: 12px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.65;
 }
 
 .error-line {
   margin: 8px 0 0;
   color: var(--red-600);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.6;
 }
 
 .ok-line {
   margin: 12px 0 0;
   color: var(--green-700);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.6;
 }
 
@@ -1103,7 +1103,7 @@ void initialize()
   display: flex;
   justify-content: space-between;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .mastery-total b {
@@ -1116,7 +1116,7 @@ void initialize()
   gap: 12px;
   margin-top: 8px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .dim {
@@ -1129,7 +1129,7 @@ void initialize()
 .dim .name {
   flex: 0 0 96px;
   color: var(--ink-2);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
 }
 
@@ -1151,7 +1151,7 @@ void initialize()
 .dim .score {
   flex: 0 0 42px;
   color: var(--ink);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-align: right;
 }

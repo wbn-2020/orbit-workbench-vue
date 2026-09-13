@@ -156,7 +156,7 @@ onBeforeUnmount(clearPasswords)
 
 .auth-brand span:last-child {
   color: var(--ow-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 .auth-heading {
@@ -165,7 +165,7 @@ onBeforeUnmount(clearPasswords)
 
 .auth-heading h1 {
   margin-bottom: 6px;
-  font-size: 22px;
+  font-size: var(--fs-lg);
 }
 
 .auth-heading p {
