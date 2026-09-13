@@ -2,7 +2,7 @@
   <div class="page kb-page">
     <header class="ow-page-top">
       <div>
-        <div class="ow-crumb">资料 / 知识库问答</div>
+        <OwCrumb />
         <h1><BookOpen aria-hidden="true" /> 知识库问答</h1>
         <div class="sub">
           基于你的项目知识块检索并由 AI 生成答案 · 答案标注文件来源，检索不到会明确提示

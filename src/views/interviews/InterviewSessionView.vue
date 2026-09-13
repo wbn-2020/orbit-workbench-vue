@@ -2,7 +2,7 @@
   <div class="page session-page">
     <header class="ow-page-top">
       <div>
-        <div class="ow-crumb">面试 / 进行中</div>
+        <OwCrumb />
         <h1>面试副本 · {{ session?.title ?? '…' }}</h1>
         <div class="sub">
           {{ session?.interviewerName ?? 'AI 面试官' }} ｜ {{ topicLabel }} ｜

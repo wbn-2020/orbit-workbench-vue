@@ -113,8 +113,12 @@
             @click="mobileNavOpen = true"
           />
           <div class="breadcrumb">
-            <span class="crumb-root">Orbit 工作台 /&nbsp;</span>
-            <strong>{{ route.meta.title }}</strong>
+            <span class="crumb-root">Orbit /&nbsp;</span>
+            <template v-for="(seg, i) in crumbSegments" :key="`${seg.label}-${i}`">
+              <span v-if="i > 0" class="crumb-sep">/&nbsp;</span>
+              <span v-if="i < crumbSegments.length - 1" class="crumb-section">{{ seg.label }}</span>
+              <strong v-else>{{ seg.label }}</strong>
+            </template>
           </div>
         </div>
         <div class="search">
@@ -269,6 +273,7 @@ import {
 import { computed, defineComponent, h, nextTick, onMounted, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import FocusTimerWidget from '@/components/FocusTimerWidget.vue'
+import { useCrumbSegments } from '@/composables/useCrumb'
 
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
 import { getProblem } from '@/api/http'
@@ -288,6 +293,7 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const ui = useUiStore()
+const crumbSegments = useCrumbSegments()
 const mobileNavOpen = ref(false)
 const passwordDialogOpen = ref(false)
 const searchKeyword = ref('')
@@ -1013,6 +1019,17 @@ async function handleLogout(): Promise<void> {
 }
 
 .crumb-root {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.crumb-section {
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.crumb-sep {
   color: var(--muted);
   white-space: nowrap;
 }

@@ -2,7 +2,7 @@
   <div class="page report-page">
     <header class="ow-page-top">
       <div>
-        <div class="ow-crumb">面试 / 报告</div>
+        <OwCrumb />
         <h1>{{ session?.title ?? '面试报告' }}</h1>
         <div class="sub">
           {{ topicLabel }} ｜ {{ session?.interviewerName ?? 'AI 面试官' }} ｜ 模型 {{ session?.aiModel ?? '自动' }}

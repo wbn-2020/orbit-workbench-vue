@@ -2,7 +2,7 @@
   <div class="page interviewers-page">
     <header class="ow-page-top">
       <div>
-        <div class="ow-crumb">资料 / 面试官</div>
+        <OwCrumb />
         <h1><UsersRound aria-hidden="true" /> 面试官</h1>
         <div class="sub">
           内置面试官只读，可复制为专属后编辑；创建会话时写入面试官快照，历史会话不受后续修改影响

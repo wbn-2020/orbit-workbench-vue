@@ -2,7 +2,7 @@
   <div class="page logs-page">
     <header class="ow-page-top">
       <div>
-        <div class="ow-crumb">市场感知 / 面试记录</div>
+        <OwCrumb />
         <h1><NotebookPen aria-hidden="true" /> 面试记录</h1>
         <div class="sub">你的全部模拟面试会话</div>
       </div>

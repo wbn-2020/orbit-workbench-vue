@@ -10,6 +10,7 @@
         @click="$router.back()"
       />
       <div>
+        <OwCrumb v-if="crumb" />
         <h1>{{ title }}</h1>
         <p v-if="description">{{ description }}</p>
       </div>
@@ -22,14 +23,17 @@
 
 <script setup lang="ts">
 import { ArrowLeft } from 'lucide-vue-next'
+import OwCrumb from '@/components/OwCrumb.vue'
 
 withDefaults(
   defineProps<{
     title: string
     description?: string
     back?: boolean
+    /** 显示由路由 meta 派生的统一面包屑（区块 / [上级] / 页面），默认开启 */
+    crumb?: boolean
   }>(),
-  { description: undefined, back: false },
+  { description: undefined, back: false, crumb: true },
 )
 </script>
 

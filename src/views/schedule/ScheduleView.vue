@@ -2,7 +2,7 @@
   <div class="page schedule-page">
     <header class="ow-page-top">
       <div>
-        <div class="ow-crumb">工作台 / 日程与提醒</div>
+        <OwCrumb />
         <h1><CalendarDays aria-hidden="true" /> 日程与提醒</h1>
         <div class="sub">{{ subText }}</div>
       </div>

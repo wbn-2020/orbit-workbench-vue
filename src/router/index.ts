@@ -6,6 +6,11 @@ declare module 'vue-router' {
   interface RouteMeta {
     title?: string
     public?: boolean
+    /** 所属侧栏区块（工作台 / 市场感知 / 工作沉淀 / 学习更新 / 资料库 / 系统） */
+    section?: string
+    /** 详情页的上级列表页名称与跳转路径，用于 区块 / 列表 / 详情 三级面包屑 */
+    crumbParent?: string
+    crumbParentTo?: string
   }
 }
 
@@ -34,165 +39,165 @@ const router = createRouter({
           path: 'workbench',
           name: 'workbench',
           component: () => import('@/views/workbench/WorkbenchView.vue'),
-          meta: { title: '今日工作台' },
+          meta: { title: '今日工作台', section: '工作台' },
         },
         {
           path: 'work-sedimentation',
           name: 'work-sedimentation',
           component: () => import('@/views/work/WorkSedimentationView.vue'),
-          meta: { title: '工作沉淀' },
+          meta: { title: '工作沉淀', section: '工作沉淀' },
         },
         {
           path: 'learning-update',
           name: 'learning-update',
           component: () => import('@/views/learn/LearningUpdateView.vue'),
-          meta: { title: '学习更新' },
+          meta: { title: '学习更新', section: '学习更新' },
         },
         {
           path: 'schedule',
           name: 'schedule',
           component: () => import('@/views/schedule/ScheduleView.vue'),
-          meta: { title: '日程与提醒' },
+          meta: { title: '日程与提醒', section: '工作台' },
         },
         {
           path: 'study-plan',
           name: 'study-plan',
           component: () => import('@/views/study/StudyPlanView.vue'),
-          meta: { title: '复习计划' },
+          meta: { title: '复习计划', section: '学习更新' },
         },
         {
           path: 'interviews',
           name: 'interviews',
           component: () => import('@/views/interviews/InterviewLogsView.vue'),
-          meta: { title: '面试记录' },
+          meta: { title: '面试记录', section: '市场感知' },
         },
         {
           path: 'interviews/new',
           name: 'interview-create',
           component: () => import('@/views/interviews/InterviewCreateView.vue'),
-          meta: { title: '新建面试' },
+          meta: { title: '新建面试', section: '市场感知', crumbParent: '面试记录', crumbParentTo: '/interviews' },
         },
         {
           path: 'interviews/:id',
           name: 'interview-room',
           component: () => import('@/views/interviews/InterviewSessionView.vue'),
-          meta: { title: '模拟面试' },
+          meta: { title: '模拟面试', section: '市场感知', crumbParent: '面试记录', crumbParentTo: '/interviews' },
         },
         {
           path: 'interviews/:id/report',
           name: 'interview-report',
           component: () => import('@/views/interviews/InterviewReportView.vue'),
-          meta: { title: '面试报告' },
+          meta: { title: '面试报告', section: '市场感知', crumbParent: '面试记录', crumbParentTo: '/interviews' },
         },
         {
           path: 'profile/job',
           name: 'job-profile',
           component: () => import('@/views/profile/JobProfileView.vue'),
-          meta: { title: '求职档案' },
+          meta: { title: '求职档案', section: '资料库' },
         },
         {
           path: 'projects',
           name: 'projects',
           component: () => import('@/views/projects/ProjectsView.vue'),
-          meta: { title: '项目资料' },
+          meta: { title: '项目资料', section: '资料库' },
         },
         {
           path: 'projects/:id',
           name: 'project-detail',
           component: () => import('@/views/projects/ProjectDetailView.vue'),
-          meta: { title: '项目资料' },
+          meta: { title: '项目详情', section: '资料库', crumbParent: '项目资料', crumbParentTo: '/projects' },
         },
         {
           path: 'resume',
           name: 'resume',
           component: () => import('@/views/product/ResumeView.vue'),
-          meta: { title: '简历工作台' },
+          meta: { title: '简历工作台', section: '市场感知' },
         },
         {
           path: 'jobs',
           name: 'jobs',
           component: () => import('@/views/product/JdMatchView.vue'),
-          meta: { title: '岗位与 JD 匹配' },
+          meta: { title: '岗位与 JD 匹配', section: '市场感知' },
         },
         {
           path: 'reports',
           name: 'reports',
           component: () => import('@/views/product/ReportsCenterView.vue'),
-          meta: { title: '我的报告中心' },
+          meta: { title: '我的报告中心', section: '市场感知' },
         },
         {
           path: 'practice/wrong-answers',
           name: 'wrong-answers',
           component: () => import('@/views/product/WrongAnswersView.vue'),
-          meta: { title: '错题本' },
+          meta: { title: '错题本', section: '学习更新' },
         },
         {
           path: 'skill-map',
           name: 'skill-map',
           component: () => import('@/views/product/SkillMapView.vue'),
-          meta: { title: '技能图谱' },
+          meta: { title: '技能图谱', section: '学习更新' },
         },
         {
           path: 'applications',
           name: 'applications',
           component: () => import('@/views/product/ApplicationsView.vue'),
-          meta: { title: '求职进度' },
+          meta: { title: '求职进度', section: '市场感知' },
         },
         {
           path: 'knowledge',
           name: 'knowledge-overview',
           component: () => import('@/views/product/KnowledgeOverviewView.vue'),
-          meta: { title: '知识总览' },
+          meta: { title: '知识总览', section: '资料库' },
         },
         {
           path: 'knowledge/ask',
           name: 'knowledge-ask',
           component: () => import('@/views/product/KnowledgeAskView.vue'),
-          meta: { title: '知识库问答' },
+          meta: { title: '知识库问答', section: '资料库' },
         },
         {
           path: 'interviewers',
           name: 'interviewers',
           component: () => import('@/views/product/InterviewersView.vue'),
-          meta: { title: '面试官' },
+          meta: { title: '面试官', section: '市场感知' },
         },
         {
           path: 'notifications',
           name: 'notifications',
           component: () => import('@/views/product/NotificationsView.vue'),
-          meta: { title: '通知中心' },
+          meta: { title: '通知中心', section: '系统' },
         },
         {
           path: 'help',
           name: 'help',
           component: () => import('@/views/product/HelpView.vue'),
-          meta: { title: '帮助与引导' },
+          meta: { title: '帮助与引导', section: '系统' },
         },
         {
           path: 'settings',
           name: 'settings',
           component: () => import('@/views/product/SettingsView.vue'),
-          meta: { title: '设置' },
+          meta: { title: '设置', section: '系统' },
         },
 
         {
           path: 'settings/ai-connections',
           name: 'ai-connections',
           component: () => import('@/views/settings/AiConnectionsView.vue'),
-          meta: { title: 'AI 连接' },
+          meta: { title: 'AI 连接', section: '系统', crumbParent: '设置', crumbParentTo: '/settings' },
         },
 
         {
           path: 'usage',
           name: 'usage',
           component: () => import('@/views/product/UsageView.vue'),
-          meta: { title: '用量与费用' },
+          meta: { title: '用量与费用', section: '系统' },
         },
         {
           path: 'reflection',
           name: 'reflection',
           component: () => import('@/views/product/ReflectionView.vue'),
-          meta: { title: '周期复盘' },
+          meta: { title: '周期复盘', section: '工作台' },
         },
       ],
     },

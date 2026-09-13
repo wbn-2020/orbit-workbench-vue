@@ -2,7 +2,7 @@
   <div class="page create-page">
     <header class="ow-page-top">
       <div>
-        <div class="ow-crumb">面试 / 新建</div>
+        <OwCrumb />
         <h1><Swords aria-hidden="true" /> 新建面试副本</h1>
         <div class="sub">创建后立即开始，题目与追问由 AI 实时生成（连接真实后端）</div>
       </div>
