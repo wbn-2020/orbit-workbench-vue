@@ -48,6 +48,9 @@
                 AI 建议<template v-if="fact.confidence != null"> · 置信 {{ fact.confidence }}</template>
               </span>
               <span v-else class="fact-origin">本人录入</span>
+              <span v-if="fact.status === 'CONFIRMED' && fact.stale" class="fact-stale">
+                约 {{ describeAge(fact.staleDays) }}前确认 · 可能过时
+              </span>
             </div>
             <p class="fact-content">{{ fact.content }}</p>
             <div class="fact-actions">
@@ -57,9 +60,20 @@
                 </el-button>
                 <el-button size="small" :loading="busyId === fact.id" @click="discard(fact)">忽略</el-button>
               </template>
-              <el-button v-else-if="fact.status === 'CONFIRMED'" size="small" text @click="archive(fact)">
-                归档
-              </el-button>
+              <template v-else-if="fact.status === 'CONFIRMED'">
+                <el-button
+                  v-if="fact.stale"
+                  size="small"
+                  type="primary"
+                  :loading="busyId === fact.id"
+                  @click="reaffirm(fact)"
+                >
+                  仍然成立
+                </el-button>
+                <el-button size="small" text @click="archive(fact)">
+                  归档
+                </el-button>
+              </template>
             </div>
           </li>
         </ul>
@@ -105,8 +119,10 @@ import {
   archiveUserFact,
   confirmUserFact,
   createUserFact,
+  describeAge,
   distillUserFacts,
   listUserFacts,
+  reaffirmUserFact,
   USER_FACT_TYPE_LABELS,
   type UserFact,
   type UserFactType,
@@ -195,6 +211,19 @@ async function confirmFact(fact: UserFact): Promise<void> {
     await confirmUserFact(fact.id, { factType: fact.factType, title: fact.title, content: fact.content })
     await load()
     ElMessage.success('已确认，将注入后续 AI 上下文')
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
+  } finally {
+    busyId.value = -1
+  }
+}
+
+async function reaffirm(fact: UserFact): Promise<void> {
+  busyId.value = fact.id
+  try {
+    await reaffirmUserFact(fact.id)
+    await load()
+    ElMessage.success('已标记仍然成立，时效已刷新')
   } catch (error) {
     ElMessage.error(problemMessage(error))
   } finally {
@@ -308,6 +337,15 @@ onMounted(load)
 .fact-actions {
   display: flex;
   gap: 8px;
+}
+
+.fact-stale {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--ow-warning-text, #8a5a00);
+  background: var(--ow-warning-bg, #fff4d6);
 }
 
 .facts-note {

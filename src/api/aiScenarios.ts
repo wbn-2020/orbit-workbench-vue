@@ -85,6 +85,17 @@ export async function listCallAudits(
   return data
 }
 
+/** 单次调用下钻（V43）：在列表字段基础上带落库的配置快照。 */
+export interface CallAuditDetail extends CallAudit {
+  /** 非敏感配置快照 JSON（路由/模型/联网结论/单价），旧行可能为 null */
+  configurationSnapshotJson?: string | null
+}
+
+export async function getCallAuditDetail(id: number): Promise<CallAuditDetail> {
+  const { data } = await http.get<CallAuditDetail>(`/ai-scenarios/audits/${id}`)
+  return data
+}
+
 export const AI_SCENARIO_HINTS: Record<AiScenario, string> = {
   INTERVIEW_QUESTION: '面试房间里的 AI 出题与动态追问',
   INTERVIEW_REPORT: '结束面试后生成的 11 维评分报告',

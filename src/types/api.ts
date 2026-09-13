@@ -1864,6 +1864,9 @@ export interface UserPreferences {
   notifyImportFailure: boolean
   notifyAiFailure: boolean
   timezoneId: string
+  /** 保留期（V43）：null = 永久保留（默认） */
+  auditRetentionDays: number | null
+  notificationRetentionDays: number | null
   version: number
   createdAt: string
   updatedAt: string

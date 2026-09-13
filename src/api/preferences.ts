@@ -9,6 +9,9 @@ export interface UpdatePreferencesPayload {
   notifyImportFailure: boolean
   notifyAiFailure: boolean
   timezoneId: string
+  /** 保留期：null = 永久保留（默认）；非空时 7-3650 天 */
+  auditRetentionDays: number | null
+  notificationRetentionDays: number | null
   expectedVersion: number
 }
 

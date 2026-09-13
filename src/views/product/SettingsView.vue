@@ -142,6 +142,46 @@
               </el-select>
             </div>
 
+            <div class="timezone-row">
+              <div>
+                <div class="titem-title">调用记录保留</div>
+                <div class="ow-hint item-desc">超过保留期的 AI 调用账目会被自动清理；默认永久保留</div>
+              </div>
+              <el-select
+                v-model="preferenceDraft.auditRetentionDays"
+                class="timezone-select"
+                :disabled="preferenceLoading || preferenceSaving"
+                aria-label="调用记录保留"
+              >
+                <el-option
+                  v-for="option in RETENTION_OPTIONS"
+                  :key="String(option.value)"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </div>
+
+            <div class="timezone-row">
+              <div>
+                <div class="titem-title">通知保留</div>
+                <div class="ow-hint item-desc">超过保留期的通知会被自动清理；默认永久保留</div>
+              </div>
+              <el-select
+                v-model="preferenceDraft.notificationRetentionDays"
+                class="timezone-select"
+                :disabled="preferenceLoading || preferenceSaving"
+                aria-label="通知保留"
+              >
+                <el-option
+                  v-for="option in RETENTION_OPTIONS"
+                  :key="String(option.value)"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </div>
+
             <div class="preference-actions">
               <el-button
                 type="primary"
@@ -229,6 +269,9 @@ interface PreferenceDraft {
   notifyImportFailure: boolean
   notifyAiFailure: boolean
   timezoneId: string
+  /** 保留期：null = 永久保留 */
+  auditRetentionDays: number | null
+  notificationRetentionDays: number | null
 }
 
 const TIMEZONE_OPTIONS = [
@@ -238,6 +281,15 @@ const TIMEZONE_OPTIONS = [
   { value: 'UTC', label: '协调世界时（UTC）' },
   { value: 'America/Los_Angeles', label: '美国太平洋时间（America/Los_Angeles）' },
   { value: 'America/New_York', label: '美国东部时间（America/New_York）' },
+] as const
+
+/** 保留期选项：null = 永久保留（默认，不悄悄删数据）；最短 7 天与后端校验一致。 */
+const RETENTION_OPTIONS = [
+  { value: null, label: '永久保留（默认）' },
+  { value: 30, label: '保留 30 天' },
+  { value: 90, label: '保留 90 天' },
+  { value: 180, label: '保留 180 天' },
+  { value: 365, label: '保留 1 年' },
 ] as const
 
 const router = useRouter()
@@ -255,6 +307,8 @@ const preferenceDraft = reactive<PreferenceDraft>({
   notifyImportFailure: true,
   notifyAiFailure: true,
   timezoneId: 'Asia/Shanghai',
+  auditRetentionDays: null,
+  notificationRetentionDays: null,
 })
 
 const notificationSettings = computed(() => [
@@ -305,7 +359,9 @@ const preferenceDirty = computed(() => {
     current.notifyInterview !== preferenceDraft.notifyInterview ||
     current.notifyImportFailure !== preferenceDraft.notifyImportFailure ||
     current.notifyAiFailure !== preferenceDraft.notifyAiFailure ||
-    current.timezoneId !== preferenceDraft.timezoneId
+    current.timezoneId !== preferenceDraft.timezoneId ||
+    current.auditRetentionDays !== preferenceDraft.auditRetentionDays ||
+    current.notificationRetentionDays !== preferenceDraft.notificationRetentionDays
   )
 })
 
@@ -316,6 +372,8 @@ function syncDraft(data: UserPreferences): void {
   preferenceDraft.notifyImportFailure = data.notifyImportFailure
   preferenceDraft.notifyAiFailure = data.notifyAiFailure
   preferenceDraft.timezoneId = data.timezoneId
+  preferenceDraft.auditRetentionDays = data.auditRetentionDays
+  preferenceDraft.notificationRetentionDays = data.notificationRetentionDays
 }
 
 async function loadPreferences(): Promise<void> {

@@ -203,7 +203,7 @@
         description="生成一次报告、画像事实或知识库问答后，这里会出现真实留痕。" :icon="Activity">
       </EmptyState>
       <div v-else class="table-wrap">
-        <el-table :data="audits" row-key="id">
+        <el-table :data="audits" row-key="id" class="audit-table" @row-click="openAuditDetail">
           <el-table-column label="时间" width="160">
             <template #default="{ row }">{{ formatDateTime(row.createdAt) }}</template>
           </el-table-column>
@@ -247,7 +247,57 @@
           </el-table-column>
         </el-table>
       </div>
+      <p class="ow-hint audit-hint">点任意一行可下钻查看这次调用的完整明细（路由、模型、token 与成本、失败原因）。</p>
     </section>
+
+    <el-drawer
+      v-model="auditDetailOpen"
+      title="调用明细"
+      direction="rtl"
+      size="440px"
+    >
+      <div v-if="auditDetailLoading" class="page-feedback"><el-skeleton :rows="6" animated /></div>
+      <ErrorState v-else-if="auditDetailError" :message="auditDetailError" />
+      <div v-else-if="auditDetail" class="audit-detail">
+        <div class="detail-row"><span class="detail-k">场景</span><span>{{ auditDetail.scenarioLabel }}</span></div>
+        <div class="detail-row"><span class="detail-k">结果</span>
+          <span :class="auditDetail.status === 'SUCCEEDED' ? 'audit-ok' : 'audit-fail'">
+            {{ aiAuditStatusLabel(auditDetail.status) }}
+          </span>
+        </div>
+        <div class="detail-row" v-if="auditDetail.errorCode">
+          <span class="detail-k">错误码</span><span class="mono">{{ auditDetail.errorCode }}</span>
+        </div>
+        <div class="detail-row"><span class="detail-k">耗时</span>
+          <span>{{ typeof auditDetail.latencyMs === 'number' ? `${auditDetail.latencyMs} ms` : '—' }}</span>
+        </div>
+        <div class="detail-row"><span class="detail-k">主用账户</span>
+          <span>#{{ auditDetail.primaryConnectionId ?? '—' }}</span>
+        </div>
+        <div class="detail-row"><span class="detail-k">实际账户</span>
+          <span>{{ auditDetail.usedConnectionName || `#${auditDetail.usedConnectionId}` }}
+            <small v-if="auditDetail.backupAttempted" class="cell-note">已切换备用</small>
+          </span>
+        </div>
+        <div class="detail-row"><span class="detail-k">token</span>
+          <span v-if="auditDetail.inputTokens != null || auditDetail.outputTokens != null" class="mono">
+            ↑{{ auditDetail.inputTokens ?? 0 }} / ↓{{ auditDetail.outputTokens ?? 0 }}
+          </span>
+          <span v-else>上游未报 token</span>
+        </div>
+        <div class="detail-row" v-if="auditDetail.cachedInputTokens || auditDetail.reasoningOutputTokens">
+          <span class="detail-k">明细</span>
+          <span>缓存 {{ auditDetail.cachedInputTokens ?? 0 }} · 推理 {{ auditDetail.reasoningOutputTokens ?? 0 }}</span>
+        </div>
+        <div class="detail-row"><span class="detail-k">成本</span>
+          <span>{{ auditDetail.costAmount != null ? auditDetail.costAmount : '未计价' }}</span>
+        </div>
+        <div class="detail-block">
+          <div class="detail-k">配置快照</div>
+          <pre class="snapshot">{{ prettySnapshot }}</pre>
+        </div>
+      </div>
+    </el-drawer>
 
     <el-drawer
       v-model="drawerOpen"
@@ -467,12 +517,13 @@ import {
 import {
   AI_SCENARIO_HINTS,
   aiAuditStatusLabel,
+  getCallAuditDetail,
   listCallAudits,
   listScenarioRoutes,
   removeScenarioRoute,
   saveScenarioRoute,
 } from '@/api/aiScenarios'
-import type { AiScenario, CallAudit, ScenarioRoute } from '@/api/aiScenarios'
+import type { AiScenario, CallAudit, CallAuditDetail, ScenarioRoute } from '@/api/aiScenarios'
 import { getProblem, problemMessage } from '@/api/http'
 import EmptyState from '@/components/EmptyState.vue'
 import ErrorState from '@/components/ErrorState.vue'
@@ -526,6 +577,10 @@ const scenarioLoading = ref(false)
 const scenarioError = ref('')
 const savingScenario = ref<AiScenario | ''>('')
 const audits = ref<CallAudit[]>([])
+const auditDetailOpen = ref(false)
+const auditDetailLoading = ref(false)
+const auditDetailError = ref('')
+const auditDetail = ref<CallAuditDetail | null>(null)
 const auditLoading = ref(false)
 const auditError = ref('')
 const selectableConnections = computed(() => connections.value.filter((item) => item.enabled))
@@ -662,6 +717,34 @@ async function loadAudits(): Promise<void> {
     auditLoading.value = false
   }
 }
+
+function openAuditDetail(row: CallAudit): void {
+  auditDetailOpen.value = true
+  auditDetailLoading.value = true
+  auditDetailError.value = ''
+  auditDetail.value = null
+  getCallAuditDetail(row.id)
+    .then((detail) => {
+      auditDetail.value = detail
+    })
+    .catch((reason) => {
+      auditDetailError.value = problemMessage(reason)
+    })
+    .finally(() => {
+      auditDetailLoading.value = false
+    })
+}
+
+/** 快照是后端落的紧凑 JSON；格式化展示，空则明确说「未记录」。 */
+const prettySnapshot = computed(() => {
+  const raw = auditDetail.value?.configurationSnapshotJson
+  if (!raw) return '未记录（旧调用或采集时无快照）'
+  try {
+    return JSON.stringify(JSON.parse(raw), null, 2)
+  } catch {
+    return raw
+  }
+})
 
 async function saveScenario(scenario: AiScenario): Promise<void> {
   const draft = scenarioDraft[scenario]
@@ -1074,6 +1157,46 @@ watch([testStreaming, testPrompt], () => {
   margin-top: 2px;
   font-size: 12px;
   color: var(--ow-text-muted);
+}
+
+.audit-hint {
+  margin-top: 10px;
+}
+
+.audit-table :deep(.el-table__row) {
+  cursor: pointer;
+}
+
+.audit-detail {
+  display: grid;
+  gap: 10px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ow-line-soft, rgb(31 111 92 / 8%));
+  font-size: 13px;
+}
+
+.detail-k {
+  color: var(--ow-text-muted);
+  flex: 0 0 auto;
+}
+
+.detail-block .snapshot {
+  margin: 6px 0 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--ow-surface-sunken, #f4f6f5);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 320px;
+  overflow: auto;
 }
 
 .width-full {
