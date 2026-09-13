@@ -184,7 +184,12 @@
             </div>
             <div v-if="report.reportStatus !== 'REPORT_READY'" class="status-line">
               <span class="ow-tag orange">{{ reportStatusText(report.reportStatus) }}</span>
-              <span class="muted">{{ report.failureReason || '报告还没有生成，可以直接发起。' }}</span>
+              <span class="muted">
+                <template v-if="report.failureSummary">
+                  {{ report.failureSummary }}<template v-if="report.failureNextStep"> · {{ report.failureNextStep }}</template>
+                </template>
+                <template v-else>{{ report.failureReason || '报告还没有生成，可以直接发起。' }}</template>
+              </span>
               <el-button
                 size="small"
                 text

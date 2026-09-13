@@ -46,7 +46,11 @@
         </div>
         <div class="d">
           <template v-if="report.status === 'REPORT_FAILED'">
-            {{ report.failureReason ?? '生成失败' }} · 已重试 {{ report.retryCount }} 次
+            <template v-if="report.failureSummary">
+              {{ report.failureSummary }} · 已重试 {{ report.retryCount }} 次<br />
+              {{ report.failureNextStep }}
+            </template>
+            <template v-else>{{ report.failureReason ?? '生成失败' }} · 已重试 {{ report.retryCount }} 次</template>
           </template>
           <template v-else>面试问答已保存，点击下方由 AI 生成 11 维评分报告（约十几秒）。</template>
         </div>

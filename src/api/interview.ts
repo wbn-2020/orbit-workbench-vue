@@ -89,6 +89,9 @@ export interface InterviewReport {
   failureReason: string | null
   retryCount: number
   generatedAt: string | null
+  /** 失败归因（后端派生）：人话摘要 + 下一步建议；非失败态为空。 */
+  failureSummary?: string | null
+  failureNextStep?: string | null
 }
 
 export type StudyTaskStatus =
