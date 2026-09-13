@@ -7,7 +7,8 @@ export interface UsageRow {
   failed: number
   inputTokens: number
   outputTokens: number
-  costAmount: number | null
+  // 后端 Jackson 省略 null：无单价/无 token 时该键整个缺失（undefined），消费处必须宽松判空
+  costAmount?: number | null
   unpricedCalls: number
 }
 
@@ -17,7 +18,7 @@ export interface UsageSummary {
   failed: number
   inputTokens: number
   outputTokens: number
-  costAmount: number | null
+  costAmount?: number | null
   pricedCalls: number
   unpricedCalls: number
 }

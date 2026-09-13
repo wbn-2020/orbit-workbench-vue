@@ -161,7 +161,8 @@ function formatTokens(value: number): string {
 }
 
 function rowCost(row: UsageRow): string {
-  if (row.costAmount === null) {
+  // 后端 Jackson 省略 null 字段：costAmount 可能是 undefined 而非 null，必须宽松判空
+  if (row.costAmount == null) {
     return row.unpricedCalls > 0 ? '未计价' : '—'
   }
   return row.costAmount.toFixed(4)
@@ -169,7 +170,7 @@ function rowCost(row: UsageRow): string {
 
 const costText = computed(() => {
   if (!data.value) return '—'
-  if (data.value.total.costAmount === null) return '—'
+  if (data.value.total.costAmount == null) return '—'
   return data.value.total.costAmount.toFixed(4)
 })
 

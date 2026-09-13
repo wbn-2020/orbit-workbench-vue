@@ -60,7 +60,7 @@
               v-for="turn in turns"
               :key="turn.id"
               class="qi"
-              :class="{ done: turn.answer !== null, active: turn.id === currentTurn?.id }"
+              :class="{ done: turn.answer != null, active: turn.id === currentTurn?.id }"
             >
               <div class="n">{{ turn.turnNo }}</div>
               <div>{{ turn.question.slice(0, 18) }}…</div>
@@ -259,7 +259,8 @@ const lastAnswered = computed(() => {
 })
 const currentTurn = computed(() => {
   const last = turns.value[turns.value.length - 1]
-  return last && last.answer === null ? last : undefined
+  // 后端全局 non_null：未答回合的 answer 键整个缺失（undefined），必须宽松判空
+  return last && last.answer == null ? last : undefined
 })
 const canAnswer = computed(() => isRunning.value && currentTurn.value !== undefined)
 const topicLabel = computed(
