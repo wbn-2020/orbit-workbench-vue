@@ -42,6 +42,7 @@ const SCENARIO_LABELS: Record<string, string> = {
   INTERVIEW_REPORT: '面试报告',
   PROJECT_FACT: '项目画像/蒸馏',
   KNOWLEDGE_ANSWER: '知识库问答',
+  USER_FACT: '用户画像沉淀',
 }
 
 export function scenarioLabel(code: string): string {

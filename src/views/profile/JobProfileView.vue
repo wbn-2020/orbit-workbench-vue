@@ -11,7 +11,6 @@
       <div v-if="loading" class="surface surface-body">
         <el-skeleton :rows="10" animated />
       </div>
-
       <el-form
         v-else
         ref="formRef"
@@ -129,6 +128,8 @@
           </div>
         </div>
       </el-form>
+
+      <UserFactsPanel />
     </section>
   </div>
 </template>
@@ -142,6 +143,7 @@ import { getJobProfile, saveJobProfile } from '@/api/jobProfile'
 import { problemMessage } from '@/api/http'
 import ErrorState from '@/components/ErrorState.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import UserFactsPanel from '@/views/profile/UserFactsPanel.vue'
 import type { JobProfilePayload } from '@/types/api'
 
 const formRef = ref<FormInstance>()
@@ -245,6 +247,8 @@ onMounted(() => {
 <style scoped>
 .profile-layout {
   max-width: 920px;
+  display: grid;
+  gap: 18px;
 }
 
 .profile-form {
