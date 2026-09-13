@@ -321,7 +321,7 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 20px;
   padding: 26px 28px;
-  background: linear-gradient(135deg, var(--surface), var(--brand-50, rgb(31 111 92 / 8%)));
+  background: var(--surface);
   border: 1px solid var(--line-2);
   border-radius: 18px;
   box-shadow: var(--shadow-sm);
@@ -396,9 +396,8 @@ onUnmounted(() => {
 }
 
 .mode-card:hover {
-  transform: translateY(-3px);
   border-color: var(--brand);
-  box-shadow: 0 12px 28px var(--card-glow);
+  background: var(--surface-2);
 }
 
 .mode-icon {
@@ -485,8 +484,8 @@ onUnmounted(() => {
 }
 
 .asset-card:hover {
-  transform: translateY(-2px);
   border-color: var(--brand);
+  background: var(--surface-2);
 }
 
 .asset-count {
@@ -603,8 +602,7 @@ onUnmounted(() => {
 
 .wb-step:hover {
   border-color: var(--ow-primary, #27b389);
-  box-shadow: var(--ow-shadow, 0 10px 26px rgb(15 23 42 / 10%));
-  transform: translateY(-1px);
+  background: var(--ow-surface-raised, var(--surface-2));
 }
 
 .wb-step-no {
@@ -739,8 +737,8 @@ onUnmounted(() => {
 }
 
 .pipeline-item:hover {
-  transform: translateY(-1px);
   border-color: var(--brand);
+  background: var(--surface-2);
 }
 
 .pipeline-item.block {

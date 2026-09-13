@@ -144,11 +144,10 @@ p {
 }
 
 .surface {
-  background: var(--glass);
+  background: var(--surface);
   border: 1px solid var(--glass-border);
   border-radius: var(--ow-radius);
-  box-shadow: var(--ow-shadow);
-  backdrop-filter: blur(14px) saturate(125%);
+  box-shadow: var(--ow-shadow-sm);
 }
 
 .surface-header {
@@ -244,7 +243,7 @@ p {
   color: var(--ow-primary-ink);
   background: linear-gradient(180deg, var(--btn-1), var(--btn-2));
   border-color: var(--btn-2);
-  box-shadow: 0 4px 8px var(--btn-shadow), inset 0 1px 0 rgb(255 255 255 / 28%);
+  box-shadow: var(--ow-shadow-sm);
 }
 
 .el-button--primary:hover,

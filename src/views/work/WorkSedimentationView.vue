@@ -475,7 +475,7 @@ onBeforeUnmount(() => {
 }
 
 .ws-btn:not(:disabled):hover {
-  transform: translateY(-1px);
+  filter: brightness(1.05);
 }
 
 .log-list {

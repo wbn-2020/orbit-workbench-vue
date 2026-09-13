@@ -454,7 +454,7 @@ onUnmounted(() => {
 }
 
 .lu-btn:not(:disabled):hover {
-  transform: translateY(-1px);
+  filter: brightness(1.05);
 }
 
 .goal-list {
@@ -712,7 +712,7 @@ onUnmounted(() => {
 }
 
 .focus-start-btn:hover {
-  transform: translateY(-1px);
+  border-color: var(--brand);
 }
 
 @media (max-width: 980px) {

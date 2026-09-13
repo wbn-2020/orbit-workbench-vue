@@ -306,7 +306,6 @@ onBeforeUnmount(() => {
   border: 1px solid var(--line-2);
   border-radius: 18px;
   box-shadow: var(--shadow-md);
-  backdrop-filter: blur(14px);
 }
 
 .focus-head {
@@ -417,7 +416,7 @@ onBeforeUnmount(() => {
 }
 
 .focus-btn:hover {
-  transform: translateY(-1px);
+  filter: brightness(1.05);
 }
 
 .focus-btn:disabled {

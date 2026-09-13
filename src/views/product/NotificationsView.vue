@@ -216,17 +216,14 @@ onMounted(load)
   gap: 12px;
   align-items: flex-start;
   padding: 13px 15px;
-  background: var(--glass-2);
-  backdrop-filter: blur(var(--glass-2-blur));
+  background: var(--surface);
   border: 1.5px solid var(--line);
   border-radius: 12px;
   transition: border-color 0.14s, box-shadow 0.14s, background 0.14s;
 }
 
 .notif:hover {
-  border-color: var(--brand-200);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  border-color: var(--line-2);
 }
 
 .notif.unread {

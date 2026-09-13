@@ -537,19 +537,16 @@ onMounted(loadPreferences)
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  backdrop-filter: blur(8px);
-  transition: transform 0.16s ease, border-color 0.16s, box-shadow 0.16s;
+  transition: border-color 0.16s, box-shadow 0.16s;
 }
 
 .theme-card:hover {
-  transform: translateY(-2px);
   border-color: var(--brand);
-  box-shadow: var(--shadow-sm);
 }
 
 .theme-card.active {
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px var(--brand-200), 0 8px 22px var(--card-glow);
+  box-shadow: 0 0 0 3px var(--brand-200);
 }
 
 .theme-card .tc-prev {

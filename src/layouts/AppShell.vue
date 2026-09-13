@@ -982,14 +982,9 @@ async function handleLogout(): Promise<void> {
   align-items: center;
   gap: 14px;
   padding: 13px 30px;
-  /* 顶栏同为全站级装饰渐变：1376×72 的白色半透明渐变叠加 backdrop-filter，
-     既是视觉噪音，也是此前「大量文本对比度无法测量」的成因之一
-     （文本坐在渐变/玻璃底上，自动扫描器无从判定）。
-     改为纯色（仍是半透明白，毛玻璃质感保留），让上层文字落在可测量的背景上。 */
+  /* 顶栏纯色实底（26 号规范）：文字落在可测量的背景上，玻璃与彩色投影材质撤下。 */
   background: var(--topbar-1);
   border-bottom: 1px solid var(--topbar-border);
-  backdrop-filter: blur(16px) saturate(140%);
-  box-shadow: 0 6px 20px rgb(22 82 60 / 6%);
 }
 
 .topbar::after {
@@ -1065,9 +1060,7 @@ async function handleLogout(): Promise<void> {
 .search-input:focus {
   outline: none;
   border-color: var(--brand);
-  box-shadow:
-    0 0 0 4px var(--brand-50),
-    0 6px 18px var(--card-glow);
+  box-shadow: 0 0 0 3px var(--brand-50);
 }
 
 .recents {
@@ -1079,7 +1072,6 @@ async function handleLogout(): Promise<void> {
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   box-shadow: var(--shadow-md);
-  backdrop-filter: blur(14px);
 }
 
 .recents-title {
@@ -1218,11 +1210,10 @@ async function handleLogout(): Promise<void> {
   height: 42px;
   place-items: center;
   color: var(--ink-2);
-  background: var(--glass);
+  background: var(--surface);
   border: 1px solid var(--line-2);
   border-radius: 12px;
   cursor: pointer;
-  backdrop-filter: blur(8px);
   transition: 0.15s;
 }
 
@@ -1233,8 +1224,6 @@ async function handleLogout(): Promise<void> {
 
 .search-toggle:hover {
   border-color: var(--brand);
-  box-shadow: 0 6px 16px var(--card-glow);
-  transform: translateY(-1px);
 }
 
 .bell,
@@ -1245,11 +1234,10 @@ async function handleLogout(): Promise<void> {
   height: 42px;
   place-items: center;
   color: var(--ink-2);
-  background: var(--glass);
+  background: var(--surface);
   border: 1px solid var(--line-2);
   border-radius: 12px;
   cursor: pointer;
-  backdrop-filter: blur(8px);
   transition: 0.15s;
 }
 
@@ -1264,8 +1252,6 @@ async function handleLogout(): Promise<void> {
   color: var(--brand-700);
   background: var(--brand-50);
   border-color: var(--brand);
-  box-shadow: 0 6px 16px var(--card-glow);
-  transform: translateY(-1px);
 }
 
 .bell-dot {
@@ -1292,7 +1278,7 @@ async function handleLogout(): Promise<void> {
   height: 42px;
   place-items: center;
   color: var(--ink-2);
-  background: var(--glass);
+  background: var(--surface);
   border: 1px solid var(--line-2);
   border-radius: 12px;
   cursor: pointer;
@@ -1307,8 +1293,7 @@ async function handleLogout(): Promise<void> {
 
 .theme-toggle:hover {
   border-color: var(--brand);
-  box-shadow: 0 6px 16px var(--card-glow);
-  transform: translateY(-1px);
+  background: var(--surface-2);
 }
 
 .user-menu {
