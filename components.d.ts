@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     ChangePasswordDialog: typeof import('./src/components/ChangePasswordDialog.vue')['default']
+    CommandPalette: typeof import('./src/components/CommandPalette.vue')['default']
     DreamyBackground: typeof import('./src/components/DreamyBackground.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElButton: typeof import('element-plus/es')['ElButton']

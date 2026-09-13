@@ -134,6 +134,9 @@
             @input="onSearchInput"
             @keydown.enter="onSearchEnter"
           >
+          <button class="kbd-hint" type="button" aria-label="打开命令面板" title="命令面板（Ctrl / Cmd + K）" @click="focusPalette">
+            <kbd>Ctrl K</kbd>
+          </button>
           <div v-if="searchPanelOpen" class="recents search-results">
             <div v-if="searchLoading" class="recents-title">
               搜索中…
@@ -231,6 +234,7 @@
     </div>
 
     <ChangePasswordDialog v-model="passwordDialogOpen" />
+    <CommandPalette ref="paletteRef" :pages="palettePages" />
     <FocusTimerWidget :active="route.name === 'learning-update'" />
   </div>
 </template>
@@ -273,6 +277,7 @@ import {
 import { computed, defineComponent, h, nextTick, onMounted, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import FocusTimerWidget from '@/components/FocusTimerWidget.vue'
+import CommandPalette from '@/components/CommandPalette.vue'
 import { useCrumbSegments } from '@/composables/useCrumb'
 
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
@@ -419,6 +424,11 @@ const navGroups = [
   },
 ]
 
+/** 命令面板可跳转页面 = 侧栏导航全集，与 navGroups 单一来源保持一致 */
+const palettePages = navGroups.flatMap((group) =>
+  group.items.map((item) => ({ label: item.label, to: item.to, section: group.label })),
+)
+
 const unreadCount = ref(0)
 
 async function refreshUnreadCount(): Promise<void> {
@@ -484,6 +494,11 @@ const BrandBlock = defineComponent({
       ])
   },
 })
+
+const paletteRef = ref<InstanceType<typeof CommandPalette> | null>(null)
+function focusPalette(): void {
+  paletteRef.value?.show()
+}
 
 function openSearchPanel(): void {
   searchPanelOpen.value = true
@@ -1123,6 +1138,37 @@ async function handleLogout(): Promise<void> {
 .search-results {
   max-height: min(60vh, 480px);
   overflow-y: auto;
+}
+
+.kbd-hint {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: none;
+  padding: 2px 6px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.kbd-hint kbd {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+@media (min-width: 1100px) {
+  .kbd-hint {
+    display: block;
+  }
+
+  .search-input {
+    padding-right: 64px;
+  }
 }
 
 .search-group + .search-group {
