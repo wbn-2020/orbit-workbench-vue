@@ -107,3 +107,33 @@ export async function craftRecommendations(): Promise<CraftRecommendations> {
   const { data } = await http.get<CraftRecommendations>('/crafts/recommendations')
   return { items: data.items ?? [], basis: data.basis ?? '' }
 }
+
+/** V54：已练熟套路的练前后分数对比（后端纯派生；相关非因果）。 */
+export type CraftEffectStatus = 'IMPROVED' | 'DECLINED' | 'FLAT' | 'INSUFFICIENT'
+
+export interface CraftEffect {
+  craftId: number
+  dimension: string
+  beforeCount: number
+  beforeAvg: number | null
+  afterCount: number
+  afterAvg: number | null
+  status: CraftEffectStatus
+}
+
+export const CRAFT_EFFECT_LABELS: Record<CraftEffectStatus, string> = {
+  IMPROVED: '练后均分上升',
+  DECLINED: '练后均分回落',
+  FLAT: '练后基本持平',
+  INSUFFICIENT: '样本还不够看',
+}
+
+export async function craftEffects(): Promise<CraftEffect[]> {
+  const { data } = await http.get<{ items: CraftEffect[] }>('/crafts/effects')
+  // 后端 non_null 序列化：均分为 null 时键直接缺席，归一化成显式 null
+  return (data.items ?? []).map((item) => ({
+    ...item,
+    beforeAvg: item.beforeAvg ?? null,
+    afterAvg: item.afterAvg ?? null,
+  }))
+}

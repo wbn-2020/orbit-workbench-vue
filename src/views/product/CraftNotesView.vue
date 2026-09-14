@@ -105,6 +105,9 @@
                 </span>
               </div>
               <p class="craft-when">用在哪：{{ note.whenToUse }}</p>
+              <p v-if="effectFor(note.id)" class="craft-effect" :class="'fx-' + effectFor(note.id)!.status">
+                {{ effectText(effectFor(note.id)!) }}
+              </p>
               <pre class="craft-content">{{ note.content }}</pre>
               <div class="craft-acts">
                 <el-button
@@ -174,8 +177,10 @@ import { computed, onMounted, reactive, ref } from 'vue'
 
 import {
   CRAFT_CATEGORY_LABELS,
+  CRAFT_EFFECT_LABELS,
   archiveCraft,
   confirmCraft,
+  craftEffects,
   craftRecommendations,
   createCraft,
   createCraftPracticeTask,
@@ -184,6 +189,7 @@ import {
   pinCraft,
   updateCraft,
   type CraftCategory,
+  type CraftEffect,
   type CraftNote,
   type SaveCraftPayload,
   type WeaknessCraftRecommendation,
@@ -377,6 +383,32 @@ function masteredTitle(note: CraftNote): string {
   return `练熟于 ${when} · 累计完成 ${note.practiceCount} 次练习任务`
 }
 
+/** V54：练前后对比证据（后端派生；相关非因果，文案不下因果结论）。 */
+const effects = ref<CraftEffect[]>([])
+
+/** 与推荐同理：证据是辅助信息，加载失败静默，不打扰主流程。 */
+async function loadEffects(): Promise<void> {
+  try {
+    effects.value = await craftEffects()
+  } catch {
+    effects.value = []
+  }
+}
+
+function effectFor(craftId: number): CraftEffect | undefined {
+  return effects.value.find((e) => e.craftId === craftId)
+}
+
+function effectText(e: CraftEffect): string {
+  if (e.status === 'INSUFFICIENT') {
+    const have = e.beforeCount > 0 ? '练熟前' : '练熟后'
+    return `${CRAFT_EFFECT_LABELS[e.status]}——只有${have}的面试样本，再做一场对照就能看出来`
+  }
+  const delta = (e.afterAvg ?? 0) - (e.beforeAvg ?? 0)
+  const arrow = delta > 0 ? `+${delta}` : String(delta)
+  return `${CRAFT_EFFECT_LABELS[e.status]}：${e.dimension} 练前均分 ${e.beforeAvg}（${e.beforeCount} 场）→ 练后 ${e.afterAvg}（${e.afterCount} 场），差 ${arrow} 分。样本少，相关不等于因果`
+}
+
 /** V50：按钮文案三态——没安排 / 已安排 / 已练熟（完成练习任务后由后端回写）。 */
 function practiceLabel(note: CraftNote): string {
   if (note.mastered) return '已练熟'
@@ -407,6 +439,7 @@ async function distill(): Promise<void> {
 onMounted(() => {
   load()
   loadRecommendations()
+  loadEffects()
 })
 </script>
 
@@ -460,6 +493,26 @@ onMounted(() => {
   border-radius: 999px;
   color: var(--ow-ink-secondary, #3f574c);
   background: rgb(31 111 92 / 8%);
+}
+
+/* V54：练前后对比证据行。只给中性底色 + 状态文字色，品牌色留给可操作元素 */
+.craft-effect {
+  margin: 4px 0 0;
+  font-size: var(--fs-xs);
+  color: var(--ow-ink-secondary, #3f574c);
+  background: rgb(31 111 92 / 5%);
+  border-left: 2px solid var(--ow-line, rgb(31 111 92 / 18%));
+  border-radius: 4px;
+  padding: 5px 9px;
+  line-height: 1.5;
+}
+
+.craft-effect.fx-IMPROVED {
+  color: var(--ow-success-text, #16634f);
+}
+
+.craft-effect.fx-DECLINED {
+  color: var(--ow-warning-text, #8a5a00);
 }
 
 .craft-weak-dim {
