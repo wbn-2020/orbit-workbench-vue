@@ -292,6 +292,14 @@
         <div class="detail-row"><span class="detail-k">成本</span>
           <span>{{ auditDetail.costAmount != null ? auditDetail.costAmount : '未计价' }}</span>
         </div>
+        <div class="detail-row">
+          <span class="detail-k">记忆注入</span>
+          <span v-if="memorySummary" class="memory-line">
+            {{ memorySummary.text }}
+            <small v-if="memorySummary.ids" class="cell-note">{{ memorySummary.ids }}</small>
+          </span>
+          <span v-else class="cell-note">本次未注入个人记忆</span>
+        </div>
         <div class="detail-block">
           <div class="detail-k">配置快照</div>
           <pre class="snapshot">{{ prettySnapshot }}</pre>
@@ -746,6 +754,33 @@ const prettySnapshot = computed(() => {
   }
 })
 
+/** V45 注入溯源：把快照里的 memory 结构翻成人话（模式/条数/过时数）。 */
+interface MemorySummary {
+  text: string
+  ids: string
+}
+const memorySummary = computed<MemorySummary | null>(() => {
+  const raw = auditDetail.value?.configurationSnapshotJson
+  if (!raw) return null
+  try {
+    const snapshot = JSON.parse(raw) as {
+      memory?: { mode?: string; factCount?: number; factIds?: number[]; staleCount?: number; chars?: number }
+    }
+    const memory = snapshot.memory
+    if (!memory?.mode || memory.mode === 'NONE') return null
+    const modeLabel = memory.mode === 'DIGEST' ? '编译快照' : memory.mode === 'FACTS' ? '逐条事实' : memory.mode
+    const parts = [`${modeLabel} · ${memory.factCount ?? 0} 条`]
+    if (memory.staleCount) parts.push(`${memory.staleCount} 条已标注可能过时`)
+    if (memory.chars) parts.push(`${memory.chars} 字符注入`)
+    return {
+      text: parts.join(' · '),
+      ids: memory.factIds && memory.factIds.length > 0 ? `事实 id ${memory.factIds.join(', ')}` : '',
+    }
+  } catch {
+    return null
+  }
+})
+
 async function saveScenario(scenario: AiScenario): Promise<void> {
   const draft = scenarioDraft[scenario]
   if (!draft?.primaryConnectionId) {
@@ -1157,6 +1192,12 @@ watch([testStreaming, testPrompt], () => {
   margin-top: 2px;
   font-size: var(--fs-xs);
   color: var(--ow-text-muted);
+}
+
+.memory-line {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .audit-hint {
