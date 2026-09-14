@@ -60,6 +60,12 @@ export async function updateLearningGoal(
   return transformLearningGoal(data)
 }
 
+/** V52：把一条已确认画像事实转成学习目标（幂等：重复转化后端返回 409）。 */
+export async function createGoalFromFact(factId: number): Promise<LearningGoal> {
+  const { data } = await http.post<BackendLearningGoal>(`/learning-goals/from-fact/${factId}`)
+  return transformLearningGoal(data)
+}
+
 export async function listFocusStats(days = 7): Promise<FocusStat[]> {
   const { data } = await http.get<FocusStat[]>('/focus-stats', { params: { days } })
   return data

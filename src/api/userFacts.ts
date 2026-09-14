@@ -32,6 +32,8 @@ export interface UserFact {
   lastInjectedAt: string | null
   /** 冷记忆：已确认但从未被注入过 */
   cold: boolean
+  /** V52：这条事实已转成学习目标（后端按 learning_goal 派生） */
+  goalDerived: boolean
   archivedReason: string | null
   createdAt: string
 }

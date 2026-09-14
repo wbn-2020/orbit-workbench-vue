@@ -130,6 +130,13 @@
               >
                 冷记忆 · 未被用过
               </span>
+              <span
+                v-if="fact.goalDerived"
+                class="fact-goal"
+                title="这条事实已转成学习目标（V52）"
+              >
+                已成目标
+              </span>
             </div>
             <p class="fact-content">{{ fact.content }}</p>
             <div class="fact-actions">
@@ -151,6 +158,15 @@
                 </el-button>
                 <el-button size="small" text @click="archive(fact)">
                   归档
+                </el-button>
+                <el-button
+                  v-if="!fact.goalDerived"
+                  size="small"
+                  text
+                  :loading="busyId === fact.id"
+                  @click="toGoal(fact)"
+                >
+                  转成学习目标
                 </el-button>
               </template>
             </div>
@@ -215,6 +231,7 @@ import {
   type UserFactType,
 } from '@/api/userFacts'
 import { problemMessage } from '@/api/http'
+import { createGoalFromFact } from '@/api/learning'
 import EmptyState from '@/components/EmptyState.vue'
 
 /** 近期关注的失效档位：空 = 不自动失效。 */
@@ -447,6 +464,21 @@ async function archive(fact: UserFact): Promise<void> {
     await load()
     ElMessage.success('已归档')
   } catch (error) {
+    ElMessage.error(problemMessage(error))
+  } finally {
+    busyId.value = -1
+  }
+}
+
+/** V52：把事实转成学习目标；后端 409 时刷新列表如实回显「已成目标」。 */
+async function toGoal(fact: UserFact): Promise<void> {
+  busyId.value = fact.id
+  try {
+    await createGoalFromFact(fact.id)
+    await load()
+    ElMessage.success('已转成学习目标，可在「学习更新」页推进进度')
+  } catch (error) {
+    await load()
     ElMessage.error(problemMessage(error))
   } finally {
     busyId.value = -1

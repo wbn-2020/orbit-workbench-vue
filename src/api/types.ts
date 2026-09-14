@@ -33,6 +33,8 @@ export interface LearningGoal {
   status: LearningGoalStatus
   progress: number
   linkedSkill?: string
+  /** V52：由哪条画像事实转化而来（普通目标无此字段） */
+  sourceFactId?: number | null
 }
 
 export interface FocusStat {

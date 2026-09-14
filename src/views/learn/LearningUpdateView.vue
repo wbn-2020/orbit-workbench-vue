@@ -53,6 +53,7 @@
             <li v-for="goal in goals" :key="goal.id" class="goal-item">
               <div class="goal-head">
                 <span class="goal-title">{{ goal.title }}</span>
+                <span v-if="goal.sourceFactId" class="goal-from-fact" title="由画像事实转化而来（V52）">画像事实</span>
                 <span class="goal-status" :class="goal.status">{{ statusLabel(goal.status) }}</span>
               </div>
               <p v-if="goal.reason" class="goal-reason">{{ goal.reason }}</p>
@@ -490,6 +491,17 @@ onUnmounted(() => {
   border-radius: 999px;
   font-size: var(--fs-xs);
   font-weight: 800;
+}
+
+/* V52：来源徽标紧跟标题，margin-right:auto 把状态推回右侧 */
+.goal-from-fact {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--ow-muted, #52685e);
+  background: var(--surface-2, rgb(31 111 92 / 6%));
+  margin-right: auto;
 }
 
 .goal-status.active {
