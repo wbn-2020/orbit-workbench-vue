@@ -18,6 +18,8 @@ export interface CraftNote {
   status: CraftStatus
   confidence: number | null
   pinned: boolean
+  /** 是否已有对应练习任务（V49） */
+  practiced: boolean
   createdAt: string
   updatedAt: string
 }
@@ -66,6 +68,12 @@ export async function archiveCraft(id: number): Promise<CraftNote> {
 export async function pinCraft(id: number, pinned: boolean): Promise<CraftNote> {
   const { data } = await http.post<CraftNote>(`/crafts/${id}/pin`, { pinned })
   return data
+}
+
+/** V49：把已确认套路转成复习计划里的练习任务（幂等，created=0 表示已存在）。 */
+export async function createCraftPracticeTask(id: number): Promise<number> {
+  const { data } = await http.post<{ created: number }>(`/crafts/${id}/practice-task`)
+  return data.created
 }
 
 export async function distillCrafts(): Promise<CraftNote[]> {

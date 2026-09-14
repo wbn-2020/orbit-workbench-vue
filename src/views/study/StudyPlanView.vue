@@ -273,7 +273,7 @@ function statusClass(status: StudyTaskStatus): string {
 }
 
 function sourceLabel(source: StudyTask['sourceType']): string {
-  const map = { MANUAL: '手工创建', REPORT: '面试报告', WORKBENCH: '工作台' } as const
+  const map = { MANUAL: '手工创建', REPORT: '面试报告', WORKBENCH: '工作台', CRAFT: '方法论练习' } as const
   return map[source] ?? source
 }
 

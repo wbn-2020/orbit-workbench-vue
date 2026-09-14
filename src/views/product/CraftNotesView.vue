@@ -83,6 +83,14 @@
               <p class="craft-when">用在哪：{{ note.whenToUse }}</p>
               <pre class="craft-content">{{ note.content }}</pre>
               <div class="craft-acts">
+                <el-button
+                  size="small"
+                  :type="note.practiced ? 'default' : 'primary'"
+                  :loading="busyId === note.id"
+                  @click="practice(note)"
+                >
+                  {{ note.practiced ? '已在练习计划' : '练一练' }}
+                </el-button>
                 <el-button size="small" text @click="startEdit(note)">编辑</el-button>
                 <el-button size="small" text @click="archive(note)">归档</el-button>
               </div>
@@ -144,6 +152,7 @@ import {
   archiveCraft,
   confirmCraft,
   createCraft,
+  createCraftPracticeTask,
   distillCrafts,
   listCrafts,
   pinCraft,
@@ -290,6 +299,25 @@ async function archive(note: CraftNote): Promise<void> {
   try {
     await archiveCraft(note.id)
     await load()
+  } catch (err) {
+    ElMessage.error(problemMessage(err))
+  } finally {
+    busyId.value = -1
+  }
+}
+
+/** V49：一键把套路转成练习任务，幂等——已存在时后端返回 created=0。 */
+async function practice(note: CraftNote): Promise<void> {
+  busyId.value = note.id
+  try {
+    const created = await createCraftPracticeTask(note.id)
+    if (created > 0) {
+      ElMessage.success('已加入复习计划的练习任务')
+      note.practiced = true
+    } else {
+      ElMessage.info('这条套路已经在练习计划里了')
+      note.practiced = true
+    }
   } catch (err) {
     ElMessage.error(problemMessage(err))
   } finally {
