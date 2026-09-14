@@ -383,10 +383,12 @@ function practiceLabel(note: CraftNote): string {
   return note.practiced ? '已在练习计划' : '练一练'
 }
 
-/** V51：点「去练这条」滚到已入库列表里的对应套路。 */
+/** V51：点「去练这条」滚到已入库列表里的对应套路。
+    behavior 必须用 instant：平滑滚动在不可见标签页里可能完全不执行（实测），
+    定位一定发生比动画好看更重要。 */
 function goCraft(craftId: number): void {
-  const el = document.getElementById('craft-' + craftId)
-  el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  document.getElementById('craft-' + craftId)
+    ?.scrollIntoView({ behavior: 'instant', block: 'center' })
 }
 
 async function distill(): Promise<void> {
