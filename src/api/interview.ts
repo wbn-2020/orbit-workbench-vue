@@ -13,6 +13,8 @@ export interface ProjectBindingSnapshot {
   versionId: number
   versionNumber: number
   factCount: number
+  /** V53：创建时指定的提问重点事实 id；未指定时键缺席 */
+  focusFactIds?: number[]
 }
 
 export interface WebSearchOutcome {
@@ -129,7 +131,7 @@ export interface CreateSessionPayload {
   scheduledAt?: string | null
   aiConnectionId?: number | null
   webSearchPolicy?: string
-  projectBindings?: { projectId: number; versionId: number }[]
+  projectBindings?: { projectId: number; versionId: number; focusFactIds?: number[] }[]
   /** 不传=默认注入最近蒸馏的 5 条；空数组=显式不注入（后端据此区分）。 */
   knowledgeCardIds?: number[]
 }

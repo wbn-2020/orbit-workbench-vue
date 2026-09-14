@@ -166,7 +166,7 @@
                 :key="`${binding.projectId}-${binding.versionId}`"
                 class="tag"
               >
-                项目快照 {{ binding.projectName }} · V{{ binding.versionNumber }} · 事实 {{ binding.factCount }}
+                项目快照 {{ binding.projectName }} · V{{ binding.versionNumber }} · 事实 {{ binding.factCount }}<template v-if="binding.focusFactIds?.length"> · 提问重点 {{ binding.focusFactIds.length }} 条</template>
               </span>
               <span v-if="session.knowledgeBindingCount > 0" class="tag">
                 工作心得 {{ session.knowledgeBindingCount }} 条

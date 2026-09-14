@@ -25,6 +25,17 @@
         <div class="ow-card-h">
           <div class="ic b1"><UsersRound aria-hidden="true" /></div>
           面试配置
+          <div class="right">
+            <button
+              class="advanced-toggle"
+              type="button"
+              :aria-expanded="advancedOpen"
+              @click="advancedOpen = !advancedOpen"
+            >
+              <span class="advanced-hint">{{ advancedOpen ? '收起配置' : '展开配置' }}</span>
+              <ChevronDown class="advanced-chevron" :class="{ open: advancedOpen }" aria-hidden="true" />
+            </button>
+          </div>
         </div>
         <div class="ow-card-b">
           <div class="ow-formgrid">
@@ -170,26 +181,51 @@
             <p v-if="bindings.length === 0" class="ow-note">
               未绑定项目资料；项目深挖类面试建议绑定一个项目版本。
             </p>
-            <div v-for="(binding, index) in bindings" :key="index" class="binding-row">
-              <select
-                v-model="binding.projectId"
-                class="ow-input"
-                @change="onBindingProjectChange(binding)"
+            <div v-for="(binding, index) in bindings" :key="index" class="binding-block">
+              <div class="binding-row">
+                <select
+                  v-model="binding.projectId"
+                  class="ow-input"
+                  @change="onBindingProjectChange(binding)"
+                >
+                  <option :value="null">选择项目</option>
+                  <option v-for="project in projects" :key="project.id" :value="project.id">
+                    {{ project.name }}
+                  </option>
+                </select>
+                <select
+                  v-model="binding.versionId"
+                  class="ow-input"
+                  :disabled="!binding.projectId"
+                  @change="onBindingVersionChange(binding)"
+                >
+                  <option :value="null">{{ binding.loading ? '版本加载中…' : '选择版本' }}</option>
+                  <option v-for="version in binding.versions" :key="version.id" :value="version.id">
+                    V{{ version.versionNumber }} · {{ version.sourceFileName }}
+                  </option>
+                </select>
+                <button class="ow-btn binding-add" type="button" @click="bindings.splice(index, 1)">
+                  移除
+                </button>
+              </div>
+              <el-select
+                v-if="binding.facts.length"
+                v-model="binding.focusFactIds"
+                multiple
+                filterable
+                collapse-tags
+                :multiple-limit="3"
+                placeholder="提问重点（可选，最多 3 条已确认事实）"
+                class="ow-input focus-select"
+                :aria-label="`第 ${index + 1} 条绑定的提问重点`"
               >
-                <option :value="null">选择项目</option>
-                <option v-for="project in projects" :key="project.id" :value="project.id">
-                  {{ project.name }}
-                </option>
-              </select>
-              <select v-model="binding.versionId" class="ow-input" :disabled="!binding.projectId">
-                <option :value="null">{{ binding.loading ? '版本加载中…' : '选择版本' }}</option>
-                <option v-for="version in binding.versions" :key="version.id" :value="version.id">
-                  V{{ version.versionNumber }} · {{ version.sourceFileName }}
-                </option>
-              </select>
-              <button class="ow-btn binding-add" type="button" @click="bindings.splice(index, 1)">
-                移除
-              </button>
+                <el-option
+                  v-for="fact in binding.facts"
+                  :key="fact.id"
+                  :value="fact.id"
+                  :label="fact.title"
+                />
+              </el-select>
             </div>
           </div>
 
@@ -227,7 +263,7 @@
 </template>
 
 <script setup lang="ts">
-import { ClipboardCheck, Swords, UsersRound } from 'lucide-vue-next'
+import { ChevronDown, ClipboardCheck, Swords, UsersRound } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -243,6 +279,7 @@ import {
 import { webSearchPolicyChoices } from '@/api/aiConnections'
 import { listInterviewers, type InterviewerProfile } from '@/api/interviewers'
 import { getProject, listProjects } from '@/api/projects'
+import { listFacts, type ProjectFact } from '@/api/knowledge'
 import { http, problemMessage } from '@/api/http'
 import ErrorState from '@/components/ErrorState.vue'
 import type { ProjectSummary, ProjectVersion } from '@/types/api'
@@ -271,6 +308,9 @@ interface BindingRow {
   versionId: number | null
   versions: ProjectVersion[]
   loading: boolean
+  /** V53：该版本已确认事实（供勾选提问重点）与勾选结果 */
+  facts: ProjectFact[]
+  focusFactIds: number[]
 }
 
 const route = useRoute()
@@ -335,7 +375,8 @@ const bindingSummary = computed(() => {
     .map((binding) => {
       const name = projects.value.find((project) => project.id === binding.projectId)?.name
       const version = binding.versions.find((item) => item.id === binding.versionId)
-      return `${name ?? '项目'} · V${version?.versionNumber ?? '?'}`
+      const focus = binding.focusFactIds.length ? ` · 重点 ${binding.focusFactIds.length} 条` : ''
+      return `${name ?? '项目'} · V${version?.versionNumber ?? '?'}${focus}`
     })
     .join('、')
 })
@@ -389,22 +430,46 @@ async function loadInterviewers(): Promise<void> {
 
 function addBinding(): void {
   if (bindings.value.length >= 5) return
-  bindings.value.push({ projectId: null, versionId: null, versions: [], loading: false })
+  bindings.value.push({
+    projectId: null, versionId: null, versions: [], loading: false,
+    facts: [], focusFactIds: [],
+  })
 }
 
 async function onBindingProjectChange(binding: BindingRow): Promise<void> {
   binding.versionId = null
   binding.versions = []
+  binding.facts = []
+  binding.focusFactIds = []
   if (!binding.projectId) return
   binding.loading = true
   try {
     const detail = await getProject(binding.projectId)
     binding.versions = detail.versions
     binding.versionId = detail.versions[0]?.id ?? null
+    await loadBindingFacts(binding)
   } catch (error) {
     ElMessage.error(problemMessage(error))
   } finally {
     binding.loading = false
+  }
+}
+
+/** V53：版本切换后拉取该项目版本的已确认事实，供勾选提问重点。 */
+async function onBindingVersionChange(binding: BindingRow): Promise<void> {
+  binding.facts = []
+  binding.focusFactIds = []
+  await loadBindingFacts(binding)
+}
+
+async function loadBindingFacts(binding: BindingRow): Promise<void> {
+  if (!binding.projectId || !binding.versionId) return
+  try {
+    const facts = await listFacts(binding.projectId, binding.versionId)
+    binding.facts = facts.filter((fact) => fact.confirmationStatus === 'CONFIRMED')
+  } catch {
+    // 重点选择是可选增强：拉不到事实就不显示选择器，不阻塞创建流程
+    binding.facts = []
   }
 }
 
@@ -469,7 +534,11 @@ async function launch(): Promise<void> {
   }
   const projectBindings = bindings.value
     .filter((binding) => binding.projectId && binding.versionId)
-    .map((binding) => ({ projectId: binding.projectId!, versionId: binding.versionId! }))
+    .map((binding) => ({
+      projectId: binding.projectId!,
+      versionId: binding.versionId!,
+      focusFactIds: binding.focusFactIds.length ? [...binding.focusFactIds] : undefined,
+    }))
   creating.value = true
   try {
     const payload: CreateSessionPayload = {
@@ -566,10 +635,19 @@ if (route.query.mode === '模拟面试') {
   font-size: var(--fs-sm);
 }
 
+.binding-block {
+  display: grid;
+  gap: 6px;
+}
+
 .binding-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) auto;
   gap: 8px;
+}
+
+.focus-select {
+  width: 100%;
 }
 
 .binding-add {
@@ -616,7 +694,8 @@ if (route.query.mode === '模拟面试') {
   cursor: pointer;
   font: inherit;
   color: inherit;
-  padding: inherit;
+  padding: 0;
+  margin-left: auto;
   text-align: left;
 }
 
