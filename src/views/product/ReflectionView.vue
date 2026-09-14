@@ -138,6 +138,32 @@
         </div>
       </template>
 
+      <!-- V55：成长脉络——溯源链接聚合出的链，全局快照不随周期切换 -->
+      <section v-if="threads.length" class="ow-card">
+        <div class="ow-card-h"><Waypoints aria-hidden="true" />成长脉络</div>
+        <div class="ow-card-b">
+          <p class="thread-note">下面每条都是库里真实存在过的转化链（事实→目标、套路→练习→效果、报告→复习）；断了环节的链不会凭空补画。</p>
+          <ul class="thread-list">
+            <li v-for="(thread, index) in threads" :key="`${thread.type}-${index}`" class="thread-item">
+              <span class="thread-type">{{ THREAD_TYPE_LABELS[thread.type] }}</span>
+              <span class="thread-chain">
+                <template v-for="(step, si) in [...thread.origin, ...thread.steps]" :key="`${step.kind}-${step.refId}`">
+                  <span v-if="si > 0" class="thread-arrow" aria-hidden="true">→</span>
+                  <RouterLink class="thread-step" :to="step.to" :title="`${STEP_KIND_LABELS[step.kind]} · ${step.status}`">
+                    <span class="thread-kind">{{ STEP_KIND_LABELS[step.kind] }}</span>
+                    <span class="thread-title">{{ step.title }}</span>
+                    <span class="thread-status">{{ step.status }}</span>
+                  </RouterLink>
+                </template>
+                <span v-if="thread.effect" class="thread-effect" :class="'fx-' + thread.effect">
+                  {{ EFFECT_TEXT[thread.effect] }}
+                </span>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
       <p class="reflect-note">
         环比对象是紧邻的上一{{ period === 'month' ? '月' : '周' }}（{{ previousRangeText }}）；
         平均分只统计当前评分规则的报告，无分数时显示「—」而不是 0。
@@ -156,8 +182,9 @@ import {
   Layers,
   NotebookPen,
   RefreshCw,
+  Waypoints,
 } from 'lucide-vue-next'
-import { getReflection, type Reflection } from '@/api/workbench'
+import { getReflection, getGrowthThreads, type GrowthThread, type Reflection } from '@/api/workbench'
 import { problemMessage } from '@/api/http'
 import ErrorState from '@/components/ErrorState.vue'
 import PageHeader from '@/components/PageHeader.vue'
@@ -187,6 +214,17 @@ const loading = ref(true)
 const loadError = ref('')
 const period = ref<'week' | 'month'>('week')
 const offset = ref(0)
+
+/** V55：成长脉络是全局快照（不随周期切换），失败静默——辅助信息不打扰复盘主流程。 */
+const threads = ref<GrowthThread[]>([])
+
+async function loadThreads(): Promise<void> {
+  try {
+    threads.value = await getGrowthThreads()
+  } catch {
+    threads.value = []
+  }
+}
 
 async function load(): Promise<void> {
   loading.value = true
@@ -305,7 +343,32 @@ const dailyAria = computed(() => {
   return `每日专注合计 ${total} 分钟，${points.length} 天`
 })
 
-onMounted(load)
+/** V55：脉络链的类型与节点标签。 */
+const THREAD_TYPE_LABELS: Record<GrowthThread['type'], string> = {
+  CRAFT: '套路 → 练习',
+  FACT: '事实 → 目标',
+  REPORT: '报告 → 复习',
+}
+
+const STEP_KIND_LABELS: Record<string, string> = {
+  FACT: '画像事实',
+  GOAL: '学习目标',
+  CRAFT: '方法论',
+  TASK: '复习任务',
+  REPORT: '面试报告',
+}
+
+const EFFECT_TEXT: Record<string, string> = {
+  IMPROVED: '练后关联维度均分上升',
+  DECLINED: '练后关联维度均分回落',
+  FLAT: '练后关联维度基本持平',
+  INSUFFICIENT: '样本还看不出变化',
+}
+
+onMounted(() => {
+  load()
+  loadThreads()
+})
 </script>
 
 <style scoped>
@@ -520,6 +583,96 @@ onMounted(load)
   color: var(--ow-muted, #52685e);
   font-size: var(--fs-sm);
   line-height: 1.7;
+}
+
+/* V55：成长脉络链。中性底色 + 文字色区分状态，品牌色只给链接 */
+.thread-note {
+  margin: 0 0 10px;
+  color: var(--ow-muted, #52685e);
+  font-size: var(--fs-xs);
+}
+
+.thread-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.thread-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.thread-type {
+  flex: 0 0 92px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--ow-muted, #52685e);
+}
+
+.thread-chain {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.thread-step {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 8px;
+  background: rgb(31 111 92 / 5%);
+  text-decoration: none;
+  max-width: 100%;
+}
+
+.thread-step:hover {
+  background: rgb(31 111 92 / 10%);
+}
+
+.thread-kind {
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  color: var(--ow-muted, #52685e);
+}
+
+.thread-title {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--ow-link, #1f6f5c);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240px;
+}
+
+.thread-status {
+  font-size: var(--fs-2xs);
+  color: var(--ow-muted, #52685e);
+}
+
+.thread-arrow {
+  color: var(--ow-muted, #52685e);
+  font-size: var(--fs-xs);
+}
+
+.thread-effect {
+  font-size: var(--fs-xs);
+  color: var(--ow-muted, #52685e);
+}
+
+.thread-effect.fx-IMPROVED {
+  color: var(--ow-success-text, #16634f);
+}
+
+.thread-effect.fx-DECLINED {
+  color: var(--ow-warning-text, #8a5a00);
 }
 
 .reflect-note {

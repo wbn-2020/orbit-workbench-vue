@@ -69,3 +69,26 @@ export async function getReflection(period: 'week' | 'month', offset = 0): Promi
   })
   return data
 }
+
+/** V55：成长脉络——溯源链接聚合出的链（后端只读派生，断环如实缺位）。 */
+export type ThreadKind = 'FACT' | 'GOAL' | 'CRAFT' | 'TASK' | 'REPORT'
+
+export interface ThreadStep {
+  kind: ThreadKind
+  refId: number
+  title: string
+  status: string
+  to: string
+}
+
+export interface GrowthThread {
+  type: 'CRAFT' | 'FACT' | 'REPORT'
+  origin: ThreadStep[]
+  steps: ThreadStep[]
+  effect: 'IMPROVED' | 'DECLINED' | 'FLAT' | 'INSUFFICIENT' | null
+}
+
+export async function getGrowthThreads(): Promise<GrowthThread[]> {
+  const { data } = await http.get<{ items: GrowthThread[] }>('/workbench/growth-threads')
+  return data.items ?? []
+}
