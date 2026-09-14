@@ -135,6 +135,34 @@
               </p>
             </div>
           </section>
+
+          <!-- V56：成长沉淀——画像/套路/练习三条新链的窗口推进量，整行铺开 -->
+          <section class="ow-card growth-card">
+            <div class="ow-card-h"><Sprout aria-hidden="true" />成长沉淀</div>
+            <div class="ow-card-b">
+              <div class="growth-row">
+                <div class="growth-item">
+                  <span class="growth-num">{{ data.growth.newFacts }}</span>
+                  <span class="growth-label">新确认画像事实</span>
+                </div>
+                <div class="growth-item">
+                  <span class="growth-num">{{ data.growth.craftsPracticed }}</span>
+                  <span class="growth-label">练过的方法论</span>
+                </div>
+                <div class="growth-item">
+                  <span class="growth-num">{{ data.growth.practiceTasksDone }}</span>
+                  <span class="growth-label">完成的练习任务</span>
+                </div>
+                <div class="growth-item delta">
+                  <span class="growth-num" :class="growthDeltaClass">{{ growthDeltaText }}</span>
+                  <span class="growth-label">沉淀合计环比</span>
+                </div>
+              </div>
+              <p v-if="growthTotal === 0" class="caveat">
+                这个周期还没有成长沉淀：确认画像事实、把方法论转成练习并做完，都会在这里计数。
+              </p>
+            </div>
+          </section>
         </div>
       </template>
 
@@ -182,6 +210,7 @@ import {
   Layers,
   NotebookPen,
   RefreshCw,
+  Sprout,
   Waypoints,
 } from 'lucide-vue-next'
 import { getReflection, getGrowthThreads, type GrowthThread, type Reflection } from '@/api/workbench'
@@ -335,6 +364,29 @@ const previousRangeText = computed(() => {
     end.setUTCDate(end.getUTCDate() - 7)
   }
   return `${start.toISOString().slice(0, 10)} ~ ${end.toISOString().slice(0, 10)}`
+})
+
+/** V56：成长沉淀合计与环比（三信号相加，与 previous.growthSignals 同口径）。 */
+const growthTotal = computed(() => {
+  const g = data.value?.growth
+  if (!g) return 0
+  return g.newFacts + g.craftsPracticed + g.practiceTasksDone
+})
+
+const growthDeltaText = computed(() => {
+  if (!data.value) return '—'
+  const prev = data.value.previous.growthSignals
+  if (growthTotal.value === 0 && prev === 0) return '持平'
+  if (prev === 0) return '上期无'
+  const diff = growthTotal.value - prev
+  if (diff === 0) return '持平'
+  return `${diff > 0 ? '↑' : '↓'} ${Math.abs(diff)}`
+})
+
+const growthDeltaClass = computed(() => {
+  if (!data.value) return ''
+  const diff = growthTotal.value - data.value.previous.growthSignals
+  return diff > 0 ? 'up' : diff < 0 ? 'down' : ''
 })
 
 const dailyAria = computed(() => {
@@ -519,6 +571,47 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
+}
+
+/* V56：成长沉淀卡横跨整行，四个计数并排 */
+.growth-card {
+  grid-column: 1 / -1;
+}
+
+.growth-row {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.growth-item {
+  display: grid;
+  gap: 2px;
+  min-width: 120px;
+}
+
+.growth-num {
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  color: var(--ow-ink, #17302a);
+  font-variant-numeric: tabular-nums;
+}
+
+.growth-num.up {
+  color: var(--ow-success-text, #16634f);
+}
+
+.growth-num.down {
+  color: var(--ow-warning-text, #8a5a00);
+}
+
+.growth-label {
+  font-size: var(--fs-xs);
+  color: var(--ow-muted, #52685e);
+}
+
+.growth-item.delta .growth-num {
+  font-size: var(--fs-md);
 }
 
 .fact-list {

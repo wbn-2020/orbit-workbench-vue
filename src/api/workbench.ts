@@ -40,11 +40,20 @@ export interface InterviewStats {
   byRecommendation: Record<string, number>
 }
 
+/** V56：本窗口「画像 / 套路 / 练习」三条新链的推进量（窗口内事件计数）。 */
+export interface GrowthStats {
+  newFacts: number
+  craftsPracticed: number
+  practiceTasksDone: number
+}
+
 export interface PeriodTotals {
   focusMinutes: number
   workLogs: number
   knowledgeCards: number
   studyCompleted: number
+  /** V56：上期成长沉淀合计（三信号相加），供环比 */
+  growthSignals: number
 }
 
 export interface Reflection {
@@ -57,6 +66,7 @@ export interface Reflection {
   learning: LearningStats
   study: StudyStats
   interview: InterviewStats
+  growth: GrowthStats
   daily: DailyPoint[]
   previous: PeriodTotals
   scoringRuleVersion: string
