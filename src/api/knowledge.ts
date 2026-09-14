@@ -22,7 +22,12 @@ export interface KnowledgeSource {
   relativePath: string
   chunkNo: number
   snippet: string
+  /** 「我的状态」范围使用（面试报告/画像事实/复习任务/方法论/工作记录/学习目标） */
+  category?: string | null
 }
+
+/** 问答检索范围：项目资料（默认）或我的状态（V48）。 */
+export type AskScope = 'MATERIALS' | 'PERSONAL'
 
 export interface AskResult {
   answer: string | null
@@ -33,10 +38,12 @@ export interface AskResult {
 export async function askKnowledge(
   question: string,
   projectVersionId?: number | null,
+  scope?: AskScope,
 ): Promise<AskResult> {
   const { data } = await http.post<AskResult>('/knowledge/ask', {
     question,
     projectVersionId: projectVersionId ?? undefined,
+    scope: scope ?? undefined,
   })
   return data
 }
@@ -121,6 +128,7 @@ export async function streamAskKnowledge(
   question: string,
   projectVersionId: number | null | undefined,
   handlers: AskStreamHandlers,
+  scope?: AskScope,
 ): Promise<void> {
   const csrf = document.cookie
     .split('; ')
@@ -134,7 +142,11 @@ export async function streamAskKnowledge(
       Accept: 'text/event-stream',
       ...(csrf ? { 'X-XSRF-TOKEN': decodeURIComponent(csrf) } : {}),
     },
-    body: JSON.stringify({ question, projectVersionId: projectVersionId ?? undefined }),
+    body: JSON.stringify({
+      question,
+      projectVersionId: projectVersionId ?? undefined,
+      scope: scope ?? undefined,
+    }),
   })
   if (!response.ok || !response.body) {
     let detail = `HTTP ${response.status}`

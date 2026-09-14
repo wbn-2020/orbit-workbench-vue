@@ -20,7 +20,29 @@
         </div>
         <div class="ow-card-b">
           <div class="ow-row" style="margin-bottom: 11px;">
-            <select v-model="scope" class="ow-input" style="max-width: 280px;" aria-label="检索范围">
+            <div class="ow-seg scope-seg">
+              <button
+                type="button"
+                :class="{ on: askScope === 'MATERIALS' }"
+                @click="switchScope('MATERIALS')"
+              >
+                项目资料
+              </button>
+              <button
+                type="button"
+                :class="{ on: askScope === 'PERSONAL' }"
+                @click="switchScope('PERSONAL')"
+              >
+                我的状态
+              </button>
+            </div>
+            <select
+              v-if="askScope === 'MATERIALS'"
+              v-model="scope"
+              class="ow-input"
+              style="max-width: 280px;"
+              aria-label="检索范围"
+            >
               <option :value="null">全部个人资料</option>
               <option v-for="option in versionOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
@@ -31,7 +53,9 @@
             <input
               v-model="question"
               class="ow-input"
-              placeholder="例如：秒杀系统的库存扣减是怎么做的？"
+              :placeholder="askScope === 'PERSONAL'
+                ? '例如：我哪个维度最弱？还有哪些待办？'
+                : '例如：秒杀系统的库存扣减是怎么做的？'"
               @keydown.enter="ask"
             >
             <button class="ow-btn" type="button" :disabled="asking" @click="ask">
@@ -60,14 +84,14 @@
                 <div class="ow-hint">以下为 AI 回答所引用的资料位置：</div>
                 <div v-for="(source, index) in result.sources" :key="index" class="source-row">
                   <span class="ow-tag blue">[{{ index + 1 }}]</span>
-                  <span class="source-path">{{ source.relativePath }} · 第 {{ source.chunkNo }} 段</span>
+                  <span class="source-path">{{ sourceLabel(source) }}</span>
                   <div class="source-snippet">{{ source.snippet }}</div>
                 </div>
               </template>
             </template>
           </div>
           <div v-else class="ow-empty" style="margin-top: 14px;">
-            输入问题开始提问。回答只引用你项目资料里的知识块并标注来源；还没有知识块时，可先到项目资料页构建。
+            输入问题开始提问。「项目资料」答资料里怎么写（无知识块时先到项目资料页构建）；「我的状态」答你自己的情况——面试表现、薄弱维度、待办与目标。
           </div>
         </div>
       </div>
@@ -79,8 +103,10 @@
         </div>
         <div class="ow-card-b">
           <ul class="plain-list">
-            <li>知识块来自「项目资料」已解析文本文件，按约 1200 字窗口切分。</li>
-            <li>检索使用 MySQL ngram 全文索引，辅以关键词包含匹配兜底。</li>
+            <li v-if="askScope === 'MATERIALS'">知识块来自「项目资料」已解析文本文件，按约 1200 字窗口切分。</li>
+            <li v-else>「我的状态」聚合六类数据：面试报告（含维度得分）、已确认画像、复习任务、方法论、工作记录、学习目标。</li>
+            <li v-if="askScope === 'MATERIALS'">检索使用 MySQL ngram 全文索引，辅以关键词包含匹配兜底。</li>
+            <li v-else>按问题选相关来源，与问题无关的数据不会硬塞进上下文。</li>
             <li>回答仅基于检索到的资料块并标注来源；资料不足时不会编造答案。</li>
             <li>知识库问答默认不计入能力数据。</li>
           </ul>
@@ -103,11 +129,13 @@ import { computed, ref } from 'vue'
 
 import { askKnowledge, buildKnowledge, streamAskKnowledge } from '@/api/knowledge'
 import { listProjects } from '@/api/projects'
-import type { AskResult } from '@/api/knowledge'
+import type { AskResult, AskScope, KnowledgeSource } from '@/api/knowledge'
 import { problemMessage } from '@/api/http'
 import ErrorState from '@/components/ErrorState.vue'
 
 const scope = ref<number | null>(null)
+/** V48：项目资料答「资料怎么写」，我的状态答「我自己的情况怎么样」。 */
+const askScope = ref<AskScope>('MATERIALS')
 const question = ref('')
 const askedQuestion = ref('')
 const result = ref<AskResult | null>(null)
@@ -127,6 +155,21 @@ const versionOptions = computed(() =>
       label: `${project.name}（最新版本）`,
     })),
 )
+
+/** 切换范围时保留问题、清掉上一次结果，避免跨范围误读答案。 */
+function switchScope(next: AskScope): void {
+  if (askScope.value === next) return
+  askScope.value = next
+  result.value = null
+  askError.value = ''
+  askedQuestion.value = ''
+}
+
+/** 来源标签：我的状态按类别（面试报告/画像事实/…），项目资料仍显示文件与段落。 */
+function sourceLabel(source: KnowledgeSource): string {
+  if (source.category) return source.category
+  return `${source.relativePath} · 第 ${source.chunkNo} 段`
+}
 
 async function load(): Promise<void> {
   loadError.value = ''
@@ -183,7 +226,7 @@ async function ask(): Promise<void> {
   // SSE 的 error 事件通过回调送达、不会向外抛出，需用局部变量收集后统一判定。
   let streamErrorMessage = ''
   try {
-    await streamAskKnowledge(text, scope.value, {
+    await streamAskKnowledge(text, askScope.value === 'MATERIALS' ? scope.value : null, {
       onDelta: (delta: string) => {
         streamed = true
         if (result.value) result.value.answer += delta
@@ -201,7 +244,7 @@ async function ask(): Promise<void> {
     const streamMessage = streamError instanceof Error ? streamError.message : String(streamError)
     if (!streamed) {
       try {
-        result.value = await askKnowledge(text, scope.value)
+        result.value = await askKnowledge(text, askScope.value === 'MATERIALS' ? scope.value : null, askScope.value)
         return
       } catch {
         /* 阻塞接口同样失败：按流式错误呈现，不再叠加第二次噪音 */
@@ -224,6 +267,10 @@ load()
 </script>
 
 <style scoped>
+.scope-seg {
+  margin-right: 10px;
+}
+
 .kb-page {
   display: grid;
   gap: 18px;
