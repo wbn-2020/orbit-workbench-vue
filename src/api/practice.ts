@@ -76,6 +76,30 @@ export async function addPracticeAttempt(
   return data
 }
 
+/** V57：一道错题 → 治这类错的候选套路（纯关键词派生，匹配不上时 items 为空并给出如实说明）。 */
+export interface WrongAnswerCraftCandidate {
+  craftId: number
+  title: string
+  category: string
+  whenToUse: string | null
+  matchedDimension: string
+  mastered: boolean
+}
+
+export interface WrongAnswerCraftSuggestion {
+  items: WrongAnswerCraftCandidate[]
+  note: string | null
+}
+
+export async function getWrongAnswerCraftSuggestion(
+  itemId: number,
+): Promise<WrongAnswerCraftSuggestion> {
+  const { data } = await http.get<WrongAnswerCraftSuggestion>(
+    `/practice-items/${itemId}/craft-suggestion`,
+  )
+  return data
+}
+
 export async function updatePracticeClassification(
   itemId: number,
   payload: PracticeClassificationPayload,

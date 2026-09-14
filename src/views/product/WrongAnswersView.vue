@@ -158,6 +158,29 @@
                 </div>
 
                 <div class="block">
+                  <div class="block-h">治这类错的套路<span class="muted">（按错题文本命中的能力维度匹配，纯静态派生）</span></div>
+                  <div v-if="craftLoading"><el-skeleton :rows="2" animated /></div>
+                  <p v-else-if="craftError" class="error-line">{{ craftError }}</p>
+                  <template v-else-if="craftSuggestion">
+                    <ul v-if="craftSuggestion.items.length" class="craft-list">
+                      <li v-for="candidate in craftSuggestion.items" :key="candidate.craftId" class="craft-item">
+                        <div class="craft-line">
+                          <span class="craft-dim">{{ candidate.matchedDimension }}</span>
+                          <span class="craft-cat">{{ craftCategoryLabel(candidate.category) }}</span>
+                          <span class="craft-title">{{ candidate.title }}</span>
+                          <span v-if="candidate.mastered" class="craft-mastered">✓ 已练熟</span>
+                        </div>
+                        <p v-if="candidate.whenToUse" class="craft-when">用在哪：{{ candidate.whenToUse }}</p>
+                      </li>
+                    </ul>
+                    <p v-else class="missing">{{ craftSuggestion.note }}</p>
+                    <p v-if="craftSuggestion.items.length && craftSuggestion.note" class="muted">
+                      {{ craftSuggestion.note }}
+                    </p>
+                  </template>
+                </div>
+
+                <div class="block">
                   <div class="block-h">重练记录<span class="muted">（只新增、不覆盖，按时间升序）</span></div>
                   <p v-if="detail.attempts.length === 0" class="missing">
                     这条还没有重练过。掌握需要末段连续 {{ summary?.masteredStreak ?? '?' }} 次「答通」且每次自评 ≥ {{ summary?.masteredSelfScore ?? '?' }}。
@@ -401,12 +424,15 @@ import {
   createPracticeItem,
   getPracticeDetail,
   getPracticeSummary,
+  getWrongAnswerCraftSuggestion,
   importFromReport,
   importFromSession,
   listPracticeItems,
   unarchivePracticeItem,
   updatePracticeClassification,
+  type WrongAnswerCraftSuggestion,
 } from '@/api/practice'
+import { CRAFT_CATEGORY_LABELS } from '@/api/crafts'
 import { listReports } from '@/api/reports'
 import { problemMessage } from '@/api/http'
 import { answerSourceLabel, listSessions } from '@/api/interview'
@@ -467,6 +493,29 @@ const detail = ref<PracticeDetailResponse | null>(null)
 const detailLoading = ref(false)
 const detailError = ref('')
 const actionError = ref('')
+
+// V57：错题 → 治这类错的套路。展开详情时才请求；失败只在本区块显示错误，不影响重练。
+const craftSuggestion = ref<WrongAnswerCraftSuggestion | null>(null)
+const craftLoading = ref(false)
+const craftError = ref('')
+
+function craftCategoryLabel(category: string): string {
+  const labels = CRAFT_CATEGORY_LABELS as Record<string, string>
+  return labels[category] ?? category
+}
+
+async function loadCraftSuggestion(itemId: number): Promise<void> {
+  craftLoading.value = true
+  craftError.value = ''
+  craftSuggestion.value = null
+  try {
+    craftSuggestion.value = await getWrongAnswerCraftSuggestion(itemId)
+  } catch (error) {
+    craftError.value = problemMessage(error)
+  } finally {
+    craftLoading.value = false
+  }
+}
 
 const attemptForm = reactive({
   answer: '',
@@ -700,6 +749,7 @@ function resetForms(data: PracticeDetailResponse): void {
 async function loadDetail(itemId: number): Promise<void> {
   detailLoading.value = true
   detailError.value = ''
+  void loadCraftSuggestion(itemId) // V57：套路建议与详情并行走，失败只影响本区块
   try {
     const data = await getPracticeDetail(itemId)
     detail.value = data
@@ -716,6 +766,8 @@ function closeDetail(): void {
   detail.value = null
   detailError.value = ''
   actionError.value = ''
+  craftSuggestion.value = null
+  craftError.value = ''
 }
 
 function toggleExpand(item: PracticeItem): void {
@@ -1083,6 +1135,66 @@ void initialize()
   border-radius: 12px;
   font-size: var(--fs-sm);
   line-height: 1.65;
+}
+
+/* V57：错题 → 套路候选列表。中性底色 + 文字色，品牌色留给可操作元素（视觉系统 v2） */
+.craft-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.craft-item {
+  display: grid;
+  gap: 5px;
+  padding: 11px 13px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.craft-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.craft-dim {
+  padding: 2px 8px;
+  color: var(--ink-2);
+  background: var(--glass-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+.craft-cat {
+  padding: 2px 8px;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+.craft-title {
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+
+.craft-mastered {
+  padding: 1px 8px;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+}
+
+.craft-when {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--fs-xs);
 }
 
 .error-line {
