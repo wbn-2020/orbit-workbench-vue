@@ -9,7 +9,7 @@ vi.mock('./http', () => ({
 }))
 
 describe('SEARCH_DOMAIN_META', () => {
-  it('covers the five existing domains and three extended domains', () => {
+  it('covers the five existing domains and four extended domains', () => {
     const domains: SearchDomain[] = [
       'PROJECT',
       'KNOWLEDGE',
@@ -19,6 +19,7 @@ describe('SEARCH_DOMAIN_META', () => {
       'PROJECT_FACT',
       'INTERVIEWER',
       'STUDY_TASK',
+      'CRAFT',
     ]
 
     expect(Object.keys(SEARCH_DOMAIN_META)).toHaveLength(domains.length)
@@ -44,6 +45,11 @@ describe('SEARCH_DOMAIN_META', () => {
       label: '复习任务',
       icon: 'clipboard-check',
       tone: 'orange',
+    })
+    expect(SEARCH_DOMAIN_META.CRAFT).toEqual({
+      label: '本事库',
+      icon: 'hammer',
+      tone: 'green',
     })
   })
 })

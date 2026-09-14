@@ -156,6 +156,12 @@ const router = createRouter({
           meta: { title: '知识库问答', section: '资料库' },
         },
         {
+          path: 'crafts',
+          name: 'crafts',
+          component: () => import('@/views/product/CraftNotesView.vue'),
+          meta: { title: '本事库', section: '资料库' },
+        },
+        {
           path: 'interviewers',
           name: 'interviewers',
           component: () => import('@/views/product/InterviewersView.vue'),

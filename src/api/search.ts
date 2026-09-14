@@ -11,6 +11,7 @@ export type SearchDomain =
   | 'PROJECT_FACT'
   | 'INTERVIEWER'
   | 'STUDY_TASK'
+  | 'CRAFT'
 
 export type SearchDomainIcon =
   | 'folder-kanban'
@@ -21,6 +22,7 @@ export type SearchDomainIcon =
   | 'badge-check'
   | 'users-round'
   | 'clipboard-check'
+  | 'hammer'
 
 export type SearchDomainTone = 'brand' | 'purple' | 'green' | 'orange' | 'gold'
 
@@ -40,6 +42,7 @@ export const SEARCH_DOMAIN_META: Record<SearchDomain, SearchDomainMeta> = {
   PROJECT_FACT: { label: '画像事实', icon: 'badge-check', tone: 'gold' },
   INTERVIEWER: { label: '面试官', icon: 'users-round', tone: 'brand' },
   STUDY_TASK: { label: '复习任务', icon: 'clipboard-check', tone: 'orange' },
+  CRAFT: { label: '本事库', icon: 'hammer', tone: 'green' },
 }
 
 export interface SearchHit {

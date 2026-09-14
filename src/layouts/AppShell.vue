@@ -127,7 +127,7 @@
             v-model="searchKeyword"
             class="search-input"
             ref="searchInput"
-            placeholder="搜索项目、画像事实、知识块、面试、面试官、报告、复习任务、投递…"
+            placeholder="搜索项目、画像事实、知识块、本事、面试、面试官、报告、复习任务、投递…"
             aria-label="全局搜索"
             @focus="openSearchPanel"
             @blur="hideSearchPanel"
@@ -256,6 +256,7 @@ import {
   FileBarChart,
   FileText,
   FolderKanban,
+  Hammer,
   HelpCircle,
   KeyRound,
   Layers,
@@ -410,6 +411,7 @@ const navGroups = [
       { label: '求职档案', to: '/profile/job', icon: UserRound },
       { label: '项目资料', to: '/projects', icon: FolderKanban },
       { label: '知识库问答', to: '/knowledge/ask', icon: BookOpen },
+      { label: '本事库', to: '/crafts', icon: Hammer },
     ],
   },
   {
@@ -462,6 +464,7 @@ const searchIcons: Record<SearchDomainIcon, typeof FolderKanban> = {
   'badge-check': BadgeCheck,
   'users-round': UsersRound,
   'clipboard-check': ClipboardCheck,
+  hammer: Hammer,
 }
 
 function searchGroupMeta(type: SearchDomain) {
