@@ -27,6 +27,11 @@ export interface UserFact {
   stale: boolean
   /** 距上次确认的天数；从未确认为 null */
   staleDays: number | null
+  /** 被组装进 AI 请求的次数（V46 用量治理）；从未注入为 0 */
+  injectionCount: number
+  lastInjectedAt: string | null
+  /** 冷记忆：已确认但从未被注入过 */
+  cold: boolean
   archivedReason: string | null
   createdAt: string
 }
@@ -111,6 +116,35 @@ export async function compileProfileDigest(): Promise<ProfileDigest> {
 
 export async function deleteProfileDigest(): Promise<void> {
   await http.delete('/user-facts/digest')
+}
+
+/* ---- 近期关注（V46，借鉴 EvoFlow 记忆结构 topOfMind） ---- */
+
+export interface FocusNote {
+  id: number
+  content: string
+  expiresAt: string | null
+  /** 已过失效时刻：不再注入但保留，供用户更新或清除 */
+  expired: boolean
+  updatedAt: string
+}
+
+/** 当前关注；未设置过后端返回 204，这里归一为 null。 */
+export async function getFocusNote(): Promise<FocusNote | null> {
+  const { data, status } = await http.get<FocusNote | ''>('/user-facts/focus')
+  return status === 204 || !data ? null : (data as FocusNote)
+}
+
+export async function saveFocusNote(payload: {
+  content: string
+  expiresInDays: number | null
+}): Promise<FocusNote> {
+  const { data } = await http.put<FocusNote>('/user-facts/focus', payload)
+  return data
+}
+
+export async function deleteFocusNote(): Promise<void> {
+  await http.delete('/user-facts/focus')
 }
 
 /** 天数转人话，用于「N 个月前确认」提示。 */

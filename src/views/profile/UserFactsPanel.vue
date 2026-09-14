@@ -56,6 +56,42 @@
     </div>
 
     <div class="surface-body">
+      <div class="focus-card" :class="{ expired: focus?.expired }">
+        <div class="focus-head">
+          <span class="focus-title">近期关注</span>
+          <span class="focus-hint">短期信号，与长期画像分开 · 过期自动停止注入</span>
+          <span v-if="focus?.expired" class="focus-badge-expired">已过期 · 不再注入</span>
+          <span v-else-if="focus" class="focus-badge-live">
+            注入中<template v-if="focus.expiresAt"> · 截止 {{ focus.expiresAt.slice(0, 10) }}</template>
+          </span>
+        </div>
+        <template v-if="focusEditing">
+          <el-input
+            v-model="focusForm.content"
+            type="textarea"
+            :rows="2"
+            maxlength="400"
+            show-word-limit
+            placeholder="如：这周在准备字节二面，重点复习项目讲述与并发"
+          />
+          <div class="focus-edit-row">
+            <el-select v-model="focusForm.expiresInDays" class="focus-expiry" aria-label="自动失效">
+              <el-option v-for="opt in EXPIRY_OPTIONS" :key="String(opt.value)" :label="opt.label" :value="opt.value" />
+            </el-select>
+            <el-button size="small" @click="focusEditing = false">取消</el-button>
+            <el-button size="small" type="primary" :loading="focusSaving" @click="submitFocus">保存</el-button>
+          </div>
+        </template>
+        <template v-else>
+          <p v-if="focus" class="focus-content">{{ focus.content }}</p>
+          <p v-else class="focus-content focus-empty">还没有设置近期关注。写一句「最近在准备什么」，AI 出题与问答会把它当短期重点参考。</p>
+          <div class="focus-actions">
+            <el-button size="small" text @click="startEditFocus">{{ focus ? '更新' : '设置关注' }}</el-button>
+            <el-button v-if="focus" size="small" text @click="removeFocus">清除</el-button>
+          </div>
+        </template>
+      </div>
+
       <div v-if="loading" class="facts-loading">
         <el-skeleton :rows="4" animated />
       </div>
@@ -79,6 +115,20 @@
               <span v-else class="fact-origin">本人录入</span>
               <span v-if="fact.status === 'CONFIRMED' && fact.stale" class="fact-stale">
                 约 {{ describeAge(fact.staleDays) }}前确认 · 可能过时
+              </span>
+              <span
+                v-if="fact.status === 'CONFIRMED' && fact.injectionCount > 0"
+                class="fact-usage"
+                :title="fact.lastInjectedAt ? `最后一次注入 ${shortTime(fact.lastInjectedAt)}` : ''"
+              >
+                已注入 {{ fact.injectionCount }} 次
+              </span>
+              <span
+                v-if="fact.status === 'CONFIRMED' && fact.cold"
+                class="fact-cold"
+                title="已确认但从未被注入过：确认后没有新的 AI 调用，或它排在注入预算之外"
+              >
+                冷记忆 · 未被用过
               </span>
             </div>
             <p class="fact-content">{{ fact.content }}</p>
@@ -149,13 +199,17 @@ import {
   compileProfileDigest,
   confirmUserFact,
   createUserFact,
+  deleteFocusNote,
   deleteProfileDigest,
   describeAge,
   distillUserFacts,
+  getFocusNote,
   getProfileDigest,
   listUserFacts,
   reaffirmUserFact,
+  saveFocusNote,
   USER_FACT_TYPE_LABELS,
+  type FocusNote,
   type ProfileDigest,
   type UserFact,
   type UserFactType,
@@ -163,11 +217,26 @@ import {
 import { problemMessage } from '@/api/http'
 import EmptyState from '@/components/EmptyState.vue'
 
+/** 近期关注的失效档位：空 = 不自动失效。 */
+const EXPIRY_OPTIONS = [
+  { value: null, label: '不自动失效' },
+  { value: 7, label: '7 天后失效' },
+  { value: 14, label: '14 天后失效' },
+  { value: 30, label: '30 天后失效' },
+] as const
+
 const facts = ref<UserFact[]>([])
 const loading = ref(true)
 const distilling = ref(false)
 const digest = ref<ProfileDigest | null>(null)
 const digesting = ref(false)
+const focus = ref<FocusNote | null>(null)
+const focusEditing = ref(false)
+const focusSaving = ref(false)
+const focusForm = reactive<{ content: string; expiresInDays: number | null }>({
+  content: '',
+  expiresInDays: 14,
+})
 const busyId = ref(-1)
 const editing = ref(false)
 const createForm = reactive<{ factType: UserFactType; title: string; content: string }>({
@@ -196,13 +265,54 @@ function shortTime(iso: string): string {
 async function load(): Promise<void> {
   loading.value = true
   try {
-    const [items, currentDigest] = await Promise.all([listUserFacts(), getProfileDigest()])
+    const [items, currentDigest, currentFocus] = await Promise.all([
+      listUserFacts(),
+      getProfileDigest(),
+      getFocusNote(),
+    ])
     facts.value = items
     digest.value = currentDigest
+    focus.value = currentFocus
   } catch (error) {
     ElMessage.error(problemMessage(error))
   } finally {
     loading.value = false
+  }
+}
+
+function startEditFocus(): void {
+  focusForm.content = focus.value?.content ?? ''
+  focusForm.expiresInDays = 14
+  focusEditing.value = true
+}
+
+async function submitFocus(): Promise<void> {
+  if (!focusForm.content.trim()) {
+    ElMessage.warning('写一句最近在关注什么')
+    return
+  }
+  focusSaving.value = true
+  try {
+    focus.value = await saveFocusNote({
+      content: focusForm.content.trim(),
+      expiresInDays: focusForm.expiresInDays,
+    })
+    focusEditing.value = false
+    ElMessage.success('已保存，下次 AI 调用会把它当短期重点')
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
+  } finally {
+    focusSaving.value = false
+  }
+}
+
+async function removeFocus(): Promise<void> {
+  try {
+    await deleteFocusNote()
+    focus.value = null
+    ElMessage.success('已清除近期关注')
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
   }
 }
 
@@ -349,6 +459,99 @@ onMounted(load)
 <style scoped>
 .facts-panel {
   overflow: hidden;
+}
+
+.focus-card {
+  border: 1px solid var(--ow-line-soft, rgb(31 111 92 / 14%));
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  display: grid;
+  gap: 8px;
+  background: var(--glass, rgb(31 111 92 / 3%));
+}
+
+.focus-card.expired {
+  border-color: var(--ow-warning-border, rgb(138 90 0 / 35%));
+}
+
+.focus-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.focus-title {
+  font-weight: 800;
+  color: var(--ow-ink);
+}
+
+.focus-hint {
+  font-size: var(--fs-xs);
+  color: var(--ow-muted, #52685e);
+}
+
+.focus-badge-live,
+.focus-badge-expired {
+  font-size: var(--fs-xs);
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+
+.focus-badge-live {
+  color: var(--ow-success-text, #16634f);
+  background: var(--ow-success-soft, rgb(31 157 90 / 10%));
+}
+
+.focus-badge-expired {
+  color: var(--ow-warning-text, #8a5a00);
+  background: var(--ow-warning-bg, #fff4d6);
+}
+
+.focus-content {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.65;
+  color: var(--ow-ink-secondary, #3f574c);
+}
+
+.focus-empty {
+  color: var(--ow-muted, #52685e);
+}
+
+.focus-actions,
+.focus-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.focus-edit-row {
+  justify-content: flex-end;
+}
+
+.focus-expiry {
+  width: 150px;
+  margin-right: auto;
+}
+
+.fact-usage,
+.fact-cold {
+  font-size: var(--fs-xs);
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+
+.fact-usage {
+  color: var(--ow-muted, #52685e);
+  background: var(--surface-2, rgb(31 111 92 / 6%));
+}
+
+.fact-cold {
+  color: var(--ow-muted, #52685e);
+  background: transparent;
+  border: 1px dashed var(--ow-line-soft, rgb(31 111 92 / 22%));
 }
 
 .digest-body {
