@@ -19,6 +19,29 @@
     <ErrorState v-if="error" :message="error" :retry="load" />
 
     <template v-else>
+      <div v-if="recommendations.length" class="ow-card">
+        <div class="ow-card-h">
+          <div class="ic b3"><Target aria-hidden="true" /></div>
+          弱项补练
+          <div class="right">{{ recommendationBasis }}</div>
+        </div>
+        <div class="ow-card-b">
+          <ul class="craft-list">
+            <li v-for="rec in recommendations" :key="rec.craftId" class="craft-item">
+              <div class="craft-line">
+                <span class="craft-weak-dim">{{ rec.dimension }} {{ rec.score }} 分</span>
+                <span class="craft-cat">{{ categoryLabel(rec.craftCategory) }}</span>
+                <span class="craft-title">{{ rec.craftTitle }}</span>
+              </div>
+              <p class="craft-when">用在哪：{{ rec.whenToUse }}</p>
+              <div class="craft-acts">
+                <el-button size="small" type="primary" @click="goCraft(rec.craftId)">去练这条</el-button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
       <div v-if="pending.length" class="ow-card">
         <div class="ow-card-h">
           <div class="ic b2"><WandSparkles aria-hidden="true" /></div>
@@ -62,7 +85,7 @@
             <div class="d">点「提炼套路」从你的工作记录与面试结论里提炼，或手动录入一条你自己总结的方法。</div>
           </div>
           <ul v-else class="craft-list">
-            <li v-for="note in confirmed" :key="note.id" class="craft-item">
+            <li v-for="note in confirmed" :key="note.id" :id="'craft-' + note.id" class="craft-item">
               <div class="craft-line">
                 <button
                   class="pin-btn"
@@ -145,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { Hammer, Pin, Plus, WandSparkles } from 'lucide-vue-next'
+import { Hammer, Pin, Plus, Target, WandSparkles } from 'lucide-vue-next'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, reactive, ref } from 'vue'
 
@@ -153,6 +176,7 @@ import {
   CRAFT_CATEGORY_LABELS,
   archiveCraft,
   confirmCraft,
+  craftRecommendations,
   createCraft,
   createCraftPracticeTask,
   distillCrafts,
@@ -162,6 +186,7 @@ import {
   type CraftCategory,
   type CraftNote,
   type SaveCraftPayload,
+  type WeaknessCraftRecommendation,
 } from '@/api/crafts'
 import { problemMessage } from '@/api/http'
 import ErrorState from '@/components/ErrorState.vue'
@@ -185,6 +210,22 @@ const form = reactive({
 
 const pending = computed(() => notes.value.filter((n) => n.status === 'ANALYZED'))
 const confirmed = computed(() => notes.value.filter((n) => n.status === 'CONFIRMED'))
+
+/** V51：面试弱项 → 套路推荐（后端纯派生）。 */
+const recommendations = ref<WeaknessCraftRecommendation[]>([])
+const recommendationBasis = ref('')
+
+async function loadRecommendations(): Promise<void> {
+  try {
+    const result = await craftRecommendations()
+    recommendations.value = result.items
+    recommendationBasis.value = result.basis
+  } catch {
+    // 推荐是辅助信息，失败不打扰主流程
+    recommendations.value = []
+    recommendationBasis.value = ''
+  }
+}
 
 function categoryLabel(category: CraftCategory): string {
   return CRAFT_CATEGORY_LABELS[category] ?? category
@@ -342,6 +383,12 @@ function practiceLabel(note: CraftNote): string {
   return note.practiced ? '已在练习计划' : '练一练'
 }
 
+/** V51：点「去练这条」滚到已入库列表里的对应套路。 */
+function goCraft(craftId: number): void {
+  const el = document.getElementById('craft-' + craftId)
+  el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
 async function distill(): Promise<void> {
   distilling.value = true
   try {
@@ -355,7 +402,10 @@ async function distill(): Promise<void> {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  loadRecommendations()
+})
 </script>
 
 <style scoped>
@@ -408,6 +458,15 @@ onMounted(load)
   border-radius: 999px;
   color: var(--ow-ink-secondary, #3f574c);
   background: rgb(31 111 92 / 8%);
+}
+
+.craft-weak-dim {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ow-warning-bg, #fff4d6);
+  color: var(--ow-warning-text, #8a5a00);
 }
 
 .craft-origin {

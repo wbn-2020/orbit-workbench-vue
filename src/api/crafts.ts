@@ -86,3 +86,24 @@ export async function distillCrafts(): Promise<CraftNote[]> {
   const { data } = await http.post<{ suggestions: CraftNote[] }>('/crafts/distill')
   return data.suggestions
 }
+
+/** V51：面试弱项 → 套路推荐（后端纯派生，无 AI）。 */
+export interface WeaknessCraftRecommendation {
+  dimension: string
+  score: number
+  craftId: number
+  craftTitle: string
+  craftCategory: CraftCategory
+  whenToUse: string
+  mastered: boolean
+}
+
+export interface CraftRecommendations {
+  items: WeaknessCraftRecommendation[]
+  basis: string
+}
+
+export async function craftRecommendations(): Promise<CraftRecommendations> {
+  const { data } = await http.get<CraftRecommendations>('/crafts/recommendations')
+  return { items: data.items ?? [], basis: data.basis ?? '' }
+}
