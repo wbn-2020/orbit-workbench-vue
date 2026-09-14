@@ -20,6 +20,12 @@ export interface CraftNote {
   pinned: boolean
   /** 是否已有对应练习任务（V49） */
   practiced: boolean
+  /** 完成练习任务的次数（V50） */
+  practiceCount: number
+  /** 最近一次完成练习任务的时间（V50） */
+  lastPracticedAt: string | null
+  /** 已练熟 = 至少完成过一次练习任务，后端派生（V50） */
+  mastered: boolean
   createdAt: string
   updatedAt: string
 }

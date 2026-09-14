@@ -76,6 +76,7 @@
                 </button>
                 <span class="craft-cat">{{ categoryLabel(note.category) }}</span>
                 <span class="craft-title">{{ note.title }}</span>
+                <span v-if="note.mastered" class="craft-mastered" :title="masteredTitle(note)">✓ 已练熟</span>
                 <span v-if="note.tags.length" class="craft-tags">
                   <span v-for="tag in note.tags" :key="tag" class="craft-tag">{{ tag }}</span>
                 </span>
@@ -86,10 +87,11 @@
                 <el-button
                   size="small"
                   :type="note.practiced ? 'default' : 'primary'"
+                  :disabled="note.mastered"
                   :loading="busyId === note.id"
                   @click="practice(note)"
                 >
-                  {{ note.practiced ? '已在练习计划' : '练一练' }}
+                  {{ practiceLabel(note) }}
                 </el-button>
                 <el-button size="small" text @click="startEdit(note)">编辑</el-button>
                 <el-button size="small" text @click="archive(note)">归档</el-button>
@@ -306,8 +308,10 @@ async function archive(note: CraftNote): Promise<void> {
   }
 }
 
-/** V49：一键把套路转成练习任务，幂等——已存在时后端返回 created=0。 */
+/** V49：一键把套路转成练习任务，幂等——已存在时后端返回 created=0。
+    V50：已练熟后按钮禁用，闭环到「练熟」为止，再练靠重新安排复习任务。 */
 async function practice(note: CraftNote): Promise<void> {
+  if (note.mastered) return
   busyId.value = note.id
   try {
     const created = await createCraftPracticeTask(note.id)
@@ -323,6 +327,19 @@ async function practice(note: CraftNote): Promise<void> {
   } finally {
     busyId.value = -1
   }
+}
+
+/** V50：练熟徽标的悬浮说明——练习时间与次数由后端派生，前端不算。 */
+function masteredTitle(note: CraftNote): string {
+  if (!note.lastPracticedAt) return '已完成过练习任务'
+  const when = new Date(note.lastPracticedAt).toLocaleDateString()
+  return `练熟于 ${when} · 累计完成 ${note.practiceCount} 次练习任务`
+}
+
+/** V50：按钮文案三态——没安排 / 已安排 / 已练熟（完成练习任务后由后端回写）。 */
+function practiceLabel(note: CraftNote): string {
+  if (note.mastered) return '已练熟'
+  return note.practiced ? '已在练习计划' : '练一练'
 }
 
 async function distill(): Promise<void> {
@@ -383,6 +400,14 @@ onMounted(load)
 .craft-title {
   font-weight: 700;
   color: var(--ow-ink);
+}
+
+.craft-mastered {
+  font-size: var(--fs-xs);
+  padding: 1px 8px;
+  border-radius: 999px;
+  color: var(--ow-ink-secondary, #3f574c);
+  background: rgb(31 111 92 / 8%);
 }
 
 .craft-origin {
