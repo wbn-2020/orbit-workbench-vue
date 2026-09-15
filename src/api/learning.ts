@@ -26,6 +26,10 @@ export function transformLearningGoal(goal: BackendLearningGoal): LearningGoal {
     ...goal,
     status: LEARNING_GOAL_STATUS_MAP[goal.status],
     linkedSkill: goal.linkedSkill ?? undefined,
+    // V58：后端 primitives 恒下发，但 global non_null 契约下缺键要归一，不能让 undefined 溜进渲染
+    taskCount: goal.taskCount ?? 0,
+    completedTaskCount: goal.completedTaskCount ?? 0,
+    progressDerived: goal.progressDerived ?? false,
   }
 }
 
@@ -64,6 +68,15 @@ export async function updateLearningGoal(
 export async function createGoalFromFact(factId: number): Promise<LearningGoal> {
   const { data } = await http.post<BackendLearningGoal>(`/learning-goals/from-fact/${factId}`)
   return transformLearningGoal(data)
+}
+
+/**
+ * V58：给目标拆一步执行任务（study_task GOAL 来源）。
+ * 同名步骤幂等：后端返回 created=0，不堆重复任务。
+ */
+export async function addGoalTask(goalId: string, title: string): Promise<{ created: number }> {
+  const { data } = await http.post<{ created: number }>(`/learning-goals/${goalId}/tasks`, { title })
+  return data
 }
 
 export async function listFocusStats(days = 7): Promise<FocusStat[]> {

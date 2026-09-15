@@ -11,6 +11,7 @@ vi.mock('./http', () => ({
 
 import { listFocusSessions, saveFocusSession, transformFocusSession } from './focus'
 import {
+  addGoalTask,
   createLearningGoal,
   listFocusStats,
   listLearningGoals,
@@ -103,12 +104,22 @@ describe('v2 domain APIs', () => {
     get.mockResolvedValueOnce({ data: [goal] }).mockResolvedValueOnce({ data: stats })
     post.mockResolvedValueOnce({ data: goal })
 
-    await expect(listLearningGoals()).resolves.toEqual([{ ...goal, status: 'active' }])
-    await expect(createLearningGoal(input)).resolves.toEqual({ ...goal, status: 'active' })
+    // V58：transform 把拆解统计归一为 0/false（后端 non_null 契约下缺键兜底）
+    await expect(listLearningGoals()).resolves.toEqual([{
+      ...goal, status: 'active', taskCount: 0, completedTaskCount: 0, progressDerived: false,
+    }])
+    await expect(createLearningGoal(input)).resolves.toEqual({
+      ...goal, status: 'active', taskCount: 0, completedTaskCount: 0, progressDerived: false,
+    })
     await expect(listFocusStats(14)).resolves.toBe(stats)
     expect(get).toHaveBeenNthCalledWith(1, '/learning-goals')
     expect(post).toHaveBeenCalledWith('/learning-goals', input)
     expect(get).toHaveBeenNthCalledWith(2, '/focus-stats', { params: { days: 14 } })
+
+    // V58：拆一步任务——POST /learning-goals/{id}/tasks，透传 created
+    post.mockResolvedValueOnce({ data: { created: 1 } })
+    await expect(addGoalTask('1', '读两篇源码文章')).resolves.toEqual({ created: 1 })
+    expect(post).toHaveBeenNthCalledWith(2, '/learning-goals/1/tasks', { title: '读两篇源码文章' })
   })
 
   it('uses work-log, knowledge-card, and workbench endpoints', async () => {

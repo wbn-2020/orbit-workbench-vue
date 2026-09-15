@@ -35,6 +35,12 @@ export interface LearningGoal {
   linkedSkill?: string
   /** V52：由哪条画像事实转化而来（普通目标无此字段） */
   sourceFactId?: number | null
+  /** V58：从本目标拆出的任务总数（0 = 还没拆步骤，进度仍为手动值） */
+  taskCount?: number
+  /** V58：其中已完成的任务数（SKIPPED 不算完成） */
+  completedTaskCount?: number
+  /** V58：progress 是否已由任务派生（true 时手动 ± 调整被禁用） */
+  progressDerived?: boolean
 }
 
 export interface FocusStat {

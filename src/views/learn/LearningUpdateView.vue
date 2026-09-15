@@ -63,13 +63,31 @@
                 </div>
                 <span class="goal-pct">{{ goal.progress }}%</span>
               </div>
+              <p v-if="goal.progressDerived" class="goal-derived-note">
+                进度由拆解任务派生（完成 {{ goal.completedTaskCount }}/{{ goal.taskCount }} 步），练完任务自动更新，不再手动加减
+              </p>
+              <div v-if="expandedGoalId === goal.id" class="goal-step-form">
+                <input
+                  v-model="stepTitle"
+                  class="goal-step-input"
+                  maxlength="255"
+                  placeholder="这一步具体做什么？例如「读完 RAG 论文并写一页笔记」"
+                  @keyup.enter="submitStep(goal)"
+                  @keyup.esc="cancelStep"
+                />
+                <button class="goal-op" type="button" :disabled="stepSubmitting || !stepTitle.trim()" @click="submitStep(goal)">
+                  添加
+                </button>
+                <button class="goal-op" type="button" @click="cancelStep">取消</button>
+              </div>
               <div class="goal-actions">
                 <div class="goal-progress-step" role="group" aria-label="调整进度">
                   <button
                     class="goal-step-btn"
                     type="button"
                     :aria-label="`把「${goal.title}」进度减 10`"
-                    :disabled="updatingId === goal.id || goal.progress <= 0"
+                    :disabled="updatingId === goal.id || goal.progressDerived || goal.progress <= 0"
+                    :title="goal.progressDerived ? '进度由拆解任务派生，完成步骤即推进' : undefined"
                     @click="adjustProgress(goal, -10)"
                   >
                     −
@@ -78,12 +96,21 @@
                     class="goal-step-btn"
                     type="button"
                     :aria-label="`把「${goal.title}」进度加 10`"
-                    :disabled="updatingId === goal.id || goal.progress >= 100"
+                    :disabled="updatingId === goal.id || goal.progressDerived || goal.progress >= 100"
+                    :title="goal.progressDerived ? '进度由拆解任务派生，完成步骤即推进' : undefined"
                     @click="adjustProgress(goal, 10)"
                   >
                     +
                   </button>
                 </div>
+                <button
+                  class="goal-op"
+                  type="button"
+                  :disabled="updatingId === goal.id"
+                  @click="toggleStepForm(goal)"
+                >
+                  {{ goal.taskCount ? `已拆 ${goal.taskCount} 步 · 再拆一步` : '拆一步' }}
+                </button>
                 <button
                   v-if="goal.status !== 'paused'"
                   class="goal-op"
@@ -164,6 +191,7 @@ import { ElMessage } from 'element-plus'
 import { Plus, Play, Target, Timer } from 'lucide-vue-next'
 import { problemMessage, getProblem } from '@/api/http'
 import {
+  addGoalTask,
   createLearningGoal,
   listFocusStats,
   listLearningGoals,
@@ -181,6 +209,10 @@ const statsError = ref('')
 const submitting = ref(false)
 const submitError = ref('')
 const updatingId = ref<string | null>(null)
+// V58：目标拆步骤的内联输入（同一时刻只展开一个目标）
+const expandedGoalId = ref<string | null>(null)
+const stepTitle = ref('')
+const stepSubmitting = ref(false)
 let reloadRequested = false
 let submissionKey: string | null = null
 let disposed = false
@@ -312,6 +344,37 @@ async function adjustProgress(goal: LearningGoal, delta: number): Promise<void> 
 
 function refreshFocusStats(): void {
   void load()
+}
+
+function toggleStepForm(goal: LearningGoal): void {
+  if (expandedGoalId.value === goal.id) {
+    expandedGoalId.value = null
+    stepTitle.value = ''
+    return
+  }
+  expandedGoalId.value = goal.id
+  stepTitle.value = ''
+}
+
+function cancelStep(): void {
+  expandedGoalId.value = null
+  stepTitle.value = ''
+}
+
+async function submitStep(goal: LearningGoal): Promise<void> {
+  const title = stepTitle.value.trim()
+  if (!title || stepSubmitting.value) return
+  stepSubmitting.value = true
+  try {
+    await addGoalTask(goal.id, title)
+    stepTitle.value = ''
+    // created=0（同名步骤已存在）也刷新——让「已拆 N 步」与派生进度回到后端真值
+    await load()
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
+  } finally {
+    stepSubmitting.value = false
+  }
 }
 
 function createIdempotencyKey(): string {
@@ -617,6 +680,33 @@ onUnmounted(() => {
 .goal-op:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* V58：派生进度说明——中性文字，品牌色留给可操作元素（视觉系统 v2） */
+.goal-derived-note {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  line-height: 1.55;
+}
+
+.goal-step-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.goal-step-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--line, rgb(15 23 42 / 12%));
+  border-radius: 10px;
+  background: var(--surface, #fff);
+  color: var(--ink, #1a1a1a);
+  font-size: var(--fs-sm);
+  font-family: inherit;
 }
 
 .goal-empty {
