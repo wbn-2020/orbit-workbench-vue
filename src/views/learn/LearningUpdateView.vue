@@ -66,6 +66,32 @@
               <p v-if="goal.progressDerived" class="goal-derived-note">
                 进度由拆解任务派生（完成 {{ goal.completedTaskCount }}/{{ goal.taskCount }} 步），练完任务自动更新，不再手动加减
               </p>
+              <!-- V59：拆出的步骤就地追踪——打勾/删除在这里完成，不必去复习计划页绕路 -->
+              <ul v-if="stepsFor(goal.id).length" class="goal-steps">
+                <li v-for="step in stepsFor(goal.id)" :key="step.id" class="goal-step" :class="{ done: step.status === 'COMPLETED' }">
+                  <button
+                    class="step-check"
+                    type="button"
+                    :aria-label="step.status === 'COMPLETED' ? `步骤「${step.title}」已完成` : `把步骤「${step.title}」标记为完成`"
+                    :disabled="step.status === 'COMPLETED' || stepBusyId === step.id"
+                    @click="completeStep(step)"
+                  >
+                    <Check v-if="step.status === 'COMPLETED'" aria-hidden="true" />
+                  </button>
+                  <span class="step-title">{{ step.title }}</span>
+                  <span v-if="step.status !== 'PLANNED' && step.status !== 'COMPLETED'" class="step-state">{{ stepStatusLabel(step.status) }}</span>
+                  <button
+                    v-if="step.status !== 'COMPLETED'"
+                    class="step-del"
+                    type="button"
+                    aria-label="删除这一步"
+                    :disabled="stepBusyId === step.id"
+                    @click="removeStep(step)"
+                  >
+                    ×
+                  </button>
+                </li>
+              </ul>
               <div v-if="expandedGoalId === goal.id" class="goal-step-form">
                 <input
                   v-model="stepTitle"
@@ -188,7 +214,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Plus, Play, Target, Timer } from 'lucide-vue-next'
+import { Check, Plus, Play, Target, Timer } from 'lucide-vue-next'
 import { problemMessage, getProblem } from '@/api/http'
 import {
   addGoalTask,
@@ -198,6 +224,7 @@ import {
   updateLearningGoal,
   type BackendLearningGoalStatus,
 } from '@/api/learning'
+import { completeTask, deleteTask, listStudyTasks, type StudyTask } from '@/api/interview'
 import type { FocusStat, LearningGoal, LearningGoalStatus } from '@/api/types'
 import ErrorState from '@/components/ErrorState.vue'
 
@@ -209,6 +236,9 @@ const statsError = ref('')
 const submitting = ref(false)
 const submitError = ref('')
 const updatingId = ref<string | null>(null)
+// V59：目标拆解的步骤列表（GOAL 来源任务）——拆出的步骤在目标卡上直接完成/删除
+const goalSteps = ref<StudyTask[]>([])
+const stepBusyId = ref<number | null>(null)
 // V58：目标拆步骤的内联输入（同一时刻只展开一个目标）
 const expandedGoalId = ref<string | null>(null)
 const stepTitle = ref('')
@@ -258,9 +288,10 @@ async function load(): Promise<void> {
   loading.value = true
   goalsError.value = ''
   statsError.value = ''
-  const [goalResult, statResult] = await Promise.allSettled([
+  const [goalResult, statResult, taskResult] = await Promise.allSettled([
     listLearningGoals(),
     listFocusStats(7),
+    listStudyTasks(),
   ])
   if (goalResult.status === 'fulfilled') {
     goals.value = goalResult.value
@@ -272,10 +303,53 @@ async function load(): Promise<void> {
   } else {
     statsError.value = problemMessage(statResult.reason)
   }
+  // V59：步骤列表拉取失败不弹错——派生进度仍来自目标响应（后端同源），列表只是操作入口
+  goalSteps.value = taskResult.status === 'fulfilled'
+    ? taskResult.value.filter((task) => task.sourceType === 'GOAL')
+    : []
   loading.value = false
   if (reloadRequested && !disposed) {
     reloadRequested = false
     void load()
+  }
+}
+
+/** 某目标拆出的步骤：未完成在前（按创建序），已完成沉底。 */
+function stepsFor(goalId: string): StudyTask[] {
+  const own = goalSteps.value.filter((task) => String(task.sourceId) === goalId)
+  return [...own.filter((t) => t.status !== 'COMPLETED'), ...own.filter((t) => t.status === 'COMPLETED')]
+}
+
+function stepStatusLabel(status: StudyTask['status']): string {
+  const map: Record<StudyTask['status'], string> = {
+    PLANNED: '计划中', IN_PROGRESS: '进行中', COMPLETED: '已完成', POSTPONED: '已延期', SKIPPED: '已跳过',
+  }
+  return map[status] ?? status
+}
+
+async function completeStep(step: StudyTask): Promise<void> {
+  if (stepBusyId.value) return
+  stepBusyId.value = step.id
+  try {
+    await completeTask(step.id)
+    await load()
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
+  } finally {
+    stepBusyId.value = null
+  }
+}
+
+async function removeStep(step: StudyTask): Promise<void> {
+  if (stepBusyId.value) return
+  stepBusyId.value = step.id
+  try {
+    await deleteTask(step.id)
+    await load()
+  } catch (error) {
+    ElMessage.error(problemMessage(error))
+  } finally {
+    stepBusyId.value = null
   }
 }
 
@@ -707,6 +781,84 @@ onUnmounted(() => {
   color: var(--ink, #1a1a1a);
   font-size: var(--fs-sm);
   font-family: inherit;
+}
+
+/* V59：目标卡步骤列表——未完成在前已完成沉底；打勾框是中性描边，勾选后填充色留给完成态本身 */
+.goal-steps {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.goal-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-sm);
+  color: var(--ink, #1a1a1a);
+}
+
+.goal-step.done .step-title {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--line, rgb(15 23 42 / 25%));
+}
+
+.step-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  padding: 0;
+  border: 1.5px solid var(--line, rgb(15 23 42 / 25%));
+  border-radius: 5px;
+  background: var(--surface, #fff);
+  color: var(--brand-700, #1f6f5c);
+  cursor: pointer;
+}
+
+.step-check:disabled {
+  cursor: default;
+}
+
+.goal-step.done .step-check {
+  border-color: var(--brand-200, rgb(31 111 92 / 40%));
+  background: var(--btn-soft, rgb(31 111 92 / 10%));
+}
+
+.step-title {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.5;
+}
+
+.step-state {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+}
+
+.step-del {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.step-del:hover {
+  color: var(--red-600, #b42318);
+  background: var(--surface-2, rgb(15 23 42 / 4%));
 }
 
 .goal-empty {

@@ -101,7 +101,7 @@ export type StudyTaskStatus =
 
 export interface StudyTask {
   id: number
-  sourceType: 'MANUAL' | 'REPORT' | 'WORKBENCH' | 'CRAFT'
+  sourceType: 'MANUAL' | 'REPORT' | 'WORKBENCH' | 'CRAFT' | 'GOAL'
   sourceId: number | null
   title: string
   topic: string | null
