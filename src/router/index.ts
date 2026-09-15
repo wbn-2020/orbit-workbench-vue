@@ -205,9 +205,16 @@ const router = createRouter({
           component: () => import('@/views/product/ReflectionView.vue'),
           meta: { title: '周期复盘', section: '工作台' },
         },
+        {
+          // 兜底放在 AppShell 子路由里：未知地址仍显示侧栏导航，用户能直接换页
+          // （此前是静默 redirect 到 /workbench，用户看不出自己走错了）
+          path: ':pathMatch(.*)*',
+          name: 'not-found',
+          component: () => import('@/views/product/NotFoundView.vue'),
+          meta: { title: '页面不存在' },
+        },
       ],
     },
-    { path: '/:pathMatch(.*)*', redirect: '/workbench' },
   ],
 })
 
