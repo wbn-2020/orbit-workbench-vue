@@ -2,11 +2,7 @@
   <div class="wb">
     <header class="wb-hero">
       <div>
-        <p class="wb-eyebrow">个人职业成长工作台</p>
         <h1 class="wb-greeting">{{ summary?.greeting ?? '欢迎回来' }}</h1>
-        <p class="wb-sub">
-          围绕你的项目、知识与成长数据，用三种并行模式持续积累：市场感知、工作沉淀、学习更新。
-        </p>
       </div>
       <div v-if="summary" class="wb-focus-chip" :title="`今日已专注 ${summary.focusTodayMinutes} 分钟`">
         <Timer aria-hidden="true" />
@@ -34,7 +30,7 @@
       <section v-if="isEmptyState" class="wb-section">
         <div class="wb-onboard">
           <h2 class="wb-onboard-title">三步，开始积累你的职业数据</h2>
-          <p class="wb-onboard-sub">工作台的一切洞察都来自你自己的资料与记录。从下面任意一步开始，数据越全，面试校准与知识沉淀越准。</p>
+          <p class="wb-onboard-sub">一切洞察都来自你自己的资料与记录。从任意一步开始即可。</p>
           <div class="wb-onboard-steps">
             <RouterLink to="/projects" class="wb-step">
               <span class="wb-step-no" aria-hidden="true">1</span>
@@ -78,14 +74,14 @@
               <polyline :points="sparkPoints" fill="none" stroke="var(--ow-primary, #1fa879)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
               <circle v-for="(pt, i) in sparkDots" :key="i" :cx="pt.x" :cy="pt.y" r="3" fill="var(--ow-primary, #1fa879)" />
             </svg>
-            <RouterLink to="/skill-map" class="wb-trend-link">看完整能力图谱 →</RouterLink>
+            <RouterLink to="/skill-map" class="wb-trend-link">看完整能力图谱</RouterLink>
           </template>
           <template v-else-if="trend">
             <p class="wb-trend-empty">
               {{ trend.series.length >= 2
                 ? '报告尚未使用同一评分规则版本，暂无法比较。'
                 : `还差 ${Math.max(0, trend.minTrendSamples - trend.series.length)} 场同规则报告即可看趋势。` }}
-              <RouterLink to="/interviews/new">去面试 →</RouterLink>
+              <RouterLink to="/interviews/new">去面试</RouterLink>
             </p>
           </template>
         </div>
@@ -133,14 +129,14 @@
               <strong>{{ check.title }}</strong>
               <small>{{ check.detail }}</small>
             </span>
-            <span class="pipeline-action">{{ check.action }} →</span>
+            <span class="pipeline-action">{{ check.action }}</span>
           </RouterLink>
         </div>
         <div v-else class="pipeline-item ok">
           <span class="pipeline-badge" aria-hidden="true"><ShieldCheck /></span>
           <span class="pipeline-body">
             <strong>管线健康</strong>
-            <small>账户、资料、面试节奏、沉淀与复习链路都没有卡点，保持节奏即可。</small>
+            <small>账户、资料、面试节奏、沉淀与复习链路都没有卡点。</small>
           </span>
         </div>
       </section>
@@ -168,7 +164,7 @@
             <span class="agenda-title">{{ item.title }}</span>
             <Component :is="item.done ? CheckCircle2 : Circle" class="agenda-state" aria-hidden="true" />
           </li>
-          <li v-if="!summary.agenda.length" class="agenda-empty">今天还没有安排，去任一模式里推进一项吧。</li>
+          <li v-if="!summary.agenda.length" class="agenda-empty">今天没有到期或进行中的任务。</li>
         </ul>
       </section>
     </template>
@@ -327,27 +323,11 @@ onUnmounted(() => {
   box-shadow: var(--shadow-sm);
 }
 
-.wb-eyebrow {
-  margin: 0 0 6px;
-  color: var(--ow-eyebrow, #16634f);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  letter-spacing: .5px;
-}
-
 .wb-greeting {
   margin: 0;
   color: var(--ink);
   font-size: var(--fs-xl);
   font-weight: 700;
-}
-
-.wb-sub {
-  margin: 10px 0 0;
-  max-width: 52ch;
-  color: var(--muted);
-  font-size: var(--fs-sm);
-  line-height: 1.6;
 }
 
 .wb-focus-chip {
@@ -732,31 +712,17 @@ onUnmounted(() => {
   padding: 14px 18px;
   background: var(--surface);
   border: 1px solid var(--line-2);
-  border-left-width: 4px;
   border-radius: 12px;
   text-decoration: none;
-  transition: border-color 140ms ease, transform 140ms ease;
+  transition: border-color 140ms ease;
 }
 
 .pipeline-item:hover {
-  border-color: var(--brand);
+  border-color: var(--line-2);
   background: var(--surface-2);
 }
 
-.pipeline-item.block {
-  border-left-color: var(--ow-status-danger, #c04545);
-}
-
-.pipeline-item.action {
-  border-left-color: var(--ow-status-warning, #d97706);
-}
-
-.pipeline-item.stale {
-  border-left-color: var(--ow-info, #2f80ed);
-}
-
 .pipeline-item.ok {
-  border-left-color: var(--ow-status-success, #1d9e61);
   cursor: default;
 }
 
@@ -777,19 +743,23 @@ onUnmounted(() => {
 }
 
 .pipeline-item.block .pipeline-badge {
-  color: var(--ow-status-danger-text, #a13030);
+  background: var(--ow-status-danger-bg);
+  color: var(--ow-status-danger-text);
 }
 
 .pipeline-item.action .pipeline-badge {
-  color: var(--ow-status-warning-text, #7d5400);
+  background: var(--ow-status-warning-bg);
+  color: var(--ow-status-warning-text);
 }
 
 .pipeline-item.stale .pipeline-badge {
-  color: #245fae;
+  background: var(--ow-status-info-bg);
+  color: var(--ow-status-info-text);
 }
 
 .pipeline-item.ok .pipeline-badge {
-  color: #1d6f43;
+  background: var(--ow-status-success-bg);
+  color: var(--ow-status-success-text);
 }
 
 .pipeline-body {

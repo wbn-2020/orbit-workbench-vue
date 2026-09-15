@@ -254,7 +254,7 @@
             <div class="r"><span class="k">项目绑定</span><span class="v">{{ bindingSummary }}</span></div>
           </div>
           <button class="ow-btn block" style="margin-top: 14px;" type="button" :disabled="creating" @click="launch">
-            {{ creating ? '创建中…' : '出发 → 进入面试副本' }}
+            {{ creating ? '创建中…' : '开始面试' }}
           </button>
         </div>
       </div>

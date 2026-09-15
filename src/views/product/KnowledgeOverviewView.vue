@@ -2,7 +2,6 @@
   <div class="ko">
     <header class="ko-head">
       <div>
-        <p class="ko-eyebrow">资料库</p>
         <h1>知识总览</h1>
         <p class="ko-sub">
           你积累的知识分三类：来自面试报告确认的<b>项目事实</b>、从工作记录蒸馏的<b>知识卡片</b>、
@@ -22,7 +21,7 @@
         <div class="ko-stat">
           <span class="ko-stat-num">{{ data.knowledgeCards.total }}</span>
           <span class="ko-stat-label">知识卡片</span>
-          <RouterLink to="/work-sedimentation" class="ko-stat-link">来自工作记录 →</RouterLink>
+          <RouterLink to="/work-sedimentation" class="ko-stat-link">来自工作记录</RouterLink>
         </div>
         <div class="ko-stat">
           <span class="ko-stat-num">{{ data.projectFacts.confirmed }}</span>
@@ -32,7 +31,7 @@
         <div class="ko-stat">
           <span class="ko-stat-num">{{ data.projectChunks.total }}</span>
           <span class="ko-stat-label">项目知识块</span>
-          <RouterLink to="/knowledge/ask" class="ko-stat-link">去知识库问答 →</RouterLink>
+          <RouterLink to="/knowledge/ask" class="ko-stat-link">去知识库问答</RouterLink>
         </div>
       </section>
 
@@ -72,7 +71,7 @@
                 <p>{{ card.summary }}</p>
               </li>
               <li v-if="!data.knowledgeCards.recent.length" class="ko-empty">
-                还没有知识卡片。<RouterLink to="/work-sedimentation">去工作记录蒸馏一条 →</RouterLink>
+                还没有知识卡片。<RouterLink to="/work-sedimentation">去工作记录蒸馏一条</RouterLink>
               </li>
             </ul>
           </div>
@@ -90,7 +89,7 @@
                 <p>{{ fact.content }}</p>
               </li>
               <li v-if="!data.projectFacts.recent.length" class="ko-empty">
-                还没有已确认的项目事实。<RouterLink to="/projects">去项目资料生成并确认 →</RouterLink>
+                还没有已确认的项目事实。<RouterLink to="/projects">去项目资料生成并确认</RouterLink>
               </li>
             </ul>
           </div>
@@ -170,14 +169,6 @@ onMounted(load)
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-}
-
-.ko-eyebrow {
-  margin: 0 0 6px;
-  color: var(--ow-eyebrow, #16634f);
-  font-size: var(--fs-xs);
-  font-weight: 800;
-  letter-spacing: 2px;
 }
 
 .ko-head h1 {

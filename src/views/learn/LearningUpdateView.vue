@@ -2,7 +2,6 @@
   <div class="lu">
     <header class="lu-head">
       <div>
-        <p class="lu-eyebrow">学习更新模式</p>
         <h1>学习目标与专注</h1>
         <p class="lu-sub">
           围绕识别出的技能缺口定向学习，用专注计时持续积累。右下角的专注计时器可随时开始一段深度工作。
@@ -474,14 +473,6 @@ onUnmounted(() => {
 .lu {
   display: grid;
   gap: 22px;
-}
-
-.lu-head .lu-eyebrow {
-  margin: 0 0 6px;
-  color: var(--ow-eyebrow, #16634f);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  letter-spacing: 2px;
 }
 
 .lu-head h1 {
