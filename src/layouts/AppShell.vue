@@ -22,17 +22,10 @@
           v-for="group in navGroups"
           :key="group.label"
           class="nav-group"
-          :class="{ 'is-collapsed': !isGroupOpen(group.label) }"
         >
-          <button
-            class="nav-group-title"
-            type="button"
-            :aria-expanded="isGroupOpen(group.label)"
-            @click="toggleGroup(group.label)"
-          >
-            <span class="nav-group-label">{{ group.label }}</span>
-            <ChevronDown class="nav-group-chevron" aria-hidden="true" />
-          </button>
+          <div class="nav-group-label">
+            {{ group.label }}
+          </div>
           <div class="nav-group-items">
             <RouterLink
               v-for="item in group.items"
@@ -73,17 +66,10 @@
           v-for="group in navGroups"
           :key="group.label"
           class="nav-group"
-          :class="{ 'is-collapsed': !isGroupOpen(group.label) }"
         >
-          <button
-            class="nav-group-title"
-            type="button"
-            :aria-expanded="isGroupOpen(group.label)"
-            @click="toggleGroup(group.label)"
-          >
-            <span class="nav-group-label">{{ group.label }}</span>
-            <ChevronDown class="nav-group-chevron" aria-hidden="true" />
-          </button>
+          <div class="nav-group-label">
+            {{ group.label }}
+          </div>
           <div class="nav-group-items">
             <RouterLink
               v-for="item in group.items"
@@ -320,11 +306,9 @@ function toggleMobileSearch(): void {
   }
 }
 
-// 侧边栏整体折叠状态（默认展开，按 F-07 侧栏分组任务流保持展开）
+// 侧边栏整体折叠状态（v4：分组折叠已移除，导航条目常显）
 const SIDEBAR_COLLAPSED_KEY = 'ow_sidebar_collapsed'
-const GROUP_OPEN_KEY = 'ow_sidebar_group_open'
 const sidebarCollapsed = ref(loadCollapsed())
-const groupOpen = ref<Record<string, boolean>>(loadGroupOpen())
 
 function loadCollapsed(): boolean {
   try {
@@ -334,35 +318,10 @@ function loadCollapsed(): boolean {
   }
 }
 
-function loadGroupOpen(): Record<string, boolean> {
-  try {
-    const raw = localStorage.getItem(GROUP_OPEN_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw) as Record<string, boolean>
-    return parsed && typeof parsed === 'object' ? parsed : {}
-  } catch {
-    return {}
-  }
-}
-
-function isGroupOpen(label: string): boolean {
-  // 默认展开；只要用户显式记为 false 才折叠；其他都视为展开
-  return groupOpen.value[label] !== false
-}
-
 function toggleSidebar(): void {
   sidebarCollapsed.value = !sidebarCollapsed.value
   try {
     localStorage.setItem(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed.value ? '1' : '0')
-  } catch {
-    /* noop */
-  }
-}
-
-function toggleGroup(label: string): void {
-  groupOpen.value = { ...groupOpen.value, [label]: !isGroupOpen(label) }
-  try {
-    localStorage.setItem(GROUP_OPEN_KEY, JSON.stringify(groupOpen.value))
   } catch {
     /* noop */
   }
@@ -703,79 +662,47 @@ async function handleLogout(): Promise<void> {
 }
 
 .nav-list {
-  display: grid;
-  gap: 12px;
-  padding: 14px 0 10px;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0 10px;
   position: relative;
   z-index: 1;
   flex: 1;
+  /* v4 根因修复：此前 grid + flex:1 在条目少时把剩余空间平摊给每行，
+     侧栏出现大片空洞；改 flex 列后自然排布，溢出交给 .sidebar 滚动。 */
+  min-height: 0;
 }
 
 .nav-group {
   display: grid;
-  gap: 4px;
+  gap: 2px;
 }
 
-.nav-group-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 6px 10px 6px 9px;
-  color: var(--sidebar-muted);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  letter-spacing: 1px;
-  background: transparent;
-  border: 0;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: left;
-  transition: color 140ms ease, background 140ms ease;
-}
-
-.nav-group-title:hover {
-  color: var(--sidebar-ink);
-  background: var(--sidebar-hover);
-}
-
+/* v4：分区标签常驻（不可折叠）。成熟工具侧栏都是「标签 + 条目常显」，
+   逐组折叠正是空洞与点击成本的来源。 */
 .nav-group-label {
-  flex: 1;
-  min-width: 0;
+  padding: 6px 10px 4px;
+  color: var(--sidebar-muted);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  letter-spacing: .6px;
 }
 
-.nav-group-chevron {
-  width: 12px;
-  height: 12px;
-  flex: none;
-  opacity: 0.6;
-  transition: transform 180ms ease;
-}
-
-.nav-group.is-collapsed .nav-group-chevron {
-  transform: rotate(-90deg);
+.nav-group + .nav-group {
+  margin-top: 10px;
 }
 
 .nav-group-items {
   display: grid;
-  gap: 3px;
-  overflow: hidden;
-  transition: max-height 220ms ease, opacity 180ms ease;
-}
-
-.nav-group.is-collapsed .nav-group-items {
-  max-height: 0;
-  opacity: 0;
-  pointer-events: none;
+  gap: 2px;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 11px;
-  min-height: 36px;
-  padding: 8px 10px;
+  gap: 10px;
+  min-height: 32px;
+  padding: 6px 10px;
   color: var(--sidebar-ink);
   border-radius: 8px;
   font-size: var(--fs-sm);
@@ -868,14 +795,18 @@ async function handleLogout(): Promise<void> {
   margin: 0 auto;
 }
 
-.app-shell.sidebar-collapsed .nav-group-title {
-  justify-content: center;
-  padding: 6px 4px;
+/* 折叠态（icon-rail）：分区标签退化为一条分隔线，保持分区语义 */
+.app-shell.sidebar-collapsed .nav-group-label {
+  height: 1px;
+  padding: 0;
+  margin: 2px 8px;
+  background: var(--nav-line);
+  color: transparent;
+  overflow: hidden;
 }
 
-.app-shell.sidebar-collapsed .nav-group-label,
-.app-shell.sidebar-collapsed .nav-group-chevron {
-  display: none;
+.app-shell.sidebar-collapsed .nav-group + .nav-group {
+  margin-top: 6px;
 }
 
 .app-shell.sidebar-collapsed .nav-item {

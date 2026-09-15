@@ -27,146 +27,168 @@
     </div>
 
     <template v-if="summary">
-      <section v-if="isEmptyState" class="wb-section">
-        <div class="wb-onboard">
-          <h2 class="wb-onboard-title">三步，开始积累你的职业数据</h2>
-          <p class="wb-onboard-sub">一切洞察都来自你自己的资料与记录。从任意一步开始即可。</p>
-          <div class="wb-onboard-steps">
-            <RouterLink to="/projects" class="wb-step">
-              <span class="wb-step-no" aria-hidden="true">1</span>
-              <span class="wb-step-body">
-                <strong>导入一个项目</strong>
-                <small>ZIP、GitHub 公开仓库或单文件，AI 会从中建立可追溯的项目画像</small>
+      <!-- 空态：全宽三步引导 + 工作模式 + 待办 -->
+      <template v-if="isEmptyState">
+        <section class="wb-section">
+          <div class="wb-onboard">
+            <h2 class="wb-onboard-title">三步，开始积累你的职业数据</h2>
+            <p class="wb-onboard-sub">一切洞察都来自你自己的资料与记录。从任意一步开始即可。</p>
+            <div class="wb-onboard-steps">
+              <RouterLink to="/projects" class="wb-step">
+                <span class="wb-step-no" aria-hidden="true">1</span>
+                <span class="wb-step-body">
+                  <strong>导入一个项目</strong>
+                  <small>ZIP、GitHub 公开仓库或单文件，AI 会从中建立可追溯的项目画像</small>
+                </span>
+              </RouterLink>
+              <RouterLink to="/interviews/new" class="wb-step">
+                <span class="wb-step-no" aria-hidden="true">2</span>
+                <span class="wb-step-body">
+                  <strong>完成一场模拟面试</strong>
+                  <small>AI 基于你的项目资料出题与追问，产出 11 维能力报告</small>
+                </span>
+              </RouterLink>
+              <RouterLink to="/work-sedimentation" class="wb-step">
+                <span class="wb-step-no" aria-hidden="true">3</span>
+                <span class="wb-step-body">
+                  <strong>记录一条工作心得</strong>
+                  <small>把踩过的坑与决策蒸馏成知识卡片，经验不再随项目流失</small>
+                </span>
+              </RouterLink>
+            </div>
+          </div>
+        </section>
+
+        <section class="wb-section">
+          <h2 class="wb-section-title">工作模式</h2>
+          <div class="mode-grid">
+            <RouterLink
+              v-for="mode in summary.modes"
+              :key="mode.key"
+              :to="mode.to"
+              class="mode-card"
+              :class="mode.key"
+            >
+              <span class="mode-icon" :class="mode.key" aria-hidden="true">
+                <Component :is="modeIcon(mode.key)" />
               </span>
-            </RouterLink>
-            <RouterLink to="/interviews/new" class="wb-step">
-              <span class="wb-step-no" aria-hidden="true">2</span>
-              <span class="wb-step-body">
-                <strong>完成一场模拟面试</strong>
-                <small>AI 基于你的项目资料出题与追问，产出 11 维能力报告</small>
-              </span>
-            </RouterLink>
-            <RouterLink to="/work-sedimentation" class="wb-step">
-              <span class="wb-step-no" aria-hidden="true">3</span>
-              <span class="wb-step-body">
-                <strong>记录一条工作心得</strong>
-                <small>把踩过的坑与决策蒸馏成知识卡片，经验不再随项目流失</small>
+              <div class="mode-body">
+                <h3>{{ mode.title }}</h3>
+                <p>{{ mode.description }}</p>
+              </div>
+              <span class="mode-metric">
+                <strong>{{ mode.metricValue }}</strong>
+                <small>{{ mode.metricLabel }}</small>
               </span>
             </RouterLink>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section v-if="!isEmptyState" class="wb-section">
-        <h2 class="wb-section-title">能力趋势</h2>
-        <div class="wb-trend-card">
-          <template v-if="trend && trend.renderable && trend.series.length >= 2">
-            <div class="wb-trend-summary">
-              <span class="wb-trend-num">{{ trend.series[trend.series.length - 1]?.totalScore }}</span>
-              <span class="wb-trend-label">
-                最近一次总分（{{ trend.series.length }} 场同规则报告）
-                <template v-if="trendDelta !== null">
-                  · 较前一次 <b :class="trendDelta >= 0 ? 'up' : 'down'">{{ trendDelta >= 0 ? '+' : '' }}{{ trendDelta }}</b>
-                </template>
+        <section class="wb-section">
+          <h2 class="wb-section-title">今日待办</h2>
+          <ul class="agenda">
+            <li v-for="item in summary.agenda" :key="item.id" :class="{ done: item.done }">
+              <span class="agenda-time">{{ item.time }}</span>
+              <span class="agenda-title">{{ item.title }}</span>
+              <Component :is="item.done ? CheckCircle2 : Circle" class="agenda-state" aria-hidden="true" />
+            </li>
+            <li v-if="!summary.agenda.length" class="agenda-empty">今天没有到期或进行中的任务。</li>
+          </ul>
+        </section>
+      </template>
+
+      <!-- 常态：两栏工作型布局（主列＝现在要做什么，侧列＝状态一览） -->
+      <div v-else class="wb-cols">
+        <div class="wb-col-main">
+          <section class="wb-section">
+            <h2 class="wb-section-title">成长管线</h2>
+            <div v-if="pipelineProblems.length" class="pipeline-list">
+              <RouterLink
+                v-for="check in pipelineProblems"
+                :key="check.key"
+                :to="check.to"
+                class="pipeline-item"
+                :class="check.status.toLowerCase()"
+              >
+                <span class="pipeline-badge" aria-hidden="true">
+                  <Component :is="check.status === 'BLOCK' ? OctagonAlert : check.status === 'STALE' ? CalendarClock : CircleAlert" />
+                </span>
+                <span class="pipeline-body">
+                  <strong>{{ check.title }}</strong>
+                  <small>{{ check.detail }}</small>
+                </span>
+                <span class="pipeline-action">{{ check.action }}</span>
+              </RouterLink>
+            </div>
+            <div v-else class="pipeline-item ok">
+              <span class="pipeline-badge" aria-hidden="true"><ShieldCheck /></span>
+              <span class="pipeline-body">
+                <strong>管线健康</strong>
+                <small>账户、资料、面试节奏、沉淀与复习链路都没有卡点。</small>
               </span>
             </div>
-            <svg class="wb-trend-spark" viewBox="0 0 320 64" role="img" aria-label="总分变化趋势">
-              <polyline :points="sparkPoints" fill="none" stroke="var(--ow-primary, #1fa879)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-              <circle v-for="(pt, i) in sparkDots" :key="i" :cx="pt.x" :cy="pt.y" r="3" fill="var(--ow-primary, #1fa879)" />
-            </svg>
-            <RouterLink to="/skill-map" class="wb-trend-link">看完整能力图谱</RouterLink>
-          </template>
-          <template v-else-if="trend">
-            <p class="wb-trend-empty">
-              {{ trend.series.length >= 2
-                ? '报告尚未使用同一评分规则版本，暂无法比较。'
-                : `还差 ${Math.max(0, trend.minTrendSamples - trend.series.length)} 场同规则报告即可看趋势。` }}
-              <RouterLink to="/interviews/new">去面试</RouterLink>
-            </p>
-          </template>
-        </div>
-      </section>
+          </section>
 
-      <section v-else class="wb-section">
-        <h2 class="wb-section-title">工作模式</h2>
-        <div class="mode-grid">
-          <RouterLink
-            v-for="mode in summary.modes"
-            :key="mode.key"
-            :to="mode.to"
-            class="mode-card"
-            :class="mode.key"
-          >
-            <span class="mode-icon" :class="mode.key" aria-hidden="true">
-              <Component :is="modeIcon(mode.key)" />
-            </span>
-            <div class="mode-body">
-              <h3>{{ mode.title }}</h3>
-              <p>{{ mode.description }}</p>
+          <section class="wb-section">
+            <h2 class="wb-section-title">今日待办</h2>
+            <ul class="agenda">
+              <li v-for="item in summary.agenda" :key="item.id" :class="{ done: item.done }">
+                <span class="agenda-time">{{ item.time }}</span>
+                <span class="agenda-title">{{ item.title }}</span>
+                <Component :is="item.done ? CheckCircle2 : Circle" class="agenda-state" aria-hidden="true" />
+              </li>
+              <li v-if="!summary.agenda.length" class="agenda-empty">今天没有到期或进行中的任务。</li>
+            </ul>
+          </section>
+        </div>
+
+        <div class="wb-col-side">
+          <section class="wb-section">
+            <h2 class="wb-section-title">能力趋势</h2>
+            <div class="wb-trend-card">
+              <template v-if="trend && trend.renderable && trend.series.length >= 2">
+                <div class="wb-trend-summary">
+                  <span class="wb-trend-num">{{ trend.series[trend.series.length - 1]?.totalScore }}</span>
+                  <span class="wb-trend-label">
+                    最近一次总分（{{ trend.series.length }} 场同规则报告）
+                    <template v-if="trendDelta !== null">
+                      · 较前一次 <b :class="trendDelta >= 0 ? 'up' : 'down'">{{ trendDelta >= 0 ? '+' : '' }}{{ trendDelta }}</b>
+                    </template>
+                  </span>
+                </div>
+                <svg class="wb-trend-spark" viewBox="0 0 320 64" role="img" aria-label="总分变化趋势">
+                  <polyline :points="sparkPoints" fill="none" stroke="var(--ow-primary, #1fa879)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                  <circle v-for="(pt, i) in sparkDots" :key="i" :cx="pt.x" :cy="pt.y" r="3" fill="var(--ow-primary, #1fa879)" />
+                </svg>
+                <RouterLink to="/skill-map" class="wb-trend-link">看完整能力图谱</RouterLink>
+              </template>
+              <template v-else-if="trend">
+                <p class="wb-trend-empty">
+                  {{ trend.series.length >= 2
+                    ? '报告尚未使用同一评分规则版本，暂无法比较。'
+                    : `还差 ${Math.max(0, trend.minTrendSamples - trend.series.length)} 场同规则报告即可看趋势。` }}
+                  <RouterLink to="/interviews/new">去面试</RouterLink>
+                </p>
+              </template>
             </div>
-            <span class="mode-metric">
-              <strong>{{ mode.metricValue }}</strong>
-              <small>{{ mode.metricLabel }}</small>
-            </span>
-          </RouterLink>
-        </div>
-      </section>
+          </section>
 
-      <section v-if="!isEmptyState" class="wb-section">
-        <h2 class="wb-section-title">成长管线</h2>
-        <div v-if="pipelineProblems.length" class="pipeline-list">
-          <RouterLink
-            v-for="check in pipelineProblems"
-            :key="check.key"
-            :to="check.to"
-            class="pipeline-item"
-            :class="check.status.toLowerCase()"
-          >
-            <span class="pipeline-badge" aria-hidden="true">
-              <Component :is="check.status === 'BLOCK' ? OctagonAlert : check.status === 'STALE' ? CalendarClock : CircleAlert" />
-            </span>
-            <span class="pipeline-body">
-              <strong>{{ check.title }}</strong>
-              <small>{{ check.detail }}</small>
-            </span>
-            <span class="pipeline-action">{{ check.action }}</span>
-          </RouterLink>
+          <section class="wb-section">
+            <h2 class="wb-section-title">数据核心</h2>
+            <div class="asset-grid">
+              <RouterLink
+                v-for="asset in summary.assets"
+                :key="asset.key"
+                :to="asset.to"
+                class="asset-card"
+              >
+                <span class="asset-label">{{ asset.label }}</span>
+                <span class="asset-count">{{ asset.count }}</span>
+              </RouterLink>
+            </div>
+          </section>
         </div>
-        <div v-else class="pipeline-item ok">
-          <span class="pipeline-badge" aria-hidden="true"><ShieldCheck /></span>
-          <span class="pipeline-body">
-            <strong>管线健康</strong>
-            <small>账户、资料、面试节奏、沉淀与复习链路都没有卡点。</small>
-          </span>
-        </div>
-      </section>
-
-      <section v-if="!isEmptyState" class="wb-section">
-        <h2 class="wb-section-title">数据核心</h2>
-        <div class="asset-grid">
-          <RouterLink
-            v-for="asset in summary.assets"
-            :key="asset.key"
-            :to="asset.to"
-            class="asset-card"
-          >
-            <span class="asset-count">{{ asset.count }}</span>
-            <span class="asset-label">{{ asset.label }}</span>
-          </RouterLink>
-        </div>
-      </section>
-
-      <section class="wb-section">
-        <h2 class="wb-section-title">今日待办</h2>
-        <ul class="agenda">
-          <li v-for="item in summary.agenda" :key="item.id" :class="{ done: item.done }">
-            <span class="agenda-time">{{ item.time }}</span>
-            <span class="agenda-title">{{ item.title }}</span>
-            <Component :is="item.done ? CheckCircle2 : Circle" class="agenda-state" aria-hidden="true" />
-          </li>
-          <li v-if="!summary.agenda.length" class="agenda-empty">今天没有到期或进行中的任务。</li>
-        </ul>
-      </section>
+      </div>
     </template>
   </div>
 </template>
@@ -297,6 +319,28 @@ onUnmounted(() => {
 .wb {
   display: grid;
   gap: 20px;
+}
+
+/* v4 两栏工作型布局：主列＝现在要做什么，侧列＝状态一览 */
+.wb-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 20px;
+  align-items: start;
+}
+
+.wb-col-main,
+.wb-col-side {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .wb-cols {
+    grid-template-columns: 1fr;
+  }
 }
 
 .wb-skeleton .wb-skel-grid {
@@ -449,23 +493,28 @@ onUnmounted(() => {
 }
 
 .asset-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 0;
-  padding: 0 4px;
+  padding: 0;
   background: var(--surface);
   border: 1px solid var(--line-2);
   border-radius: 12px;
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
 .asset-card {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  padding: 12px 18px;
+  padding: 11px 16px;
   text-decoration: none;
   transition: background 140ms ease;
+}
+
+.asset-card + .asset-card {
+  border-top: 1px solid var(--line);
 }
 
 .asset-card:hover {
@@ -481,7 +530,7 @@ onUnmounted(() => {
 
 .asset-label {
   color: var(--muted);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   font-weight: 600;
 }
 
@@ -646,13 +695,13 @@ onUnmounted(() => {
 
 .wb-trend-card {
   display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 14px 18px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 14px 16px;
   border: 1px solid var(--ow-line-soft, rgb(31 111 92 / 14%));
   border-radius: 12px;
   background: var(--ow-surface, #fff);
-  flex-wrap: wrap;
 }
 
 .wb-trend-summary {
@@ -678,9 +727,8 @@ onUnmounted(() => {
 .wb-trend-label .down { color: var(--ow-status-danger-text, #b93b3b); }
 
 .wb-trend-spark {
-  width: 320px;
+  width: 100%;
   height: 64px;
-  flex: 1 1 220px;
 }
 
 .wb-trend-link {
