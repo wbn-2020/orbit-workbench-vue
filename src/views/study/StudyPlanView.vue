@@ -59,12 +59,28 @@
                 </div>
               </div>
               <button
+                v-if="task.status === 'PLANNED' || task.status === 'POSTPONED'"
+                class="ow-btn xs ghost"
+                type="button"
+                @click="start(task)"
+              >
+                开始
+              </button>
+              <button
                 v-if="task.status === 'PLANNED' || task.status === 'IN_PROGRESS' || task.status === 'POSTPONED'"
                 class="ow-btn xs"
                 type="button"
                 @click="complete(task)"
               >
                 完成
+              </button>
+              <button
+                v-if="task.status === 'PLANNED' || task.status === 'POSTPONED'"
+                class="ow-btn xs ghost"
+                type="button"
+                @click="postpone(task)"
+              >
+                延期一天
               </button>
               <button
                 v-if="task.status === 'PLANNED' || task.status === 'POSTPONED'"
@@ -80,7 +96,8 @@
             </div>
           </div>
           <div class="ow-hint">
-            报告自动生成的任务按标题幂等；完成/跳过/删除直接写库（真实后端）。
+            报告自动生成的任务按标题幂等；开始/完成/延期/跳过/删除直接写库（真实后端）。
+            仅「计划中 / 已延期」可开始或延期，进行中的任务只能完成。
           </div>
         </div>
       </div>
@@ -196,7 +213,9 @@ import {
   createStudyTask,
   deleteTask,
   listStudyTasks,
+  postponeTask,
   skipTask,
+  startTask,
   type StudyTask,
   type StudyTaskStatus,
 } from '@/api/interview'
@@ -379,6 +398,28 @@ async function applyFocus(): Promise<void> {
 async function complete(task: StudyTask): Promise<void> {
   try {
     const updated = await completeTask(task.id)
+    replace(updated)
+  } catch (submitError) {
+    ElMessage.error(problemMessage(submitError))
+  }
+}
+
+async function start(task: StudyTask): Promise<void> {
+  try {
+    const updated = await startTask(task.id)
+    replace(updated)
+  } catch (submitError) {
+    ElMessage.error(problemMessage(submitError))
+  }
+}
+
+/** 延期一天：具体日期由客户端按用户时区算，后端只存结果，避免时区口径漂移。 */
+async function postpone(task: StudyTask): Promise<void> {
+  try {
+    const base = task.dueDate ?? userToday()
+    const next = new Date(`${base}T00:00:00Z`)
+    next.setUTCDate(next.getUTCDate() + 1)
+    const updated = await postponeTask(task.id, next.toISOString().slice(0, 10))
     replace(updated)
   } catch (submitError) {
     ElMessage.error(problemMessage(submitError))
