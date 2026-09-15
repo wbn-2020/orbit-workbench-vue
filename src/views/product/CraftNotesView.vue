@@ -80,7 +80,7 @@
         <div class="ow-card-b">
           <div v-if="loading" class="ow-empty">加载中…</div>
           <div v-else-if="!confirmed.length" class="ow-empty-state">
-            <div class="ic">🧰</div>
+            <div class="ic"><Hammer aria-hidden="true" /></div>
             <div class="t">还没有套路</div>
             <div class="d">点「提炼套路」从你的工作记录与面试结论里提炼，或手动录入一条你自己总结的方法。</div>
           </div>

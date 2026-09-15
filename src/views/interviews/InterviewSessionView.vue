@@ -32,7 +32,7 @@
         </div>
         <div class="rt">
           <div class="prog-pill">第 {{ mainDone }} / {{ session.questionLimit }} 题</div>
-          <div class="timer"><span>⏱</span><span>{{ fmtElapsed(elapsed) }}</span></div>
+          <div class="timer"><span><Timer aria-hidden="true" /></span><span>{{ fmtElapsed(elapsed) }}</span></div>
           <button class="close-btn" type="button" title="结束并关闭" @click="endInterview">×</button>
         </div>
       </div>
@@ -101,7 +101,7 @@
           </div>
           <div class="ow-iv-input-area">
             <div class="ow-iv-tabs">
-              <div class="tab active">💬 文字作答</div>
+              <div class="tab active"><MessageSquare aria-hidden="true" /> 文字作答</div>
               <div class="tab" style="opacity: 0.5;">代码可混排作答</div>
             </div>
             <textarea
@@ -173,9 +173,9 @@
               </span>
             </div>
           </div>
-          <div class="ow-iv-pqtimer">⏱ 已用时 <b>{{ fmtElapsed(elapsed) }}</b></div>
+          <div class="ow-iv-pqtimer"><Timer aria-hidden="true" /> 已用时 <b>{{ fmtElapsed(elapsed) }}</b></div>
           <div class="tipbox">
-            <b>💡 应答策略</b> · 先给结论，再用 STAR 法（情境/任务/行动/结果）+ 量化指标展开。
+            <b><Lightbulb aria-hidden="true" /> 应答策略</b> · 先给结论，再用 STAR 法（情境/任务/行动/结果）+ 量化指标展开。
           </div>
           <h4>作答来源</h4>
           <div class="ow-row">
@@ -222,6 +222,7 @@ import {
   type InterviewSession,
   type InterviewTurn,
 } from '@/api/interview'
+import { Lightbulb, MessageSquare, Timer } from 'lucide-vue-next'
 import { problemMessage } from '@/api/http'
 import ErrorState from '@/components/ErrorState.vue'
 

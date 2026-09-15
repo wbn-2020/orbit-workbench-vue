@@ -29,7 +29,7 @@
 
     <!-- 无报告：会话未结束 -->
     <div v-else-if="!report" class="ow-empty-state">
-      <div class="ic">📋</div>
+      <div class="ic"><ClipboardList aria-hidden="true" /></div>
       <div class="t">还没有报告</div>
       <div class="d">结束面试后会自动创建待生成报告；回到面试房间结束本场即可。</div>
       <div class="act">
@@ -40,7 +40,10 @@
     <!-- 待生成 / 失败 -->
     <div v-else-if="report.status !== 'REPORT_READY'" class="pending-panel">
       <div class="ow-empty-state">
-        <div class="ic">{{ report.status === 'REPORT_FAILED' ? '⚠️' : '⏳' }}</div>
+        <div class="ic">
+          <TriangleAlert v-if="report.status === 'REPORT_FAILED'" aria-hidden="true" />
+          <Hourglass v-else aria-hidden="true" />
+        </div>
         <div class="t">
           {{ report.status === 'REPORT_FAILED' ? '报告生成失败' : '报告待生成' }}
         </div>
@@ -238,6 +241,9 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
+  ClipboardList,
+  Hourglass,
+  TriangleAlert,
   BookOpen,
   Layers,
   Lock,

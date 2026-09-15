@@ -34,7 +34,7 @@
             <div class="ow-prog green"><i :style="{ width: `${completionPercent}%` }" /></div>
           </div>
           <div v-if="!tasks.length" class="ow-empty-state">
-            <div class="ic">📚</div>
+            <div class="ic"><BookOpen aria-hidden="true" /></div>
             <div class="t">还没有复习任务</div>
             <div class="d">完成一场面试并在报告页点击「按报告生成复习任务」，或手工新建。</div>
           </div>
@@ -115,7 +115,7 @@
           <div v-if="wrongLoading"><el-skeleton :rows="3" animated /></div>
           <ErrorState v-else-if="wrongError" :message="wrongError" :retry="loadWrongAnswers" />
           <div v-else-if="!dueWrongItems.length" class="ow-empty-state">
-            <div class="ic">🎯</div>
+            <div class="ic"><Target aria-hidden="true" /></div>
             <div class="t">今天没有到期的错题</div>
             <div class="d">
               到期指复习日不晚于今天。没有复习日的条目说明它还没被重练过——复习日是在错题本提交重练结果时按阶梯排出来的。
@@ -186,7 +186,7 @@
 </template>
 
 <script setup lang="ts">
-import { CircleCheckBig, Dumbbell, ListChecks, Plus, Target } from 'lucide-vue-next'
+import { BookOpen, CircleCheckBig, Dumbbell, ListChecks, Plus, Target } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

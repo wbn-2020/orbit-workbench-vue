@@ -47,7 +47,6 @@ declare module 'vue' {
     ErrorBoundary: typeof import('./src/components/ErrorBoundary.vue')['default']
     ErrorState: typeof import('./src/components/ErrorState.vue')['default']
     FocusTimerWidget: typeof import('./src/components/FocusTimerWidget.vue')['default']
-    MarkdownViewer: typeof import('./src/components/MarkdownViewer.vue')['default']
     OwCrumb: typeof import('./src/components/OwCrumb.vue')['default']
     PageHeader: typeof import('./src/components/PageHeader.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

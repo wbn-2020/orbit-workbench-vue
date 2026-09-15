@@ -28,7 +28,7 @@
       <div class="ow-card-b">
         <div v-if="loading" class="ow-empty">加载中…</div>
         <div v-else-if="!filtered.length" class="ow-empty-state">
-          <div class="ic">🎙</div>
+          <div class="ic"><Mic2 aria-hidden="true" /></div>
           <div class="t">还没有面试会话</div>
           <div class="d">创建一场面试副本，题目与追问由 AI 实时生成。</div>
           <div class="act">

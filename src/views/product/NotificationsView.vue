@@ -36,7 +36,7 @@
           <div class="t">加载中…</div>
         </div>
         <div v-else-if="!items.length" class="ow-empty-state">
-          <div class="ic">🔔</div>
+          <div class="ic"><Bell aria-hidden="true" /></div>
           <div class="t">{{ unreadOnly ? '没有未读通知' : '暂无通知' }}</div>
           <div class="d">新的报告、面试、日程、导入与复习提醒会出现在这里。</div>
         </div>

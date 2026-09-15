@@ -81,7 +81,7 @@
         </div>
         <div v-else-if="loading && !items.length" class="ow-empty-state"><div class="t">加载中…</div></div>
         <div v-else-if="!items.length" class="ow-empty-state">
-          <div class="ic">🗓️</div>
+          <div class="ic"><CalendarDays aria-hidden="true" /></div>
           <div class="t">该时间窗暂无日程</div>
           <div class="d">新建自定义日程，或在创建面试时填写面试时间、安排复习任务。</div>
         </div>
