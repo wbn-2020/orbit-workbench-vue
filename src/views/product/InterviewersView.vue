@@ -2,7 +2,6 @@
   <div class="page interviewers-page">
     <header class="ow-page-top">
       <div>
-        <OwCrumb />
         <h1><UsersRound aria-hidden="true" /> 面试官</h1>
         <div class="sub">
           内置面试官只读，可复制为专属后编辑；创建会话时写入面试官快照，历史会话不受后续修改影响
@@ -402,5 +401,17 @@ load()
   margin-left: 10px;
   font-size: var(--fs-xs);
   cursor: pointer;
+}
+
+/* 窄屏：标题列撑满整行，操作按钮换到下方（与复习计划页同规则） */
+@media (max-width: 720px) {
+  .ow-titem {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .grow {
+    flex: 1 1 calc(100% - 48px);
+  }
 }
 </style>

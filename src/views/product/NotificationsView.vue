@@ -2,7 +2,6 @@
   <div class="page notify-page">
     <header class="ow-page-top">
       <div>
-        <OwCrumb />
         <h1><Bell aria-hidden="true" /> 通知中心</h1>
         <div class="sub">{{ subText }}</div>
       </div>

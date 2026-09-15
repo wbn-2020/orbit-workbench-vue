@@ -2,7 +2,6 @@
   <div class="page craft-page">
     <header class="ow-page-top">
       <div>
-        <OwCrumb />
         <h1><Hammer aria-hidden="true" /> 本事库</h1>
         <div class="sub">
           可复用的做法：讲述结构、话术模板、执行套路、复盘方法。区别于知识块（技术点）与画像事实（我是谁）——这里存「怎么做这类事」。

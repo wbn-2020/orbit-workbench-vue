@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <PageHeader
+    <PageHeader crumb
       back
       :title="project?.name || '项目资料'"
       description="每次重新导入生成独立版本。已解析内容会进入后续项目画像和知识库，排除与失败文件始终可查看。"

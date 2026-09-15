@@ -30,10 +30,10 @@ withDefaults(
     title: string
     description?: string
     back?: boolean
-    /** 显示由路由 meta 派生的统一面包屑（区块 / [上级] / 页面），默认开启 */
+    /** 详情页显式开启：父级链接有导航价值；列表页不开（顶栏已有完整路径） */
     crumb?: boolean
   }>(),
-  { description: undefined, back: false, crumb: true },
+  { description: undefined, back: false, crumb: false },
 )
 </script>
 
@@ -43,7 +43,7 @@ withDefaults(
   align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 
 .page-heading {

@@ -2,7 +2,6 @@
   <div class="page study-page">
     <header class="ow-page-top">
       <div>
-        <OwCrumb />
         <h1><CircleCheckBig aria-hidden="true" /> 复习计划</h1>
         <div class="sub">来自报告自动生成与手工创建的真实任务</div>
       </div>
@@ -608,4 +607,18 @@ onMounted(() => {
     grid-column: span 12;
   }
 }
+
+/* 窄屏：标题列撑满整行（留状态徽章位），按钮组整体换到标题下方，
+   避免 5 个操作按钮把标题挤成竖排 */
+@media (max-width: 720px) {
+  .ow-titem {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .grow {
+    flex: 1 1 calc(100% - 62px);
+  }
+}
+
 </style>

@@ -958,7 +958,7 @@ async function handleLogout(): Promise<void> {
   min-height: var(--ow-topbar-height);
   align-items: center;
   gap: 14px;
-  padding: 13px 30px;
+  padding: 8px 24px;
   /* 顶栏纯色实底（26 号规范）：文字落在可测量的背景上，玻璃与彩色投影材质撤下。 */
   background: var(--topbar-1);
   border-bottom: 1px solid var(--topbar-border);
@@ -1347,7 +1347,7 @@ async function handleLogout(): Promise<void> {
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 26px 34px 52px;
+  padding: 20px 28px 44px;
 }
 
 .page-host {

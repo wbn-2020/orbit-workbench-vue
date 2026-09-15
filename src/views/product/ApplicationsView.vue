@@ -2,7 +2,6 @@
   <div class="page map-page">
     <header class="ow-page-top">
       <div>
-        <OwCrumb />
         <h1><Map aria-hidden="true" /> 求职进度</h1>
         <div class="sub">站内投递记录与阶段推进 · 不连接招聘网站 · 阶段变化留有流水</div>
       </div>

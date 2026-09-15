@@ -1,7 +1,7 @@
 <template>
   <div class="page not-found">
     <!-- 404 是错误态，面包屑没有可归属的区块，关闭以免与标题重复 -->
-    <PageHeader :crumb="false" title="页面不存在" description="这个地址没有对应页面——可能是链接过期、或者手输时打错了。" />
+    <PageHeader title="页面不存在" description="这个地址没有对应页面——可能是链接过期、或者手输时打错了。" />
     <section class="ow-card">
       <div class="ow-card-b">
         <EmptyState

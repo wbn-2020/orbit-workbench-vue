@@ -379,10 +379,10 @@ onBeforeUnmount(() => {
 }
 
 .ws-card {
-  padding: 20px;
+  padding: 16px;
   background: var(--surface);
   border: 1px solid var(--line-2);
-  border-radius: 18px;
+  border-radius: 12px;
   box-shadow: var(--shadow-sm);
 }
 

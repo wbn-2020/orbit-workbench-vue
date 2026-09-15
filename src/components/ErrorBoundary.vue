@@ -71,7 +71,7 @@ function reload(): void {
   padding: 32px;
   background: var(--surface, #fff);
   border: 1px solid var(--line-2, #d8e2dd);
-  border-radius: 18px;
+  border-radius: 12px;
   box-shadow: var(--shadow-sm, 0 1px 2px rgb(15 23 42 / 6%));
   text-align: center;
 }

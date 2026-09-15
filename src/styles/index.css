@@ -15,7 +15,7 @@ html:root {
   /* 设计令牌与两套主题（晨野 / 夜航）见 styles/proto.css；此处 --ow-* 为其主题别名 */
 
   --ow-sidebar-width: 224px;
-  --ow-topbar-height: 72px;
+  --ow-topbar-height: 56px;
   --ow-z-dropdown: 40;
   --ow-z-sticky: 50;
   --ow-z-modal: 80;

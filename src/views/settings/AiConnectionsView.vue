@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <PageHeader title="AI 连接" description="管理模型供应商、协议和可用性测试。API Key 只在当前表单内存中存在。">
+    <PageHeader crumb title="AI 连接" description="管理模型供应商、协议和可用性测试。API Key 只在当前表单内存中存在。">
       <template #actions>
         <el-button type="primary" :icon="Plus" @click="openCreate">添加连接</el-button>
       </template>
