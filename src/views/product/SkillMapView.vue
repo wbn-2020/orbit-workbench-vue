@@ -676,7 +676,6 @@ onMounted(load)
   background: var(--surface-3);
   border-radius: 6px;
   overflow: hidden;
-  box-shadow: inset 0 1px 2px rgb(0 0 0 / 6%);
 }
 
 .dim-track i {
@@ -687,15 +686,15 @@ onMounted(load)
 }
 
 .skill-dim-row.tech .dim-track i {
-  background: linear-gradient(90deg, var(--brand), #6aa6ff);
+  background: var(--brand-600);
 }
 
 .skill-dim-row.think .dim-track i {
-  background: linear-gradient(90deg, var(--green), #4cc585);
+  background: var(--green-600);
 }
 
 .skill-dim-row.comm .dim-track i {
-  background: linear-gradient(90deg, var(--gold), #f6c453);
+  background: var(--gold-600);
 }
 
 .dim-score {

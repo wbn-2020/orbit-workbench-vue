@@ -3,13 +3,13 @@
     <DreamyBackground />
     <section class="auth-panel">
       <div class="auth-logo" aria-hidden="true">
-        <svg viewBox="0 0 32 32" width="64" height="64">
-          <rect x="3" y="3" width="26" height="26" rx="7" fill="var(--brand, #1f6f5c)" stroke="#fff" stroke-width="1.5" />
-          <path d="M16 6c-3 3-3 6 0 9 3-3 3-6 0-9z" fill="#e8a22a" stroke="#fff" stroke-width="1.5" />
-          <path d="M16 15v11M11 21l5 5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" />
+        <svg viewBox="0 0 28 28" width="56" height="56" fill="none">
+          <circle cx="14" cy="14" r="12" stroke="currentColor" stroke-width="2" />
+          <ellipse cx="14" cy="14" rx="12" ry="5" stroke="currentColor" stroke-width="1.6" opacity="0.55" transform="rotate(32 14 14)" />
+          <circle cx="14" cy="14" r="3.4" fill="currentColor" />
         </svg>
       </div>
-      <h1>Orbit 工作台</h1>
+      <h1>Orbit</h1>
       <p class="auth-sub">个人职业成长工作台</p>
 
       <ErrorState v-if="error" :message="error" />
@@ -116,7 +116,7 @@ async function submit(): Promise<void> {
 
 .auth-logo {
   margin-bottom: 14px;
-  filter: drop-shadow(0 6px 14px rgb(31 111 92 / 35%));
+  color: var(--brand-700);
 }
 
 h1 {

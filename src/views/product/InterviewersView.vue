@@ -387,7 +387,7 @@ load()
 
 .iv-ico.my {
   color: #fff;
-  background: linear-gradient(135deg, var(--av-1), var(--av-2));
+  background: var(--av-1);
 }
 
 .tag-row {

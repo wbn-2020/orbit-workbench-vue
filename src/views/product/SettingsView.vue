@@ -246,7 +246,7 @@
         </div>
         <div class="ow-card-b">
           <p class="about-text">
-            Orbit 工作台 · 个人职业成长工作台（本地 Web 应用）。市场感知（面试）、工作沉淀、学习更新三种模式与项目资料、知识库、报告均已接入产品主链；
+            Orbit · 个人职业成长工作台（本地 Web 应用）。市场感知（面试）、工作沉淀、学习更新三种模式与项目资料、知识库、报告均已接入产品主链；
             主题偏好保存在浏览器，通知偏好保存在后端用户偏好记录。数据出口（JSON 导出 / 覆盖式导入 / 清空全部数据）已开放；语音面试与外部招聘集成尚未开放。
           </p>
         </div>
@@ -649,14 +649,14 @@ onMounted(loadPreferences)
 
 .theme-card .tc-prev {
   height: 48px;
-  border-radius: 12px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 40%);
+  border-radius: 8px;
+  border: 1px solid var(--line);
 }
 
 .theme-card .tc-name {
   color: var(--ink);
   font-size: var(--fs-sm);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .theme-card .tc-desc {
@@ -756,9 +756,9 @@ onMounted(loadPreferences)
   height: 44px;
   place-items: center;
   color: #fff;
-  background: linear-gradient(135deg, var(--av-1), var(--av-2));
+  background: var(--av-1);
   border-radius: 12px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .account-name {

@@ -403,12 +403,12 @@ onMounted(() => {
 .pipeline-stage strong {
   color: var(--ink);
   font-size: var(--fs-md);
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .pipeline-stage.active {
   color: var(--brand-700);
-  background: linear-gradient(180deg, var(--brand-50), var(--brand-100));
+  background: var(--brand-50);
   border-color: var(--brand-200);
 }
 
@@ -455,9 +455,9 @@ onMounted(() => {
   height: 38px;
   place-items: center;
   color: #16634f;
-  background: linear-gradient(180deg, var(--brand-50), var(--brand-100));
+  background: var(--brand-50);
   border-radius: 12px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .app-copy {

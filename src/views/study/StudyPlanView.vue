@@ -586,7 +586,7 @@ onMounted(() => {
   display: block;
   height: 100%;
   border-radius: 6px;
-  background: linear-gradient(90deg, var(--green), #4cc585);
+  background: var(--green-600);
 }
 
 .dim .score {
@@ -594,7 +594,7 @@ onMounted(() => {
   flex: 0 0 30px;
   color: var(--ink);
   font-size: var(--fs-xs);
-  font-weight: 800;
+  font-weight: 700;
   text-align: right;
 }
 

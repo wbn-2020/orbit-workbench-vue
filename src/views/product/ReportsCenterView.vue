@@ -739,7 +739,7 @@ onMounted(reload)
   background: var(--surface);
   border-radius: 50%;
   font-size: var(--fs-sm);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .pager {
@@ -792,7 +792,7 @@ onMounted(reload)
   display: block;
   height: 100%;
   border-radius: 6px;
-  background: linear-gradient(90deg, var(--brand), #6aa6ff);
+  background: var(--brand-600);
 }
 
 .dim .score {
@@ -800,7 +800,7 @@ onMounted(reload)
   flex: 0 0 34px;
   color: var(--ink);
   font-size: var(--fs-sm);
-  font-weight: 800;
+  font-weight: 700;
   text-align: right;
 }
 

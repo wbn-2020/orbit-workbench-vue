@@ -13,8 +13,8 @@
           :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
           @click="toggleSidebar"
         >
-          <ChevronsLeft v-if="!sidebarCollapsed" aria-hidden="true" />
-          <ChevronsRight v-else aria-hidden="true" />
+          <PanelLeftClose v-if="!sidebarCollapsed" aria-hidden="true" />
+          <PanelLeftOpen v-else aria-hidden="true" />
         </button>
       </div>
       <nav class="nav-list" aria-label="主导航">
@@ -30,7 +30,6 @@
             :aria-expanded="isGroupOpen(group.label)"
             @click="toggleGroup(group.label)"
           >
-            <span class="nav-group-bar" aria-hidden="true" />
             <span class="nav-group-label">{{ group.label }}</span>
             <ChevronDown class="nav-group-chevron" aria-hidden="true" />
           </button>
@@ -53,7 +52,7 @@
           <div class="user-summary-top">
             <span class="user-avatar"><UserRound aria-hidden="true" /></span>
             <span class="user-summary-name">
-              <strong>工程师·{{ authName }}</strong>
+              <strong>{{ authName }}</strong>
               <small>本地账户</small>
             </span>
           </div>
@@ -82,7 +81,6 @@
             :aria-expanded="isGroupOpen(group.label)"
             @click="toggleGroup(group.label)"
           >
-            <span class="nav-group-bar" aria-hidden="true" />
             <span class="nav-group-label">{{ group.label }}</span>
             <ChevronDown class="nav-group-chevron" aria-hidden="true" />
           </button>
@@ -250,8 +248,6 @@ import {
   CalendarDays,
   CalendarRange,
   ChevronDown,
-  ChevronsLeft,
-  ChevronsRight,
   ClipboardCheck,
   FileBarChart,
   FileText,
@@ -267,6 +263,8 @@ import {
   MoonStar,
   Network,
   NotebookPen,
+  PanelLeftClose,
+  PanelLeftOpen,
   Search,
   Settings,
   Sun,
@@ -482,17 +480,21 @@ const BrandBlock = defineComponent({
         h('span', { class: 'brand-mark', 'aria-hidden': 'true' }, [
           h(
             'svg',
-            { viewBox: '0 0 32 32', width: 26, height: 26 },
+            { viewBox: '0 0 28 28', width: 26, height: 26, fill: 'none' },
             [
-              h('rect', { x: 3, y: 3, width: 26, height: 26, rx: 7, fill: '#3a6fd0', stroke: '#fff', 'stroke-width': 1.5 }),
-              h('path', { d: 'M16 6c-3 3-3 6 0 9 3-3 3-6 0-9z', fill: '#eaa11f', stroke: '#fff', 'stroke-width': 1.5 }),
-              h('path', { d: 'M16 15v11M11 21l5 5 5-5', stroke: '#fff', 'stroke-width': 2, fill: 'none', 'stroke-linecap': 'round' }),
+              // 单色轨道标：外环 + 轨道倾角椭圆 + 中心核，全部走 currentColor
+              h('circle', { cx: 14, cy: 14, r: 12, stroke: 'currentColor', 'stroke-width': 2 }),
+              h('ellipse', {
+                cx: 14, cy: 14, rx: 12, ry: 5,
+                stroke: 'currentColor', 'stroke-width': 1.6, opacity: 0.55,
+                transform: 'rotate(32 14 14)',
+              }),
+              h('circle', { cx: 14, cy: 14, r: 3.4, fill: 'currentColor' }),
             ],
           ),
         ]),
         h('span', { class: 'brand-copy' }, [
-        h('strong', 'Orbit 工作台'),
-        h('small', '本地版'),
+        h('strong', 'Orbit'),
         ]),
       ])
   },
@@ -599,16 +601,13 @@ async function handleLogout(): Promise<void> {
   display: flex;
   height: 100vh;
   flex-direction: column;
-  padding: 0 8px 14px;
+  padding: 0 10px 14px;
   overflow-y: auto;
   overflow-x: hidden;
-  color: #ffffff;
-  /* 22 号诊断「渐变不作为全页面武器」收口：侧栏原本是 224×900 的三色纵向渐变，
-     每页必有且纯粹是装饰性背景墙。改用设计系统早已预留的 --ow-sidebar 纯色 token，
-     纵向层次交由下方 box-shadow 承担。
-     功能性渐变（评分环 .score-ring / 焦点条 .focus-bar）与按钮品牌渐变不在此列，保留。 */
-  background: var(--ow-sidebar);
-  box-shadow: 4px 0 30px rgb(10 40 30 / 28%);
+  color: var(--sidebar-ink);
+  /* 视觉系统 v3：侧栏从深绿渐变换成中性浅色面，与内容区靠 1px 右边框分层。 */
+  background: var(--nav-1);
+  border-right: 1px solid var(--nav-line);
   transition: padding 200ms ease;
 }
 
@@ -626,7 +625,7 @@ async function handleLogout(): Promise<void> {
 .sidebar-top :deep(.brand-block) {
   flex: 1;
   min-width: 0;
-  min-height: 60px;
+  min-height: 56px;
   padding: 14px 2px 12px;
   margin: 0;
   border-bottom: 0;
@@ -634,37 +633,27 @@ async function handleLogout(): Promise<void> {
 
 .sidebar-toggle {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   margin-left: auto;
   place-items: center;
-  color: rgb(255 255 255 / 70%);
-  background: rgb(255 255 255 / 5%);
-  border: 1px solid rgb(255 255 255 / 8%);
-  border-radius: 12px;
+  color: var(--sidebar-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
   cursor: pointer;
   flex: none;
-  transition: color 140ms ease, background 140ms ease, transform 140ms ease;
+  transition: color 140ms ease, background 140ms ease;
 }
 
 .sidebar-toggle svg {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
 }
 
 .sidebar-toggle:hover {
-  color: #fff;
-  background: rgb(255 255 255 / 14%);
-  transform: translateX(0);
-}
-
-.sidebar::after {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 150px;
-  pointer-events: none;
-  content: '';
-  background: linear-gradient(180deg, rgb(255 255 255 / 6%), transparent);
+  color: var(--sidebar-ink);
+  background: var(--sidebar-hover);
 }
 
 .sidebar::-webkit-scrollbar {
@@ -672,8 +661,8 @@ async function handleLogout(): Promise<void> {
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: rgb(255 255 255 / 16%);
-  border-radius: 12px;
+  background: rgb(31 56 46 / 14%);
+  border-radius: 6px;
   border: 1px solid transparent;
   background-clip: content-box;
 }
@@ -681,10 +670,10 @@ async function handleLogout(): Promise<void> {
 :deep(.brand-block) {
   display: flex;
   align-items: center;
-  gap: 11px;
-  min-height: 72px;
-  padding: 17px 6px 14px;
-  margin: 0 6px;
+  gap: 10px;
+  min-height: 64px;
+  padding: 15px 4px 13px;
+  margin: 0 4px;
   border-bottom: 1px solid var(--nav-line);
   position: relative;
   z-index: 1;
@@ -692,11 +681,11 @@ async function handleLogout(): Promise<void> {
 
 :deep(.brand-mark) {
   display: grid;
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   flex: none;
   place-items: center;
-  filter: drop-shadow(0 3px 7px rgb(0 0 0 / 40%));
+  color: var(--brand-700);
 }
 
 :deep(.brand-copy) {
@@ -706,18 +695,11 @@ async function handleLogout(): Promise<void> {
 }
 
 :deep(.brand-copy strong) {
-  color: #fff;
+  color: var(--ink);
   font-size: var(--fs-md);
-  font-weight: 800;
-  letter-spacing: 0.3px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
   line-height: 1.2;
-}
-
-:deep(.brand-copy small) {
-  color: rgb(255 255 255 / 92%);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 2.5px;
 }
 
 .nav-list {
@@ -740,13 +722,13 @@ async function handleLogout(): Promise<void> {
   gap: 8px;
   width: 100%;
   padding: 6px 10px 6px 9px;
-  color: rgb(255 255 255 / 95%);
+  color: var(--sidebar-muted);
   font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   background: transparent;
   border: 0;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   font-family: inherit;
   text-align: left;
@@ -754,17 +736,8 @@ async function handleLogout(): Promise<void> {
 }
 
 .nav-group-title:hover {
-  color: rgb(255 255 255 / 85%);
-  background: rgb(255 255 255 / 4%);
-}
-
-.nav-group-bar {
-  display: inline-block;
-  width: 3px;
-  height: 11px;
-  border-radius: 3px;
-  background: var(--gold);
-  flex: none;
+  color: var(--sidebar-ink);
+  background: var(--sidebar-hover);
 }
 
 .nav-group-label {
@@ -801,39 +774,39 @@ async function handleLogout(): Promise<void> {
   display: flex;
   align-items: center;
   gap: 11px;
-  min-height: 40px;
-  padding: 10px 12px;
-  color: #ffffff;
-  border-radius: 12px;
+  min-height: 36px;
+  padding: 8px 10px;
+  color: var(--sidebar-ink);
+  border-radius: 8px;
   font-size: var(--fs-sm);
   font-weight: 600;
-  letter-spacing: 0.2px;
+  letter-spacing: 0;
   transition:
     color 160ms ease-out,
     background-color 160ms ease-out;
 }
 
 .nav-item svg {
-  width: 19px;
-  height: 19px;
+  width: 17px;
+  height: 17px;
   flex: none;
-  opacity: 0.85;
+  opacity: 0.75;
   transition: opacity 180ms ease;
 }
 
 .nav-item:hover {
-  color: #fff;
-  background: rgb(255 255 255 / 7%);
+  color: var(--ink);
+  background: var(--sidebar-hover);
 }
 
 .nav-item:hover svg {
   opacity: 1;
 }
 
+/* v3：选中态 = 浅品牌底 + 品牌色文字，不再用白渐变条与金色内衬 */
 .nav-item.router-link-active {
-  color: #fff;
-  background: linear-gradient(90deg, rgb(255 255 255 / 20%), rgb(255 255 255 / 4%));
-  box-shadow: inset 3px 0 0 var(--gold);
+  color: var(--sidebar-active-ink);
+  background: var(--sidebar-active-bg);
 }
 
 .nav-item.router-link-active svg {
@@ -850,13 +823,10 @@ async function handleLogout(): Promise<void> {
 .user-summary {
   display: grid;
   gap: 10px;
-  padding: 13px;
-  background: rgb(255 255 255 / 7%);
-  border: 1px solid rgb(255 255 255 / 10%);
-  border-radius: 12px;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 8%),
-    0 8px 22px rgb(0 0 0 / 20%);
+  padding: 10px 12px;
+  background: var(--nav-2);
+  border: 1px solid var(--nav-line);
+  border-radius: 10px;
 }
 
 .user-summary-top {
@@ -908,14 +878,9 @@ async function handleLogout(): Promise<void> {
   display: none;
 }
 
-/* 折叠态下保留分组指示条，避免分组标题变成空的不可见行 */
-.app-shell.sidebar-collapsed .nav-group-bar {
-  margin: 2px auto;
-}
-
 .app-shell.sidebar-collapsed .nav-item {
   justify-content: center;
-  padding: 10px 6px;
+  padding: 8px 6px;
 }
 
 .app-shell.sidebar-collapsed .nav-item-text {
@@ -942,14 +907,14 @@ async function handleLogout(): Promise<void> {
 
 .user-avatar {
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   flex: none;
   place-items: center;
-  color: #fff;
-  background: linear-gradient(135deg, var(--av-1), var(--av-2));
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgb(0 0 0 / 32%);
+  color: var(--brand-700);
+  background: var(--brand-50);
+  border: 1px solid var(--brand-200);
+  border-radius: 8px;
 }
 
 .user-avatar svg {
@@ -966,14 +931,14 @@ async function handleLogout(): Promise<void> {
 
 .user-summary-name strong {
   overflow: hidden;
-  color: #fff;
+  color: var(--ink);
   font-size: var(--fs-sm);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .user-summary-name small {
-  color: #ffffff;
+  color: var(--sidebar-muted);
   font-size: var(--fs-xs);
 }
 
@@ -997,16 +962,6 @@ async function handleLogout(): Promise<void> {
   /* 顶栏纯色实底（26 号规范）：文字落在可测量的背景上，玻璃与彩色投影材质撤下。 */
   background: var(--topbar-1);
   border-bottom: 1px solid var(--topbar-border);
-}
-
-.topbar::after {
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 1px;
-  pointer-events: none;
-  content: '';
-  background: linear-gradient(90deg, transparent, var(--brand), transparent);
-  opacity: 0.16;
 }
 
 .topbar-context {
@@ -1066,11 +1021,11 @@ async function handleLogout(): Promise<void> {
 
 .search-input {
   width: 100%;
-  padding: 9px 12px 9px 38px;
+  padding: 8px 12px 8px 36px;
   color: var(--ink);
-  background: var(--surface);
-  border: 1.5px solid var(--line-2);
-  border-radius: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   font-family: inherit;
   font-size: var(--fs-sm);
   transition: border-color 0.14s, box-shadow 0.14s;
@@ -1082,7 +1037,8 @@ async function handleLogout(): Promise<void> {
 
 .search-input:focus {
   outline: none;
-  border-color: var(--brand);
+  background: var(--surface);
+  border-color: var(--brand-600);
   box-shadow: 0 0 0 3px var(--brand-50);
 }
 
@@ -1092,8 +1048,8 @@ async function handleLogout(): Promise<void> {
   z-index: 40;
   padding: 6px;
   background: var(--recents);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
   box-shadow: var(--shadow-md);
 }
 
@@ -1115,7 +1071,7 @@ async function handleLogout(): Promise<void> {
   white-space: nowrap;
   background: transparent;
   border: 0;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   font-family: inherit;
   font-size: var(--fs-sm);
@@ -1260,13 +1216,13 @@ async function handleLogout(): Promise<void> {
 
 .search-toggle {
   display: none;
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   color: var(--ink-2);
-  background: var(--surface);
-  border: 1px solid var(--line-2);
-  border-radius: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
   cursor: pointer;
   transition: 0.15s;
 }
@@ -1284,28 +1240,28 @@ async function handleLogout(): Promise<void> {
 .focus-entry {
   position: relative;
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   color: var(--ink-2);
-  background: var(--surface);
-  border: 1px solid var(--line-2);
-  border-radius: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
   cursor: pointer;
   transition: 0.15s;
 }
 
 .bell svg,
 .focus-entry svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 .bell:hover,
 .focus-entry:hover {
-  color: var(--brand-700);
-  background: var(--brand-50);
-  border-color: var(--brand);
+  color: var(--ink);
+  background: var(--surface-2);
+  border-color: var(--line);
 }
 
 .bell-dot {
@@ -1319,22 +1275,22 @@ async function handleLogout(): Promise<void> {
   justify-content: center;
   padding: 0 5px;
   color: #fff;
-  background: var(--red);
-  border-radius: 12px;
-  box-shadow: 0 0 0 2px var(--surface);
+  background: var(--red-600);
+  border-radius: 9px;
+  box-shadow: 0 0 0 2px var(--topbar-1);
   font-size: var(--fs-xs);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .theme-toggle {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   color: var(--ink-2);
-  background: var(--surface);
-  border: 1px solid var(--line-2);
-  border-radius: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
   cursor: pointer;
   font-size: var(--fs-md);
   transition: 0.15s;
@@ -1346,7 +1302,7 @@ async function handleLogout(): Promise<void> {
 }
 
 .theme-toggle:hover {
-  border-color: var(--brand);
+  border-color: var(--line);
   background: var(--surface-2);
 }
 
@@ -1375,15 +1331,15 @@ async function handleLogout(): Promise<void> {
 
 .avatar {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   place-items: center;
-  color: #fff;
-  background: linear-gradient(135deg, var(--av-1), var(--av-2));
-  border-radius: 12px;
+  color: var(--brand-700);
+  background: var(--brand-50);
+  border: 1px solid var(--brand-200);
+  border-radius: 8px;
   font-size: var(--fs-xs);
-  font-weight: 800;
-  box-shadow: 0 4px 12px rgb(31 158 116 / 40%);
+  font-weight: 700;
 }
 
 .content {
@@ -1435,6 +1391,12 @@ async function handleLogout(): Promise<void> {
     height: 44px;
   }
 
+  .bell svg,
+  .focus-entry svg {
+    width: 20px;
+    height: 20px;
+  }
+
   .search-input,
   :deep(.el-input__inner),
   :deep(.el-textarea__inner) {
@@ -1443,6 +1405,11 @@ async function handleLogout(): Promise<void> {
 
 
   .search {
+    display: none;
+  }
+
+  /* 窄屏：面包屑与铃铛重叠（导航已由抽屉承担），整条隐藏 */
+  .breadcrumb {
     display: none;
   }
 

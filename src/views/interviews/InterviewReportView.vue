@@ -354,9 +354,9 @@ function shortLabel(name: string): string {
 }
 
 function dimColor(value: number): string {
-  if (value >= 85) return 'linear-gradient(90deg, var(--green), #4cc585)'
-  if (value >= 70) return 'linear-gradient(90deg, var(--brand), #6aa6ff)'
-  return 'linear-gradient(90deg, #f6b43a, #e79412)'
+  if (value >= 85) return 'var(--green-600)'
+  if (value >= 70) return 'var(--brand-600)'
+  return 'var(--gold-600)'
 }
 
 function shortTime(value: string | null): string {
@@ -566,7 +566,7 @@ load()
 .overall .score {
   color: var(--ink);
   font-size: var(--fs-2xl);
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
 }
 
@@ -581,26 +581,26 @@ load()
   padding: 5px 16px;
   border-radius: 12px;
   font-size: var(--fs-sm);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .g-pass {
-  background: linear-gradient(180deg, #e9f8ef, #d8f3e2);
+  background: var(--green-50);
   color: #0f7a40;
 }
 
 .g-wait {
-  background: linear-gradient(180deg, #fdf3df, #fbebc6);
+  background: var(--gold-50);
   color: #9a6a00;
 }
 
 .g-fail {
-  background: linear-gradient(180deg, #fdecec, #fbdada);
+  background: var(--red-50);
   color: #b93b3b;
 }
 
 .g-strong {
-  background: linear-gradient(180deg, #dcf3e5, #bce6cd);
+  background: var(--green-50);
   color: #0f7a40;
 }
 
@@ -638,7 +638,7 @@ load()
   flex: 0 0 34px;
   color: var(--ink);
   font-size: var(--fs-sm);
-  font-weight: 800;
+  font-weight: 700;
   text-align: right;
 }
 

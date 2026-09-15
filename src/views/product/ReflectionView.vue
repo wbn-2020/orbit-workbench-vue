@@ -466,7 +466,7 @@ onMounted(() => {
 .stat-num {
   color: var(--ow-ink);
   font-size: var(--fs-xl);
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
@@ -515,7 +515,7 @@ onMounted(() => {
 .bar {
   width: 14px;
   border-radius: 4px 4px 2px 2px;
-  background: linear-gradient(180deg, var(--btn-1, #2f8f6f), var(--btn-2, #1f6f5c));
+  background: var(--btn-1);
 }
 
 .dots {
@@ -592,7 +592,7 @@ onMounted(() => {
 
 .growth-num {
   font-size: var(--fs-lg);
-  font-weight: 800;
+  font-weight: 700;
   color: var(--ow-ink, #17302a);
   font-variant-numeric: tabular-nums;
 }

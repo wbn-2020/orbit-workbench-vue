@@ -480,7 +480,7 @@ onUnmounted(() => {
   margin: 0 0 6px;
   color: var(--ow-eyebrow, #16634f);
   font-size: var(--fs-xs);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 2px;
 }
 
@@ -488,7 +488,7 @@ onUnmounted(() => {
   margin: 0;
   color: var(--ink);
   font-size: var(--fs-lg);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .lu-sub {
@@ -518,7 +518,7 @@ onUnmounted(() => {
   margin: 0 0 14px;
   color: var(--ink);
   font-size: var(--fs-sm);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .lu-form {
@@ -581,9 +581,9 @@ onUnmounted(() => {
 
 .lu-btn.primary {
   color: #fff;
-  background: linear-gradient(135deg, var(--btn-1, #1fa879), var(--btn-2, #15805f));
+  background: var(--btn-1);
   border-color: transparent;
-  box-shadow: 0 6px 16px rgb(31 111 92 / 30%);
+  box-shadow: none;
 }
 
 .lu-btn:disabled {
@@ -627,7 +627,7 @@ onUnmounted(() => {
   padding: 2px 9px;
   border-radius: 999px;
   font-size: var(--fs-xs);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 /* V52：来源徽标紧跟标题，margin-right:auto 把状态推回右侧 */
@@ -680,7 +680,7 @@ onUnmounted(() => {
 .goal-bar-fill {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--brand), var(--brand-700, #1f6f5c));
+  background: var(--brand-600);
 }
 
 .goal-pct {
@@ -887,7 +887,7 @@ onUnmounted(() => {
 .focus-num {
   color: var(--ink);
   font-size: var(--fs-2xl);
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
@@ -915,7 +915,7 @@ onUnmounted(() => {
   width: 100%;
   max-width: 22px;
   border-radius: 6px 6px 2px 2px;
-  background: linear-gradient(180deg, var(--brand), var(--brand-700, #1f6f5c));
+  background: var(--brand-600);
   min-height: 4px;
 }
 
@@ -950,10 +950,10 @@ onUnmounted(() => {
   margin-top: 10px;
   height: 36px;
   color: #fff;
-  background: linear-gradient(135deg, var(--btn-1, #1fa879), var(--btn-2, #15805f));
+  background: var(--btn-1);
   border: 0;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgb(31 111 92 / 26%);
+  box-shadow: none;
   cursor: pointer;
   font-family: inherit;
   font-size: var(--fs-sm);

@@ -280,10 +280,10 @@ onBeforeUnmount(() => {
   gap: 8px;
   padding: 12px 16px;
   color: #fff;
-  background: linear-gradient(135deg, var(--brand), var(--brand-700, #1f6f5c));
+  background: var(--brand-700);
   border: 0;
   border-radius: 999px;
-  box-shadow: 0 10px 26px rgb(31 111 92 / 40%);
+  box-shadow: var(--shadow-md);
   cursor: pointer;
   font-family: inherit;
   font-size: var(--fs-sm);
@@ -410,9 +410,9 @@ onBeforeUnmount(() => {
 .focus-btn.primary {
   flex: 1;
   color: #fff;
-  background: linear-gradient(135deg, var(--btn-1, #1fa879), var(--btn-2, #15805f));
+  background: var(--btn-1);
   border-color: transparent;
-  box-shadow: 0 6px 16px rgb(31 111 92 / 30%);
+  box-shadow: none;
 }
 
 .focus-btn:hover {

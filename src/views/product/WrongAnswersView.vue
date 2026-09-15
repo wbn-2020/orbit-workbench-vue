@@ -1257,7 +1257,7 @@ void initialize()
   display: block;
   height: 100%;
   border-radius: 6px;
-  background: linear-gradient(90deg, var(--green), #4cc585);
+  background: var(--green-600);
 }
 
 .dim .score {

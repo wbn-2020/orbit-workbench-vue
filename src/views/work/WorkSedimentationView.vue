@@ -458,9 +458,9 @@ onBeforeUnmount(() => {
 
 .ws-btn.primary {
   color: #fff;
-  background: linear-gradient(135deg, var(--btn-1, #1fa879), var(--btn-2, #15805f));
+  background: var(--btn-1);
   border-color: transparent;
-  box-shadow: 0 6px 16px rgb(31 111 92 / 30%);
+  box-shadow: none;
 }
 
 .ws-btn.ghost {

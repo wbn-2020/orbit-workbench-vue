@@ -228,9 +228,9 @@ onMounted(() => {
   flex: none;
   padding: 3px 10px;
   color: #0d7a52;
-  background: linear-gradient(180deg, #e9f8ef, #d8f3e2);
+  background: var(--green-50);
   border-radius: 12px;
   font-size: var(--fs-xs);
-  font-weight: 800;
+  font-weight: 700;
 }
 </style>

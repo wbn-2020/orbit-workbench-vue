@@ -12,9 +12,10 @@ export interface OwThemeMeta {
   preview: string
 }
 
+/* 预览条是「真实配色样本」：底色 / 表面 / 品牌色三段硬分界，不做装饰性混合渐变。 */
 export const OW_THEMES: OwThemeMeta[] = [
-  { value: 'light', name: '晨野', desc: '清新自然 · 浅色', dark: false, preview: 'linear-gradient(135deg,#34c98a,#6f8df0)' },
-  { value: 'dark', name: '夜航', desc: '幽静暗夜 · 深色', dark: true, preview: 'linear-gradient(135deg,#1f8f6e,#5566d0)' },
+  { value: 'light', name: '晨野', desc: '清爽浅色 · 默认', dark: false, preview: 'linear-gradient(90deg,#f5f6f7 0 46%,#ffffff 46% 70%,#15805f 70% 100%)' },
+  { value: 'dark', name: '夜航', desc: '中性炭黑 · 深色', dark: true, preview: 'linear-gradient(90deg,#141619 0 46%,#1f2227 46% 70%,#46d6a3 70% 100%)' },
 ]
 
 /** 历史主题值 → 收敛后的最近似主题（旧浏览器存储不再报错，静默迁移）。 */

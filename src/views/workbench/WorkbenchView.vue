@@ -331,15 +331,15 @@ onUnmounted(() => {
   margin: 0 0 6px;
   color: var(--ow-eyebrow, #16634f);
   font-size: var(--fs-xs);
-  font-weight: 800;
-  letter-spacing: 2px;
+  font-weight: 700;
+  letter-spacing: .5px;
 }
 
 .wb-greeting {
   margin: 0;
   color: var(--ink);
   font-size: var(--fs-xl);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .wb-sub {
@@ -373,7 +373,7 @@ onUnmounted(() => {
   margin: 0 0 14px;
   color: var(--ink);
   font-size: var(--fs-md);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .mode-grid {
@@ -392,7 +392,7 @@ onUnmounted(() => {
   border-radius: 18px;
   box-shadow: var(--shadow-sm);
   text-decoration: none;
-  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+  transition: border-color 140ms ease, background 140ms ease;
 }
 
 .mode-card:hover {
@@ -406,20 +406,22 @@ onUnmounted(() => {
   height: 52px;
   flex: none;
   place-items: center;
-  border-radius: 12px;
-  color: #fff;
+  border-radius: 10px;
 }
 
 .mode-icon.market-sensing {
-  background: linear-gradient(135deg, #2f80ed, #1f6f5c);
+  background: var(--cyan-50);
+  color: #0a7a85;
 }
 
 .mode-icon.work-sedimentation {
-  background: linear-gradient(135deg, #d97706, #b45309);
+  background: var(--gold-50);
+  color: var(--gold-600);
 }
 
 .mode-icon.learning-update {
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  background: var(--green-50);
+  color: var(--green-700);
 }
 
 .mode-icon svg {
@@ -436,7 +438,7 @@ onUnmounted(() => {
   margin: 0 0 4px;
   color: var(--ink);
   font-size: var(--fs-md);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .mode-body p {
@@ -455,7 +457,7 @@ onUnmounted(() => {
 .mode-metric strong {
   color: var(--ink);
   font-size: var(--fs-lg);
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
@@ -491,7 +493,7 @@ onUnmounted(() => {
 .asset-count {
   color: var(--brand-700, #1f6f5c);
   font-size: var(--fs-xl);
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
@@ -571,7 +573,7 @@ onUnmounted(() => {
   margin: 0;
   color: var(--ow-ink, #21332c);
   font-size: var(--fs-lg);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .wb-onboard-sub {
@@ -597,7 +599,7 @@ onUnmounted(() => {
   border-radius: 12px;
   background: var(--ow-surface-raised, var(--ow-surface, #fff));
   text-decoration: none;
-  transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+  transition: border-color .15s ease, background .15s ease;
 }
 
 .wb-step:hover {
@@ -616,7 +618,7 @@ onUnmounted(() => {
   background: var(--ow-primary-soft, rgb(31 111 92 / 12%));
   color: var(--ow-primary-strong, #1f6f5c);
   font-size: var(--fs-sm);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .wb-step-body {
@@ -656,7 +658,7 @@ onUnmounted(() => {
 
 .mode-metric strong,
 .asset-count {
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 
@@ -681,7 +683,7 @@ onUnmounted(() => {
 .wb-trend-num {
   color: var(--ow-ink);
   font-size: var(--fs-2xl);
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 

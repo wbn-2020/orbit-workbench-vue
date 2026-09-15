@@ -8,7 +8,7 @@ html:root {
   color-scheme: light;
   /* 与 body.ow-proto 保持同一套字体栈，避免两处声明不一致 */
   font-family:
-    "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Segoe UI", system-ui, -apple-system, sans-serif;
+    "Inter", "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Segoe UI", system-ui, -apple-system, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 
@@ -233,23 +233,23 @@ p {
 }
 
 .el-button {
-  min-height: 36px;
-  font-weight: 650;
-  border-radius: 12px;
-  box-shadow: var(--ow-shadow-sm);
+  min-height: 34px;
+  font-weight: 600;
+  border-radius: var(--ow-radius-sm);
+  box-shadow: none;
 }
 
 .el-button--primary {
   color: var(--ow-primary-ink);
-  background: linear-gradient(180deg, var(--btn-1), var(--btn-2));
-  border-color: var(--btn-2);
-  box-shadow: var(--ow-shadow-sm);
+  background: var(--btn-1);
+  border-color: var(--btn-1);
+  box-shadow: none;
 }
 
 .el-button--primary:hover,
 .el-button--primary:focus-visible {
-  background: linear-gradient(180deg, var(--btn-1h), var(--btn-2h));
-  border-color: var(--btn-2h);
+  background: var(--btn-1h);
+  border-color: var(--btn-1h);
 }
 
 .el-button:focus-visible,
@@ -316,7 +316,7 @@ html .el-tag.el-tag--info {
 .el-select__wrapper,
 .el-segmented,
 .el-radio-button__inner {
-  border-radius: 12px;
+  border-radius: var(--ow-radius-sm);
 }
 
 .el-input__wrapper,

@@ -220,7 +220,7 @@ defineExpose({ show })
   background: var(--surface, #fff);
   border: 1px solid var(--line, #e5e7eb);
   border-radius: 14px;
-  box-shadow: 0 18px 50px rgb(0 0 0 / 28%);
+  box-shadow: var(--shadow-md);
   transform: translateX(-50%);
 }
 
